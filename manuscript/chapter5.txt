@@ -24,7 +24,7 @@ Nézzük meg milyen project generálódott:
 -   **Properties**: klasszikus VS grafikus felület a projekt beállításaira
     -   **launchSettings.json:** Properties node-ot lenyitva találjuk meg a debuggoláshoz szükséges beállításokat a hosztolás szempontjából
 -   **Dependencies**: SDK és NuGet csomagfüggőségek kezelése
-    -   Az AspNetCore.All csomag került be, ami egy metacsomag, összefog kb. minden MS fejlesztésű, ASP.NET.Core alapcsomagot, *a fordításnál képes a nem használt csomagokat kiszűrni. (RuntimeStore)*
+    -   Az AspNetCore.All csomag került be, ami egy metacsomag, összefog kb. minden MS fejlesztésű, ASP.NET.Core alapcsomagot, a fordításnál képes a nem használt csomagokat kiszűrni. (RuntimeStore)
 -   **wwwroot**: statikusan kiszolgálandó fájlok alapértelmezett helye (jelenleg üres)
 
 ### Osztályok
@@ -62,7 +62,7 @@ Próbáljuk ki a Kestrelt közvetlenül futtatva! A zöld indító nyíl opciói
 
 Rakjunk most az utolsó middleware-ünk be egy kivétel dobást a kiírás helyett, hogy kipróbáljuk a hibakezelő MW-t.
 
-~~~~~~~~csharp
+```csharp
 app.Run(async (context) =\>
 {
     //leanpub-start-insert
@@ -70,7 +70,7 @@ app.Run(async (context) =\>
     //await context.Response.WriteAsync(\"Hello World!\");    
     //leanpub-end-insert        
 });
-~~~~~~~~
+```
 
 Próbáljuk ki!
 
@@ -95,7 +95,7 @@ Az alkalmazás számára a különböző beállításokat JSON állományokban t
 Vegyünk fel a projekt gyökerébe egy appsettings.json fájlt: (Add new item / ASP.NET Configuration File).
 
 Ez most egy connection stringet vett fel alapértelmezetten, de mi most inkább használjunk fel a naplózás konfigurálására, így tartalma legyek a következő:
-~~~~~~~~javascript
+```javascript
 {
   "Logging": {
     "LogLevel": {
@@ -103,11 +103,11 @@ Ez most egy connection stringet vett fel alapértelmezetten, de mi most inkább 
     }
   }
 }
-~~~~~~~~
+```
     
 A Hello World kiírásunkat kommentezzük vissza.
 
-~~~~~~~~csharp
+```csharp
 public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 {  
     //...   
@@ -120,12 +120,13 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         //leanpub-end-insert
     });
 }
-~~~~~~~~
+```
 
 Próbáljuk ki! Figyeljük meg, hogy most a HTTP kérésekről (INFO szint) nem keletkeznek naplóbejegyzések, mivel csak a Warning vagy az attól erősebb események kerülnek naplózásra.
 
 Készítsünk egy környezet specifikus változatot ehhez a JSON fájlhoz appsettings.Development.json néven, ami akkor fog betöltődni, ha Development környezetben futtatjuk az alkalmazásunkat. Itt már a Debug szintű bejegyzéseket is jelenítsük meg, viszont a System és a Microsoft-hoz köthető logbejegyzések esetében csak az Information szintet. Tartalma legyen a következő:
-~~~~~~~~javascript
+
+```javascript
 {
   "Logging": {
     "LogLevel": {
@@ -135,7 +136,7 @@ Készítsünk egy környezet specifikus változatot ehhez a JSON fájlhoz appset
     }
   }
 }
-~~~~~~~~
+```
 
 Próbáljuk ki! Azt tapasztaljuk, hogy az appsettings.json állományunkban csak a Warning szintet engedjük át, addig a Development környezeti változóval indított alkalmazás, már az Info szintet is átengedi a kérések naplózása során. Az appsettings.Development.json állományban található naplózó beállítások (azonos kulcsú elemek) felülírták az appsettings.json állományban található konfigurációt.
 
@@ -159,7 +160,7 @@ Rakjunk egy képfájlt a wwwroot mappába. (Ellophatjuk pl. az AUT honlap bal fe
 
 A statikus fájlkezelés, a teljes modularitás jegyében egy külön middleware-ként került implementálásra a Microsoft.AspNetCore.StaticFiles nuget csomagban (az AspNetCore.All már függőségként tartalmazza, így nem kell feltennünk most), csak hozzá kell adnunk a pipline.hoz. Mindig gondoljunk arra, hogy a Configure metódusban a MW-ek konfigurációjának sorrendje fontos, mindig az általunk megadott sorrendben fog a kérés a csővezetéken végigfutni.
 
-~~~~~~~~csharp
+```csharp
  public void Configure(
      IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
  {
@@ -175,7 +176,7 @@ A statikus fájlkezelés, a teljes modularitás jegyében egy külön middleware
          await context.Response.WriteAsync("Hello World!");
      });
  }
-~~~~~~~~
+```
 
 Próbáljuk ki! Láthatjuk hogy a localhost:port címen még mindig a Hello World szöveg tűnik fel, de amint a localhost:port/\[képfájlnév\]-el próbálkozunk a html oldal töltődik be. A static file MW megszakítja a pipeline futását, ha sikerül neki kiszolgálnia a fájlt, viszont ha nem, akkor továbbhív a következő MW-be.
 
@@ -189,14 +190,13 @@ Hozzunk létre egy új mappát Controllers néven. A mappába hozzunk létre egy
 
 Adjuk hozzá a DI konténerhez az MVC-s szolgáltatásokat, és adjuk hozzá a pipelinehoz az MVC middleware-t. A Hello World middleware-t kommentezzük ki.
 
-~~~~~~~~csharp
+```csharp
 public void ConfigureServices(IServiceCollection services)
 {
     //leanpub-start-insert
     services.AddMvc();
     //leanpub-end-insert
 }
-
 
 public void Configure(IApplicationBuilder app, HostingEnvironment env, ILoggerFactory     loggerFactory)
 {
@@ -217,7 +217,7 @@ public void Configure(IApplicationBuilder app, HostingEnvironment env, ILoggerFa
     //leanpub-end-insert
     //..
 }
-~~~~~~~~
+```
 
 Próbáljuk ki. Az alapoldal üres, viszont ha a /api/Dummy oldalra hívunk, akkor megjelenik a DummyController.Get által visszaadott érték. Magyarázzuk el a routing szabályokat, hogy hogyan jut el a HTTP kérés alapján a vágrehajtás a függvényig.
 
@@ -227,13 +227,13 @@ Mi történik, ha a gyökércímre hívunk? A konzolnapló szerint 404-es hiba. 
 #### Státusz kódok kezelése
 Ha a kérés alapján a controller/függvény nem található meg, 404-es válasz keletkezik. Hiba típusú státuszkódok kezelésére egy alapszintű megoldás a StatusCodesPages middleware. Ez egy sima szöveget küld vissza a hibakód mellett. A Configure függvénybe:
  
-~~~~~~~~csharp
+```csharp
 app.UseStaticFiles();
 //leanpub-start-insert
 app.UseStatusCodePages();
 //leanpub-end-insert
 app.UseMvc(routes => …
-~~~~~~~~
+```
     
 T> Ezt a middleware-t még lehet tovább konfigurálni, kódonként külön kimenetet megadni, vagy átírányítani egy kontrollerfüggvényhez, hogy az állítsa elő a választ a státuszkód alapján.
 
@@ -242,7 +242,7 @@ Próbáljuk ki így - egy rövid szöveges üzenet jelenik meg a böngészőben.
 ### Kivételek kezelése
 A hibák általában kivételként keletkeznek, amit valahol egy hibakódot (és esetlegesen extra infót, hibaüzenetet) tartalmazó HTTP válasszá alakítunk. Az átalakítás megtörténhet a controller függvényben, de ehhez el kell kapnunk a kivételeket. Mi történik, ha nem kapjuk el? DummyController.Get elején szimuláljuk ezt, dobjunk kivételt:
   
-~~~~~~~~csharp
+```csharp
 [HttpGet]
 public IEnumerable<string> Get()
 {
@@ -251,13 +251,13 @@ public IEnumerable<string> Get()
     //leanpub-end-insert
     return new string[] { "value1", "value2" };
 }
-~~~~~~~~
+```
 
 Próbáljunk ráhívni az api/Dummy címre: Development módban a kivétel szinte minden adata megjelenik (biztonsági kockázat, de dev módban bocsánatos bűn), ha development mód nélküli indítási profilt használunk, akkor egy üres 500-as hibát kapunk. Ez amiatt van, mert a DeveloperExceptionPage csak development indítási módban kerül bele a pipeline-ba.
 
 Biztonsági szempontból ez az állapot sem rossz, de ha ennél azért több infót akarunk visszaadni a kliensnek, akkor érdemes a nem elkapott kivételeket érdemes közös helyen lekezelni. Erre jó az ExceptionHandler middleware.
 
-~~~~~~~~csharp
+```csharp
  if (env.IsDevelopment())
  {
      app.UseDeveloperExceptionPage();
@@ -268,17 +268,17 @@ Biztonsági szempontból ez az állapot sem rossz, de ha ennél azért több inf
      app.UseExceptionHandler("/error");
  }
  //leanpub-end-insert
-~~~~~~~~
+```
 
 A DummyController-be vegyünk fel egy függvényt, aminek a route-ja /error.
 
-~~~~~~~~csharp
+```csharp
 [Route("/error")]
 public IActionResult Index()
 {
     return StatusCode(StatusCodes.Status500InternalServerError, "Hibaa");
 }
-~~~~~~~~
+```
 
 Próbáljuk ki egy nem development módú indítási profillal az api/Dummy címet. A függvényben megadott szöveg fog megjelenni.
 
