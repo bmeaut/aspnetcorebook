@@ -17,7 +17,7 @@ A labor folyamán fordítsunk külön figyelmet a C# nyelv sajátosságainak ism
 |              |                                        |
 |              | (Pipes are the vertical lines, "\|")   |
 
-|     |C#  |Keywords and concepts                                                      | .NET | Visual Studio |
+|Year |C#  |Keywords and concepts                                                      |.NET   |Visual Studio |
 |------------------------------------------------------------------------------------------------------------ |
 |2002 |1.x |namespace, property, operator, delegate, event, garbage collection,        |1.x    |.NET 2002     |
 |     |    |                                                                           |       |              |
@@ -32,9 +32,9 @@ A labor folyamán fordítsunk külön figyelmet a C# nyelv sajátosságainak ism
 |     |    |                                                                           |       |              |
 |     |    |method, anonymous type, query expression, expression tree, partial method  |       |2010          |
 |------------------------------------------------------------------------------------------------------------ |
-|2010 |4.0 |dynamic ☹, named and optional arguments                                |4      |2010          |
+|2010 |4.0 |dynamic ☹, named and optional arguments,                                  |4      |2010          |
 |     |    |                                                                           |       |              |
-|     |    |, generic co-/contravariance, embedded interop types                       |       |              |--------------------------------------------------------------------------------------------------------------|
+|     |    |generic co-/contravariance, embedded interop types                         |       |              |--------------------------------------------------------------------------------------------------------------|
 |2012 |5.0 |async/await, caller info attributes                                        |4.5    |2012          |
 |     |    |                                                                           |       |              |
 |     |    |                                                                           |       |2013          |
@@ -56,9 +56,9 @@ Hozzunk létre hozzá új solution-t (csak azért, hogy szokják a hallgatók a 
 
 Észrevehetjük, hogy az alkalmazás template-ek között .NET Core, .NET Framework és .NET Standard alkalmazásokat is fejleszthetünk. Az utóbbit önmagában nem használhatjuk konzolos alkalmazás készítésére, ugyanis az nem implikál semmiféle futtatókörnyezetet.
 
--**.NET Standard:** az alábbi környezet megcélzásával a lehető leghordozhatóbb osztálykönyvtárakat készíthetjük el. A .NET standardizálásából készült egy szabványos megoldás, amelyet bármely másik .NET Standard-et támogató keretrendszer és alkalmazás felhasználhat (Mono/Xamarin, .NET Core, .NET Framework).
--**.NET Core:** a .NET Framework modularizált, modernizált, cross-platform és nyílt forráskódú megvalósítása. Kisebb NuGet csomagokban érhető el a teljes .NET Framework funkcionalitása (Collections, Reflection, XML feldolgozás, stb.).
--**.NET Framework:** a „klasszikus”, teljesértékű .NET keretrendszer, out-of-the-box támogatja a legelterjedtebb alkalmazásfejlesztési lehetőségeket. A .NET Core megjelenését követően is támogatott, enterprise környezetekben használatos, ugyanis teljes értékű support támogással rendelkezik. 
+- **.NET Standard:** az alábbi környezet megcélzásával a lehető leghordozhatóbb osztálykönyvtárakat készíthetjük el. A .NET standardizálásából készült egy szabványos megoldás, amelyet bármely másik .NET Standard-et támogató keretrendszer és alkalmazás felhasználhat (Mono/Xamarin, .NET Core, .NET Framework).
+- **.NET Core:** a .NET Framework modularizált, modernizált, cross-platform és nyílt forráskódú megvalósítása. Kisebb NuGet csomagokban érhető el a teljes .NET Framework funkcionalitása (Collections, Reflection, XML feldolgozás, stb.).
+- **.NET Framework:** a „klasszikus”, teljesértékű .NET keretrendszer, out-of-the-box támogatja a legelterjedtebb alkalmazásfejlesztési lehetőségeket. A .NET Core megjelenését követően is támogatott, enterprise környezetekben használatos, ugyanis teljes értékű support támogással rendelkezik. 
 
 Az alábbi elemeket ismertethetjük, mielőtt a kódírásba belekezdünk:
 
@@ -82,8 +82,8 @@ Console.ReadLine();
 Az IntelliSense-t demonstrálhatjuk az alábbi módon:
 
 - A kódban bármely logikus helyen használható az IntelliSense a Ctrl+Spacebar billentyűkombinációval, ezen kívül alapértelmezetten felugrik kódírás közben is.
-- Írjuk be a Console és a .WriteLine() elemeket úgy, hogy gépelés közben az IntelliSense legördülőből válasszuk ki az elemet, majd Tab-bal véglegesítsük a választást.
-- Használjuk a cw code snippetet, amit az IntelliSense is jelez, azaz írjuk be: cw[Tab][Tab].
+- Írjuk be a Console és a .WriteLine() elemeket úgy, hogy gépelés közben az IntelliSense legördülőből válasszuk ki az elemet, majd Tab-bal (⭾) véglegesítsük a választást.
+- Használjuk a cw code snippetet, amit az IntelliSense is jelez, azaz írjuk be: cw⭾⭾.
 - Ha a `Console.ReadLine()` helyett `Console.Readline()`-t írunk, elsőként az IDE azonnal javítja a hibát. Ha ezt a javítást visszavonjuk (Ctrl+Z), lehetőségünk van a javításra a Ctrl+. használatával: a fejlesztőeszköz észreveszi, hogy hibát vétettünk, és felkínálja a gyakori megoldásokat.
 - Overload-ok: jelöljük ki a WriteLine hívás nyitó zárójelét, és írjuk be ismét a nyitó zárójelet. Így előjön az overload-ok listája, amik közül a megfelelőt a föl/le iránybillentyűkkel választhatjuk ki. Az overload listát megnyithatjuk úgy is, hogy a zárójelben bárhova írunk egy ',' karaktert.
 
@@ -115,7 +115,7 @@ Hozzuk létre a Person adatosztályt! Ehhez jobb katt a projekten → Add → Cl
 
 A C# tulajdonság (property) egy szintaktikai édesítőszer, amely egy objektumpéldány (vagy osztály) egy explicit (memóriabeli) vagy implicit (származtatott vagy indirekt) jellemzőjét írja le. Egy tulajdonsággal két művelet végezhető: lekérdezés (get) és értékadás (set); ezeknek megadható külön a láthatósága és a kettő közül elegendő egy implementálása. A legtöbb C# szintaktikai édesítőszer a boilerplate kódok írásának elkerülése végett készült, így kevesebb kódolással érjük el ugyanazt az eredményt (sokszor az IL kód nem is változik, gyakorlatilag hasonló a kódgeneráláshoz).
 
-A Person osztályban hozzuk létre a string Name property-t, name backer fielddel. Ehhez használjuk a propfull code snippetet (propf<kbd>Tab</kbd>[Tab], majd Tabbal lehet lépkedni a módosítható elemek között):
+A Person osztályban hozzuk létre a string Name property-t, name backer fielddel. Ehhez használjuk a propfull code snippetet (propf⭾⭾, majd ⭾-bal lehet lépkedni a módosítható elemek között):
 
 ```csharp
 public class Person
