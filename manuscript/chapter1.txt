@@ -5,6 +5,18 @@
 A labor során a hallgatók elkezdenek megismerkedni a C# nyelv alapjaival, mondattanával, a Visual Studio fejlesztőeszközzel. Röviden, dióhéjban hasonlítsuk össze más programozási nyelvekkel (Java, C/C++, Python, JavaScript).
 A labor folyamán fordítsunk külön figyelmet a C# nyelv sajátosságainak ismertetésére! Röviden elmondhatjuk, hogy a Visual Studio, a .NET (CLR) és a C# szorosan kapcsolódó technológiák, és hogy általában összhangban van ezeknek a kiadási dátuma:
 
+|Verb          | Action                                 |
+|--------------|----------------------------------------|
+|Multiline     | You can have multiple-lines in a       |
+|              | table, and line-breaks are respected.  |
+|              |                                        |
+|              | This is a second paragraph             |
+|-------------------------------------------------------|
+|continued!    | You create new table cells with a      |
+|              | line of dashes surrounded by pipes     |
+|              |                                        |
+|              | (Pipes are the vertical lines, "\|")   |
+
 |     |C#  |Keywords and concepts                                                      | .NET | Visual Studio |
 |------------------------------------------------------------------------------------------------------------ |
 |2002 |1.x |namespace, property, operator, delegate, event, garbage collection,        |1.x    |.NET 2002     |
@@ -25,20 +37,20 @@ A labor folyamán fordítsunk külön figyelmet a C# nyelv sajátosságainak ism
 |     |    |, generic co-/contravariance, embedded interop types                       |       |              |--------------------------------------------------------------------------------------------------------------|
 |2012 |5.0 |async/await, caller info attributes                                        |4.5    |2012          |
 |     |    |                                                                           |       |              |
-|     |    |                                                                           |       |2013          |--------------------------------------------------------------------------------------------------------------|
+|     |    |                                                                           |       |2013          |
 
 Ezen a laboron célunk, hogy a hallgatók legalább részben megértsék és ráérezzenek a C# szintaktikájára, megismerkedjenek alapvető nyelvi elemekkel és konstrukciókkal.
 
 ## Hello C#!
 
-Navigáljunk a File -> New -> Project dialógusablakra! Magyarázzuk el, hogy van lehetőségünk előre gyártott sablonokból létrehozni projekteket.
+Navigáljunk a File → New → Project dialógusablakra! Magyarázzuk el, hogy van lehetőségünk előre gyártott sablonokból létrehozni projekteket.
 
 - Egy C# Project egy szerelvénnyé fordul (.dll, .exe).
 - A Solution dolga, hogy logikailag összefogja a Project-eket (több-többes kapcsolatban vannak). 
 - Project-ek között referenciákat adhatunk másik projektekre úgy, hogy a fordítási mechanizmus figyelembe veszi a referenciákat és szükség esetén újrafordítja a szerelvényeket.
 - Project-ek hivatkozhatnak külső forrásból származó szerelvényekre is NuGet csomagok formájában. A NuGet egy egységes módszer szerelvényeink terjesztésére.
   
-Hozzunk létre egy új C# Console Application-t! Ehhez az Installed -> Templates -> Visual C# -> Console App (.NET Framework)-öt válasszuk, vagy használjuk a jobb felső sarokban levő keresőt („cons”). A neve legyen HelloCSharp.
+Hozzunk létre egy új C# Console Application-t! Ehhez az Installed → Templates → Visual C# → Console App (.NET Framework)-öt válasszuk, vagy használjuk a jobb felső sarokban levő keresőt („cons”). A neve legyen HelloCSharp.
 
 Hozzunk létre hozzá új solution-t (csak azért, hogy szokják a hallgatók a koncepciót), és adjunk meg egy olyan helyet, ahová a hallgatók is menthetnek. A Create directory for solution lehetőséget hagyjuk üresen, így nem fog létrejönni egy felesleges mappa a könyvtárszerkezetben. A .NET Framework verziót állítsuk legalább 4.6.1-esre.
 
@@ -50,8 +62,8 @@ Hozzunk létre hozzá új solution-t (csak azért, hogy szokják a hallgatók a 
 
 Az alábbi elemeket ismertethetjük, mielőtt a kódírásba belekezdünk:
 
-- Rövid áttekintés az IDE-ről: menüsáv, Solution Explorer, Properties, Output, Error List ablakok, ablakozórendszer. Mutassuk meg, hogy drag-n-drop műveletekkel testreszabható a felület, pl. helyezzük a Solution Explorert a képernyő bal oldalára. Ha valaki véletlenül átrendezi az alapértelmezett elrendezést, a Window -> Reset Window Layout lehetőséggel visszaállíthatja.
-- A projekt tulajdonságok (jobb klikk &rightarrow; Properties) oldalán az Application fülön megnézhetjük, hogy az Output type értéke határozza meg, hogy milyen jellegű (konzolos, Windows, osztálykönyvtár) alkalmazást készítünk.
+- Rövid áttekintés az IDE-ről: menüsáv, Solution Explorer, Properties, Output, Error List ablakok, ablakozórendszer. Mutassuk meg, hogy drag-n-drop műveletekkel testreszabható a felület, pl. helyezzük a Solution Explorert a képernyő bal oldalára. Ha valaki véletlenül átrendezi az alapértelmezett elrendezést, a Window → Reset Window Layout lehetőséggel visszaállíthatja.
+- A projekt tulajdonságok (jobb klikk → Properties) oldalán az Application fülön megnézhetjük, hogy az Output type értéke határozza meg, hogy milyen jellegű (konzolos, Windows, osztálykönyvtár) alkalmazást készítünk.
 - Mutassuk meg, hogy milyen alapvető szerelvényekre adunk referenciát a projektben!
 - Nézzük meg a Program.cs fájl tartalmát és fussuk át a látható elemeket!
 - Magyarázzuk el a using és namespace kulcsszavak jelentését, egymáshoz képesti viszonyukat! A névtér értéke egy újonnan létrehozott fájlnál alapértelmezetten Projektnév.Mappaszerkezet alakú, érdemes konvencionálisan ezt követni. Sok hallgatónál nem tiszta, hogy hogyan viszonyul egymáshoz a namespace és a szerelvény fogalma, ezért próbáljuk meg ezt tisztázni!
@@ -75,7 +87,7 @@ Az IntelliSense-t demonstrálhatjuk az alábbi módon:
 - Ha a `Console.ReadLine()` helyett `Console.Readline()`-t írunk, elsőként az IDE azonnal javítja a hibát. Ha ezt a javítást visszavonjuk (Ctrl+Z), lehetőségünk van a javításra a Ctrl+. használatával: a fejlesztőeszköz észreveszi, hogy hibát vétettünk, és felkínálja a gyakori megoldásokat.
 - Overload-ok: jelöljük ki a WriteLine hívás nyitó zárójelét, és írjuk be ismét a nyitó zárójelet. Így előjön az overload-ok listája, amik közül a megfelelőt a föl/le iránybillentyűkkel választhatjuk ki. Az overload listát megnyithatjuk úgy is, hogy a zárójelben bárhova írunk egy ',' karaktert.
 
-Indítsuk el az alkalmazást! Ehhez a fent található Start lehetőséget használhatjuk, de mondjuk el, hogy ez a menü Debug &rightarrow; Start Debugging (F5) lehetőséggel ekvivalens.
+Indítsuk el az alkalmazást! Ehhez a fent található Start lehetőséget használhatjuk, de mondjuk el, hogy ez a menü Debug → Start Debugging (F5) lehetőséggel ekvivalens.
 
 Mutassuk be a `for` és `foreach` vezérlési szerkezeteket! A projekt Properties oldalán (Alt+Enter a projekt kijelölése után) adjunk meg a Debug fülön a Start Options blokknál legalább 5 tetszőleges parancssori argumentumot (szóközzel elválasztva), pl. kutya alma béka banán ló.
 
@@ -95,11 +107,11 @@ Indítsuk el, és gyönyörködjünk.
 
 Rakjunk egy Breakpointot (F9, vagy klikkeljünk baloldalon a függőleges sávon a kód sorszáma mellett) a `Console.WriteLine(args[i]);` sorra, majd indítsuk újra az alkalmazást! Amikor a breakpointon megáll az alkalmazás futása, a sor sárga színű lesz. Ekkor vigyük az egeret az i, az args és az args.Length elemek felé, és mutassuk meg, hogy láthatjuk az aktuális értékeiket, komplexebb objektumok esetén be tudjuk járni az objektumgráfot. A Watch ablaka is tehetünk kifejezéseket, és megmutathatjuk a Locals ablakot is. F10-zel (vagy a menüsoron a Step Over elemmel) lépjünk tovább, nézzük meg, milyen sorrendben értékelődik ki a for ciklus. Az F5-tel továbbengedhetjük az alkalmazás futását, majd zárjuk is be.
 
-Mutassuk meg a Conditional Breakpoint használatát is. Tegyünk még egy breakpointot a másik Console.WriteLine-ra is. Jobb egér gomb az első breakpointon &rightarrow; Conditions… Adjuk meg az alábbiakat: Conditional Expression; Is true; `(i == 3)`. A másik breakpointon is adjunk meg feltételt: Hit Count; =; 4. Mindkét alkalommal a 4. elemen (banán) állunk meg. Megjegyezhetjük, hogy a Conditional Breakpoint használatával nem érdemes mellékhatást okozó műveleteket megadni, illetve hogy jelentősen le tudja csökkenteni a debugolás sebességét.
+Mutassuk meg a Conditional Breakpoint használatát is. Tegyünk még egy breakpointot a másik Console.WriteLine-ra is. Jobb egér gomb az első breakpointon → Conditions… Adjuk meg az alábbiakat: Conditional Expression; Is true; `(i == 3)`. A másik breakpointon is adjunk meg feltételt: Hit Count; =; 4. Mindkét alkalommal a 4. elemen (banán) állunk meg. Megjegyezhetjük, hogy a Conditional Breakpoint használatával nem érdemes mellékhatást okozó műveleteket megadni, illetve hogy jelentősen le tudja csökkenteni a debugolás sebességét.
 
 ### Tulajdonságok
 
-Hozzuk létre a Person adatosztályt! Ehhez jobb katt a projekten &rightarrow; Add &rightarrow; Class, a fájl neve legyen Person (a kiterjesztést automatikusan hozzábiggyeszti a Visual Studio, ha nem adjuk meg). .NET-ben nincs megkötés arra, hogy a kódokat tartalmazó fájlok és az egyes típusok számossága hogyan viszonyul egymáshoz: lehetséges egy kódfájlba is írnunk a teljes alkalmazás-kódot, illetve egy osztályt is szétdarabolhatunk több fájlra (ehhez a partial kulcsszót használjuk).
+Hozzuk létre a Person adatosztályt! Ehhez jobb katt a projekten → Add → Class, a fájl neve legyen Person (a kiterjesztést automatikusan hozzábiggyeszti a Visual Studio, ha nem adjuk meg). .NET-ben nincs megkötés arra, hogy a kódokat tartalmazó fájlok és az egyes típusok számossága hogyan viszonyul egymáshoz: lehetséges egy kódfájlba is írnunk a teljes alkalmazás-kódot, illetve egy osztályt is szétdarabolhatunk több fájlra (ehhez a partial kulcsszót használjuk).
 
 A C# tulajdonság (property) egy szintaktikai édesítőszer, amely egy objektumpéldány (vagy osztály) egy explicit (memóriabeli) vagy implicit (származtatott vagy indirekt) jellemzőjét írja le. Egy tulajdonsággal két művelet végezhető: lekérdezés (get) és értékadás (set); ezeknek megadható külön a láthatósága és a kettő közül elegendő egy implementálása. A legtöbb C# szintaktikai édesítőszer a boilerplate kódok írásának elkerülése végett készült, így kevesebb kódolással érjük el ugyanazt az eredményt (sokszor az IL kód nem is változik, gyakorlatilag hasonló a kódgeneráláshoz).
 
