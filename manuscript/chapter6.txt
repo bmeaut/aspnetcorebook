@@ -1,57 +1,58 @@
-# ASP.NET Core alapok
+# Entity Framework Core
 
 ## Célkitűzés
-A labor során a hallgatók megismerkednek az ASP.NET Core alapvető felépítésével. A labor kitér a middleware-ek működésére, a konfigurációra, majd az MVC keretrendszer segítségével egyszerű webes kérések kerülnek implementálásra, aminek során a beépített dependency injection keretrendszer is bemutatásra kerül. Majd a labor végén a szemléltetés céljából egy egyszerű middleware kerül megvalósításra hibakezelés címszóval.
+A labor célja, hogy a hallgatók megismerkedjenek az Entity Framework Core alapjaival, ezen belül is részletesebben a Code-First alapú fejlesztéssel.
 
-## Projekt létrehozása
-Ezen a laboron nem a klasszikus beépített API projektsablont fogjuk felhasználni, hanem egy üres ASP.NET Core projektből próbáljuk felépíteni és megérteni azt a funkcionalitást, amit egyébként az előre elkészített VS projektsablonok adának készen a kezünkbe.
+## Előfeltételek
+- Visual Studio 2017 
+- .NET Core SDK
 
-### Generálás
-Hozzunk létre a Visual Studioban egy új projektet: (C# / Web / ASP.NET Core Web Application (.NET Core)), a neve legyen HelloAspNetCore.
-A következő dialógusablakban válasszuk ki az ASP.NET Core 2.0 opciót és azon belül a Empty sablont. Most szándékosan nem a Web Apit vagy a Web Applicationt választottuk mivel a labor célja egy általános ASP.NET Core alkalmazás működésének megismerése, amit most saját kezűleg fogunk felépíteni.
+## Az Entity Framework mapping módszerei
+Az OR leképzés két részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektum modell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk Code-First mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot Reverse Engeniered Code-First-nek hívjuk, de ezt általában csak kompatibilitási célból szoktuk használni.
+
+### A Code-first mapping módszer
+A Code-First lényege, hogy elsőként az OO entitásokat definiáljuk egyszerűen programkódban, majd a mapping-et szintén programkódban. A mapping alapján az EF képes az adatbázis létrehozására, inicializálására és a séma változáskövetésére is (Migrations).
 
 ![ASP.NET Core templates](images/aspnetcore1-choosetemplate.png)
 
-### Eredmény
+### Az entitások definiálása
 
+Készítsünk egy konzolos alkalmazást, majd a projekten belül hozzunk létre egy Entities mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
+    - Product (Id:int, Name:string, UnitPrice:int)
+    - Order (Id:int, OrderDate:DateTime)
+    - Category (Id:int, CategoryName:string) 
+Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (prop snippet). 
 
-Nézzük meg milyen project generálódott:
+### Mapping és egyéb metaadatok megadása I.
 
-- **.csproj**: (Projekten jobb gomb, edit .csproj) Projekt beállításait tartalmazza. Előző verziókhoz képest itt erősen építenek az alapértelmezett értékekre, hogy minnél karcsúbbra tudják fogni ezt az állományt.
-  - **SDK**: project típusa (Microsoft.NET.Sdk.Web), tooling funkcióit szabályozza
-  - **TargetFramework**: netcoreapp2.0 (.NET Core 2.0)
-  - **PackageReference**: NuGet csomagok
-    - Microsoft.AspNetCore.All 2.x
-- **Properties**: klasszikus VS grafikus felület a projekt beállításaira
-  -   **launchSettings.json:** Properties node-ot lenyitva találjuk meg a debuggoláshoz szükséges beállításokat a hosztolás szempontjából
-- **Dependencies**: SDK és NuGet csomagfüggőségek kezelése
-  -   Az AspNetCore.All csomag került be, ami egy metacsomag, összefog kb. minden MS fejlesztésű, ASP.NET.Core alapcsomagot, a fordításnál képes a nem használt csomagokat kiszűrni. (RuntimeStore)
-- **wwwroot**: statikusan kiszolgálandó fájlok alapértelmezett helye (jelenleg üres)
+Eddig megadtuk az entitás nevét, az attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen az attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál a megadásra. Az egyik módszer, hogy attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
+A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: pl. gyakori, hogy az elsődleges kulcs neve tartalmazza az „id” szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor az attribútumos vagy fluent megadással tehetjük meg.
+T> EF 6-ban saját konvenciókat is megadhatunk, viszont Core-ban (még) nem.
 
-### Osztályok
+Elsőként azt nézzük meg, hogy mit talál ki az EF, ha semmi plusz adatot nem adunk meg.
 
-#### Program.cs
+### Relációk
 
-Az előző ASP.NET verzióval ellentétben, itt már az ASP.NET Core alkalmazások is klasszikus konzolos alkalmazások is lehetnek, így az alkalmazás alapértelmezett belépési pontja a Program osztály statikus Main metódusa. Ebben alapértelmezetten az ASP.NET Core pipeline kerül inicializálásra és futtatásra a WebHostBuilder segítségével.
+Az entitások közötti kapcsolatokat mutatja az alábbi ábra:
 
-Itt az ASP.NET Core beépített webszerverét (Kestrel[^kestrel]) használjuk a beérkező HTTP kérések lekezelésére.
+![EF Core kapcsolatok](images/efcore-rels.png)
 
-Az ASP.NET Core alkalmazásunk konfigurációja egy külön osztályban (Startup) helyezkedik el, amit explicit meg is adunk a buildernek.
+A Product-Category egy-többes kapcsolathoz egy idegen kulcs property és egy navigációs property tartozik a `Product` osztályban és egy navigációs property a `Category`-ban. A többes navigációs property-k legyenek csak olvashatók és a típusuk legyen `ICollection<>`.
 
-#### Startup.cs
+T> Általánosságban nem kötelező egy kapcsolat mindkét oldalán navigációs property-t felvenni, de erősen javasolt és mindig jó, ha van. Az entitáson végzendő műveleteket egyszerűsíti, illetve a konvenciós logika is következtet belőle.
 
-A Startup osztály tartalmazza az ASP.NET Core alkalmazásunk konfigurációját, ahol két kitüntetett metódus van.
+Az Order-Product több-többes kapcsolatothoz nem elég egy-egy kollekciót felvenni a két osztályban. Létre kell hozzuk a kapcsolótáblának megfelelő entitást is, ami egy-egy Product és Order közötti kapcsolatot reprezentálja.
 
-A ConfigureServices-ben konfigurálhatjuk fel a dependency injection konténert. (lásd későbbi laborban)
+    - **ProductOrders** (ProductId:int, OrderId:int)
+  
+![Product-Order kapcsolótábla](images/efcore-bridgetab.png)
 
-A Configure metódusban pedig a middleware csővezetéket adjuk meg, tehát azokat a komponenseket, amelyeken a http kérés feldolgozása fut végig. Az alábbi ábra szemlélteti a middleware pipeline működését, rajzoljuk fel a táblára.
+Ezután így néznek ki az entitások (segítség a gépeléshez: bit.ly/dotnetlabor6-7)
 
-![ASP.NET Core pipeline](images/aspnetcore1-pipeline.png)
-
-Esetünkben most csak 2 middleware-ünk van:
-
--   Kivételkezelő middleware, ami az őt követő middleware-ek hibáit képes elkapni és ennek megfelelően egy hibaoldalt jelenít meg. Ez csak opcionálisan kerül beregisztrálásra attól függően, hogy most éppen „Development módban" futtatjuk-e az alkalmazást vagy sem. (lásd később)
--   Hello World middleware, ami a válaszba ír egy „Hello World!" szöveget. Esetünkben ez termináló MW lesz, mivel ez már nem hív tovább a következő komponensbe, csak a választ írja ki. Figyeljük meg, hogy ez most egy lambda kifejezéssel kerül megadásra, viszont érdemes a middleware logikát egy külön osztályba kiszervezni (lásd később)
+<<(code/efcore-category.cs)
+<<(code/efcore-order.cs)
+<<(code/efcore-product.cs)
+<<(code/efcore-productorder.cs)
 
 ### Kipróbálás
 
@@ -95,8 +96,7 @@ Az alkalmazás számára a különböző beállításokat JSON állományokban t
 
 Vegyünk fel a projekt gyökerébe egy appsettings.json fájlt: (Add new item / ASP.NET Configuration File).
 
-Ez most egy connection stringet vett fel alapértelmezetten, de mi most inkább használjunk fel a naplózás konfigurálására, így tartalma legyen a következő:
-
+Ez most egy connection stringet vett fel alapértelmezetten, de mi most inkább használjunk fel a naplózás konfigurálására, így tartalma legyek a következő:
 ```javascript
 {
   "Logging": {
