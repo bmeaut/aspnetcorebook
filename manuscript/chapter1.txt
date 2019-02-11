@@ -32,7 +32,7 @@ A labor folyamán fordítsunk külön figyelmet a C# nyelv sajátosságainak ism
 |     |    |                                                                           |       |              |
 |     |    |method, anonymous type, query expression, expression tree, partial method  |       |2010          |
 |------------------------------------------------------------------------------------------------------------ |
-|2010 |4.0 |dynamic :sad:, named and optional arguments                                |4      |2010          |
+|2010 |4.0 |dynamic ☹, named and optional arguments                                |4      |2010          |
 |     |    |                                                                           |       |              |
 |     |    |, generic co-/contravariance, embedded interop types                       |       |              |--------------------------------------------------------------------------------------------------------------|
 |2012 |5.0 |async/await, caller info attributes                                        |4.5    |2012          |
