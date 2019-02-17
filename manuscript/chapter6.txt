@@ -22,15 +22,17 @@ A Code-First lényege, hogy elsőként az OO entitásokat definiáljuk egyszerű
 ### Az entitások definiálása
 
 Készítsünk egy konzolos alkalmazást, majd a projekten belül hozzunk létre egy Entities mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
-    - Product (Id:int, Name:string, UnitPrice:int)
-    - Order (Id:int, OrderDate:DateTime)
-    - Category (Id:int, CategoryName:string)
-Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (prop snippet). 
+
+- Product (Id:int, Name:string, UnitPrice:int)
+- Order (Id:int, OrderDate:DateTime)
+- Category (Id:int, CategoryName:string)
+Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (prop snippet).
 
 ### Mapping és egyéb metaadatok megadása I.
 
 Eddig megadtuk az entitás nevét, az attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen az attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál a megadásra. Az egyik módszer, hogy attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
 A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: pl. gyakori, hogy az elsődleges kulcs neve tartalmazza az „id” szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor az attribútumos vagy fluent megadással tehetjük meg.
+
 T> EF 6-ban saját konvenciókat is megadhatunk, viszont Core-ban (még) nem.
 
 Elsőként azt nézzük meg, hogy mit talál ki az EF, ha semmi plusz adatot nem adunk meg.

@@ -72,7 +72,7 @@ Console.ReadLine();
 Az IntelliSense-t demonstrálhatjuk az alábbi módon:
 
 - A kódban bármely logikus helyen használható az IntelliSense a Ctrl+Spacebar billentyűkombinációval, ezen kívül alapértelmezetten felugrik kódírás közben is.
-- Írjuk be a Console és a .WriteLine() elemeket úgy, hogy gépelés közben az IntelliSense legördülőből válasszuk ki az elemet, majd Tab-bal ([TAB]) véglegesítsük a választást.
+- Írjuk be a Console és a .WriteLine() elemeket úgy, hogy gépelés közben az IntelliSense legördülőből válasszuk ki az elemet, majd Tab-bal véglegesítsük a választást.
 - Használjuk a cw code snippetet, amit az IntelliSense is jelez, azaz írjuk be: cw[TAB][TAB].
 - Ha a `Console.ReadLine()` helyett `Console.Readline()`-t írunk, elsőként az IDE azonnal javítja a hibát. Ha ezt a javítást visszavonjuk (Ctrl+Z), lehetőségünk van a javításra a Ctrl+. használatával: a fejlesztőeszköz észreveszi, hogy hibát vétettünk, és felkínálja a gyakori megoldásokat.
 - Overload-ok: jelöljük ki a WriteLine hívás nyitó zárójelét, és írjuk be ismét a nyitó zárójelet. Így előjön az overload-ok listája, amik közül a megfelelőt a föl/le iránybillentyűkkel választhatjuk ki. Az overload listát megnyithatjuk úgy is, hogy a zárójelben bárhova írunk egy ',' karaktert.
@@ -99,7 +99,7 @@ Rakjunk egy Breakpointot (F9, vagy klikkeljünk baloldalon a függőleges sávon
 
 Mutassuk meg a Conditional Breakpoint használatát is. Tegyünk még egy breakpointot a másik Console.WriteLine-ra is. Jobb egér gomb az első breakpointon → Conditions… Adjuk meg az alábbiakat: Conditional Expression; Is true; `(i == 3)`. A másik breakpointon is adjunk meg feltételt: Hit Count; =; 4. Mindkét alkalommal a 4. elemen (banán) állunk meg. Megjegyezhetjük, hogy a Conditional Breakpoint használatával nem érdemes mellékhatást okozó műveleteket megadni, illetve hogy jelentősen le tudja csökkenteni a debugolás sebességét.
 
-### Tulajdonságok
+### Tulajdonságok (Property-k)
 
 Hozzuk létre a Person adatosztályt! Ehhez jobb katt a projekten → Add → Class, a fájl neve legyen Person (a kiterjesztést automatikusan hozzábiggyeszti a Visual Studio, ha nem adjuk meg). .NET-ben nincs megkötés arra, hogy a kódokat tartalmazó fájlok és az egyes típusok számossága hogyan viszonyul egymáshoz: lehetséges egy kódfájlba is írnunk a teljes alkalmazás-kódot, illetve egy osztályt is szétdarabolhatunk több fájlra (ehhez a partial kulcsszót használjuk).
 
