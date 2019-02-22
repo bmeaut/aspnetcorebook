@@ -3,31 +3,6 @@
 ## Célkitűzés
 
 A labor során a hallgatók elkezdenek megismerkedni a C# nyelv alapjaival, mondattanával, a Visual Studio fejlesztőeszközzel. Röviden, dióhéjban hasonlítsuk össze más programozási nyelvekkel (Java, C/C++, Python, JavaScript).
-A labor folyamán fordítsunk külön figyelmet a C# nyelv sajátosságainak ismertetésére! Röviden elmondhatjuk, hogy a Visual Studio, a .NET (CLR) és a C# szorosan kapcsolódó technológiák, és hogy általában összhangban van ezeknek a kiadási dátuma:
-
-|Year |C#  |Keywords and concepts                                                      |.NET   |Visual Studio |
-|-----|----|---------------------------------------------------------------------------|-------|------------- |
-|2002 |1.x |namespace, property, operator, delegate, event, garbage collection,        |1.x    |.NET 2002     |
-|     |    |                                                                           |       |              |
-|2003 |    |reference/value type, class, interface, constructor, enum, …               |       |.NET 2003     |
-|-----|----|---------------------------------------------------------------------------|-------|--------------|
-|2005 |2.0 |generics, anonymous methods, iterators, nullable types, property           |2.0    |.NET 2005     |
-|     |    |                                                                           |       |              |
-|     |    |accessibility, partial types, delegate co-/contravariance, static class,   |       |.NET 2003     |
-|     |    |                                                                           |       |              |
-|     |    |delegate reference                                                         |       |              |
-|-----|----|---------------------------------------------------------------------------|-------|--------------|
-|2007 |3.0 |var, object/collection initializer, auto-property, lambda, extension       |2.0-3.5|2008          |
-|     |    |                                                                           |       |              |
-|     |    |method, anonymous type, query expression, expression tree, partial method  |       |2010          |
-|-----|----|---------------------------------------------------------------------------|-------|------------- |
-|2010 |4.0 |dynamic ☹, named and optional arguments,                                  |4      |2010          |
-|     |    |                                                                           |       |              |
-|     |    |generic co-/contravariance, embedded interop types                         |       |              |
-|-----|----|---------------------------------------------------------------------------|-------|--------------|
-|2012 |5.0 |async/await, caller info attributes                                        |4.5    |2012          |
-|     |    |                                                                           |       |              |
-|     |    |                                                                           |       |2013          |
 
 Ezen a laboron célunk, hogy a hallgatók legalább részben megértsék és ráérezzenek a C# szintaktikájára, megismerkedjenek alapvető nyelvi elemekkel és konstrukciókkal.
 
