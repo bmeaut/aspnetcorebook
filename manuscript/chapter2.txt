@@ -14,17 +14,11 @@ T> A snippet fájlból is bemásolhatjuk
 public class Dog
 {
     public string Name { get; set; }
-
     public Guid Id { get; } = Guid.NewGuid();
-
     public DateTime DateOfBirth { get; set; }
-
     private int AgeInDays => DateTime.Now.Subtract(DateOfBirth).Days;
-
     public int Age => AgeInDays / 365;
-
     public int AgeInDogYears => AgeInDays * 7 / 365;
-
     public override string ToString() => $"{Name} ({Age} | {AgeInDogYears}) [ID: {Id}]";
 }
 ```
@@ -182,7 +176,7 @@ var dogs = _dogs;
 
 T> Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
 
-Tehát egy kivétel most is sikertelen értékadásban nyilvánul meg.
+T> Kivétel esetén sikertelen lesz értékadás.
 
 ## Bővítő metódusok
 
@@ -203,8 +197,6 @@ public static class StringExtensions
     }
 }
 ```
-
-T> Az osztályaink alapértelmezett névtere a projekt gyökeréhez viszonyított, mappahierarchiában való elhelyezkedése.
 
 A `??` operátor (null coalescing operator) a kifejezés bal oldalán álló értéket adja vissza, ha az nem `null`, különben a jobb oldalán álló értéket (tehát kiolvashatjuk „különben, ha `null`”-ként is).
 
@@ -310,5 +302,66 @@ var dogs = new List<Dog> {
     unknown,
     "Mázli",
     { "Puffancs", new DateTime(2010, 2, 1) }
+};
+```
+
+## Index inicializálók
+
+A collection initializer analógiájára jött létre az index initializer nyelvi elem, ami a korábbihoz hasonlóan sorban hív meg egy operátort, hogy már inicializált objektumot kapjunk vissza. A különbség egyrészt a szintaxis, másrészt az ilyenkor meghívott metódus, ami az index operátor. Emlékeztethetjük a hallgatókat, hogy saját típusainkban lehetőségünk van definiálni és felüldefiniálni operátorokat, mint pl. +, -, indexelés, implicit cast, explicit cast, stb. Ilyenkor nem szükséges megvalósítanunk az IEnumerable interfészt, egyszerűen csak egy elérhető, beállítható indexer tulajdonságra van szükségünk.
+
+Tegyük fel, hogy egy kutyához bármilyen a domain modellünkbe nem illeszkedő információ kerülhet, amire általános struktúrát szeretnénk. Vegyünk fel a `Dog` osztályba egy `string-object` szótárat, amiben bármilyen további információt tárolhatunk! Ezen felül állítsuk be a `Dog` indexerét, hogy az a `Metadata` indexelését végezze:
+
+```csharp
+public class Dog
+{
+    //...
+    public Dictionary<string, object> Metadata { get; } = new Dictionary<string, object>();
+
+    public object this[string key]
+    {
+        get { return Metadata[key]; }
+        set { Metadata[key] = value; }
+    }
+}
+```
+
+Az objektum inicializáló és az index inicializáló vegyíthető, így az alábbi módon tudunk felvenni további tulajdonságokat a kutyákhoz:
+
+```csharp
+var pimpedli = new Dog()
+{
+    Name = "Pimpedli",
+    DateOfBirth = new DateTime(2006, 06, 10),
+    ["Chip azonosító"] = "123125AJ"
+};
+```
+
+Mivel indexelni általában kollekciókat szokás (tömb, lista, szótár), ezért ezekben az esetekben igen jó eszköz lehet az index inicializáló. Cseréljük le a listánkat az alábbi szótárra:
+
+```csharp
+var dogs = new Dictionary<string, Dog>
+{
+    ["banan"] = banan,
+    ["pimpedli"] = watson,
+    ["unnamed"] = unnamed,
+    ["unknown"] = unknown
+};
+
+foreach (var dog in dogs)
+    Console.WriteLine($"{dog.Key.TrimPad(10)} - {dog.Value}");
+```
+
+Mivel az index- és a collection initializer nem vegyíthető, ezért a kettő közül most választanunk kell. Ilyenkor az Add metódusos overload-jainkat nem használhatjuk.
+
+A `Dictionary<TKey, TValue>` rendelkezik egy `Add` metódussal, amelyik egy `TKey` és egy `TValue` típusú értéket vár, ezért használhatjuk a collection initializert is:
+
+```csharp
+var dogs = new Dictionary<string, Dog>
+{
+    { "banan", banan },
+    { "pimpedli", pimpedli },
+    { "unnamed", unnamed },
+    { "unknown", unknown },
+    { "unknown", unknown }
 };
 ```
