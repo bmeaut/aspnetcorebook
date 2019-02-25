@@ -264,7 +264,7 @@ T> Mivel minden objektumra működik, ezért fontoljuk meg, mielőtt ilyen álta
 A Dog.cs-ben:
 
 ```csharp
-public override string ToString() => 
+public override string ToString() =>
     $"{Name.TrimPad(10)} ({Age.TrimPad(2)} | {AgeInDogYears.TrimPad(3)}) [ID: {Id.TrimPad(8)}]";
 ```
 

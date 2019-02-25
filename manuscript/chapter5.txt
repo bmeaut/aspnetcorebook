@@ -50,8 +50,8 @@ A Configure metódusban pedig a middleware csővezetéket adjuk meg, tehát azok
 
 Esetünkben most csak 2 middleware-ünk van:
 
--   Kivételkezelő middleware, ami az őt követő middleware-ek hibáit képes elkapni és ennek megfelelően egy hibaoldalt jelenít meg. Ez csak opcionálisan kerül beregisztrálásra attól függően, hogy most éppen „Development módban" futtatjuk-e az alkalmazást vagy sem. (lásd később)
--   Hello World middleware, ami a válaszba ír egy „Hello World!" szöveget. Esetünkben ez termináló MW lesz, mivel ez már nem hív tovább a következő komponensbe, csak a választ írja ki. Figyeljük meg, hogy ez most egy lambda kifejezéssel kerül megadásra, viszont érdemes a middleware logikát egy külön osztályba kiszervezni (lásd később)
+- Kivételkezelő middleware, ami az őt követő middleware-ek hibáit képes elkapni és ennek megfelelően egy hibaoldalt jelenít meg. Ez csak opcionálisan kerül beregisztrálásra attól függően, hogy most éppen „Development módban" futtatjuk-e az alkalmazást vagy sem. (lásd később)
+- Hello World middleware, ami a válaszba ír egy „Hello World!" szöveget. Esetünkben ez termináló MW lesz, mivel ez már nem hív tovább a következő komponensbe, csak a választ írja ki. Figyeljük meg, hogy ez most egy lambda kifejezéssel kerül megadásra, viszont érdemes a middleware logikát egy külön osztályba kiszervezni (lásd később)
 
 ### Kipróbálás
 
