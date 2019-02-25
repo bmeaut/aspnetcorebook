@@ -1,19 +1,21 @@
 # ASP.NET Core alapok
 
 ## Célkitűzés
+
 A labor során a hallgatók megismerkednek az ASP.NET Core alapvető felépítésével. A labor kitér a middleware-ek működésére, a konfigurációra, majd az MVC keretrendszer segítségével egyszerű webes kérések kerülnek implementálásra, aminek során a beépített dependency injection keretrendszer is bemutatásra kerül. Majd a labor végén a szemléltetés céljából egy egyszerű middleware kerül megvalósításra hibakezelés címszóval.
 
 ## Projekt létrehozása
+
 Ezen a laboron nem a klasszikus beépített API projektsablont fogjuk felhasználni, hanem egy üres ASP.NET Core projektből próbáljuk felépíteni és megérteni azt a funkcionalitást, amit egyébként az előre elkészített VS projektsablonok adának készen a kezünkbe.
 
 ### Generálás
+
 Hozzunk létre a Visual Studioban egy új projektet: (C# / Web / ASP.NET Core Web Application (.NET Core)), a neve legyen HelloAspNetCore.
 A következő dialógusablakban válasszuk ki az ASP.NET Core 2.0 opciót és azon belül a Empty sablont. Most szándékosan nem a Web Apit vagy a Web Applicationt választottuk mivel a labor célja egy általános ASP.NET Core alkalmazás működésének megismerése, amit most saját kezűleg fogunk felépíteni.
 
 ![ASP.NET Core templates](images/aspnetcore1-choosetemplate.png)
 
 ### Eredmény
-
 
 Nézzük meg milyen project generálódott:
 
@@ -23,9 +25,9 @@ Nézzük meg milyen project generálódott:
   - **PackageReference**: NuGet csomagok
     - Microsoft.AspNetCore.All 2.x
 - **Properties**: klasszikus VS grafikus felület a projekt beállításaira
-  -   **launchSettings.json:** Properties node-ot lenyitva találjuk meg a debuggoláshoz szükséges beállításokat a hosztolás szempontjából
+  - **launchSettings.json:** Properties node-ot lenyitva találjuk meg a debuggoláshoz szükséges beállításokat a hosztolás szempontjából
 - **Dependencies**: SDK és NuGet csomagfüggőségek kezelése
-  -   Az AspNetCore.All csomag került be, ami egy metacsomag, összefog kb. minden MS fejlesztésű, ASP.NET.Core alapcsomagot, a fordításnál képes a nem használt csomagokat kiszűrni. (RuntimeStore)
+  - Az AspNetCore.All csomag került be, ami egy metacsomag, összefog kb. minden MS fejlesztésű, ASP.NET.Core alapcsomagot, a fordításnál képes a nem használt csomagokat kiszűrni. (RuntimeStore)
 - **wwwroot**: statikusan kiszolgálandó fájlok alapértelmezett helye (jelenleg üres)
 
 ### Osztályok
@@ -67,9 +69,9 @@ Rakjunk most az utolsó middleware-ünk be egy kivétel dobást a kiírás helye
 app.Run(async (context) =\>
 {
     //leanpub-start-insert
-    throw new Exception(\"Hiba\");        
-    //await context.Response.WriteAsync(\"Hello World!\");    
-    //leanpub-end-insert        
+    throw new Exception("Hiba");
+    //await context.Response.WriteAsync(\"Hello World!\");
+    //leanpub-end-insert
 });
 ```
 
@@ -106,13 +108,13 @@ Ez most egy connection stringet vett fel alapértelmezetten, de mi most inkább 
   }
 }
 ```
-    
+
 A Hello World kiírásunkat kommentezzük vissza.
 
 ```csharp
 public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 {  
-    //...   
+    //...
 
     app.Run(async (context) =>
     {
@@ -143,8 +145,9 @@ Készítsünk egy környezet specifikus változatot ehhez a JSON fájlhoz appset
 Próbáljuk ki! Azt tapasztaljuk, hogy az appsettings.json állományunkban csak a Warning szintet engedjük át, addig a Development környezeti változóval indított alkalmazás, már az Info szintet is átengedi a kérések naplózása során. Az appsettings.Development.json állományban található naplózó beállítások (azonos kulcsú elemek) felülírták az appsettings.json állományban található konfigurációt.
 
 VS-ből is tudjuk állítani a környezetei változókat, nem kell a konzolban varázsolni. A projekt tulajdonságok Debug lapján tudunk új indítási profilt megadni, illetve a meglévőeket módosítani. Vegyünk fel egy új konfigurációt a New... gombbal. Adjunk neki nevet, majd adjuk meg, hogy
--   a Project induljon (Launch)
--   és egy böngésző is (Launch Browser-hez pipa)
+
+- a Project induljon (Launch)
+- és egy böngésző is (Launch Browser-hez pipa)
 
 Mentsünk, majd, nézzük meg, hogy igazából a Properties/launchSettings.json-t szerkesztettük, bekerült az új indítási konfigurációnk. A zöld nyíl mellett, most már ezt is ki tudjuk választani. Tegyünk is így. Indítsuk el. Mivel ebben az indítási profilban nincs beállítva a Development mód (nincs meg ehhez az ASPNETCORE_ENVIRONMENT), ezért az alap appsettings.json fog csak érvényre jutni, azaz újra nem látszódnak a HTTP kérésekről a naplóbejegyzések.
 
@@ -152,7 +155,7 @@ Vátsunk vissza development-es indítási profilra.
 
 T> Parancssorban a dotnet run –launch-profile [profilnév] kapcsolóval adhatjuk meg az indítási profilt.
 T> A 2.0 előtti ASP.NET Core verzióknál utólag „kézzel” kellett az alkalmazásbeállításokat kezelő modult felkonfigurálni (pl., hogy a Development.json felülírja az alap appsettings.json-t). Ezt ma már elintézi a Main függvényben lévő CreateDefaultBuilder hívás.
-T> Érdemes megnézni ennek a konfigurációját, a https://github.com/bmeaut/dotnet/blob/master/aspnetcore1.md-ban található rá a link.[^webhost]
+T> Érdemes megnézni ennek a konfigurációját, a <https://github.com/bmeaut/dotnet/blob/master/aspnetcore1.md-ban> található rá a link.[^webhost]
 
 ![ASP.NET Core debug](images/aspnetcore1-debug.png)
 
@@ -167,7 +170,6 @@ A statikus fájlkezelés, a teljes modularitás jegyében egy külön middleware
      IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
  {
      //... hibakezelés
- 
     //leanpub-start-insert
      app.UseStaticFiles();
     //leanpub-end-insert
@@ -185,9 +187,11 @@ Próbáljuk ki! Láthatjuk hogy a localhost:port címen még mindig a Hello Worl
 Próbáljuk ki úgy is, hogy kivesszük a staticfiles middleware-t. Így hiába hívunk bármilyen címre, a „Hello world!"-öt kapjuk vissza.
 
 ## Web API
+
 Minden API-nál nagyon magas szinten az a cél, hogy egy kérés hatására egy szerveroldali kódrészlet meghívódjon. ASP.NET Core-ban a kódrészleteket függvényekbe írjuk, a függvények pedig ún. controllerek-be kerülnek. Összességében tehát a cél, hogy a webes kérés hatására egy kontroller egy függvénye meghívódjon.
 
 ### DummyController
+
 Hozzunk létre egy új mappát Controllers néven. A mappába hozzunk létre egy kontrollert (Add / Controller... / API Controller with read/write actions) DummyController néven. Ez a művelet hozzáad egy új nuget csomagot a projekthez, ami a kódgeneráláshoz kell és le is generálja az új controllerünket. A kontrollerünk az AspNetCore.Mvc nuget csomagban található Controller osztályból szrámazik. (Ezt a csomagot sem kell feltennünk, mivel az AspNetCore.All függősége)
 
 Adjuk hozzá a DI konténerhez az MVC-s szolgáltatásokat, és adjuk hozzá a pipelinehoz az MVC middleware-t. A Hello World middleware-t kommentezzük ki.
@@ -224,11 +228,13 @@ public void Configure(IApplicationBuilder app, HostingEnvironment env, ILoggerFa
 Próbáljuk ki. Az alapoldal üres, viszont ha a /api/Dummy oldalra hívunk, akkor megjelenik a DummyController.Get által visszaadott érték. Magyarázzuk el a routing szabályokat, hogy hogyan jut el a HTTP kérés alapján a vágrehajtás a függvényig.
 
 ### Hibakezelés
+
 Mi történik, ha a gyökércímre hívunk? A konzolnapló szerint 404-es hiba. A kliensoldal (böngésző) ebből nem sokat jelenít meg. API-k esetén a nem várt hibákat szerveroldalon naplózzuk, a kliensre minimális információt adjunk vissza (exception shielding), konkrét exception adatot, stack trace-t ne (security szempontból információszivárgás)! A felhasználó által elkövetett hibák, pl. vaildációs hibák esetén a kliensen igényes hibaüzenetet adjunk.
 
 #### Státusz kódok kezelése
+
 Ha a kérés alapján a controller/függvény nem található meg, 404-es válasz keletkezik. Hiba típusú státuszkódok kezelésére egy alapszintű megoldás a StatusCodesPages middleware. Ez egy sima szöveget küld vissza a hibakód mellett. A Configure függvénybe:
- 
+
 ```csharp
 app.UseStaticFiles();
 //leanpub-start-insert
@@ -236,14 +242,15 @@ app.UseStatusCodePages();
 //leanpub-end-insert
 app.UseMvc(routes => …
 ```
-    
+
 T> Ezt a middleware-t még lehet tovább konfigurálni, kódonként külön kimenetet megadni, vagy átírányítani egy kontrollerfüggvényhez, hogy az állítsa elő a választ a státuszkód alapján.
 
 Próbáljuk ki így - egy rövid szöveges üzenet jelenik meg a böngészőben.
 
 ### Kivételek kezelése
+
 A hibák általában kivételként keletkeznek, amit valahol egy hibakódot (és esetlegesen extra infót, hibaüzenetet) tartalmazó HTTP válasszá alakítunk. Az átalakítás megtörténhet a controller függvényben, de ehhez el kell kapnunk a kivételeket. Mi történik, ha nem kapjuk el? DummyController.Get elején szimuláljuk ezt, dobjunk kivételt:
-  
+
 ```csharp
 [HttpGet]
 public IEnumerable<string> Get()
@@ -284,7 +291,7 @@ public IActionResult Index()
 
 Próbáljuk ki egy nem development módú indítási profillal az api/Dummy címet. A függvényben megadott szöveg fog megjelenni.
 
-T> A kivétel adatait meg lehet szerezni a függvényben a HttpContext.Features.Get<IExceptionHandlerFeature>() függvénnyel.
+T> A kivétel adatait meg lehet szerezni a függvényben a `HttpContext.Features.Get<IExceptionHandlerFeature>` függvénnyel.
 
 [^kestrel]: A Kestrel jelenleg már alkalmas arra, hogy kipublikáljuk
     közvetlenül a világhálóra, de mivel nem rendelkezik túl bő

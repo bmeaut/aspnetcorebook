@@ -37,4 +37,3 @@ A labor folyamán fordítsunk külön figyelmet a C# nyelv sajátosságainak ism
 |2012 |5.0 |async/await, caller info attributes                                        |4.5    |2012          |
 |     |    |                                                                           |       |              |
 |     |    |                                                                           |       |2013          |
-
