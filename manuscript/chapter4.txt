@@ -80,7 +80,8 @@ protected virtual void Dispose(bool disposing)
             /*leanpub-start-insert*/
             Stopwatch.Stop();
             Console.WriteLine(
-                $"Task {Title} completed in { Stopwatch.ElapsedMilliseconds} ms at { DateTime.Now}");
+                $"Task {Title} completed in { Stopwatch.ElapsedMilliseconds} ms "+
+                $"at { DateTime.Now}");
             /*leanpub-end-insert*/
         }
         disposedValue = true;
@@ -112,7 +113,9 @@ Vegyíthetjük ezt a változó kiemelésével is, de előbb készítsünk egy se
 
 ```csharp
 public void Snapshot(string text) =>
-    Console.WriteLine($"Task {Title} snapshot {text}: {Stopwatch.ElapsedMilliseconds} ms");
+    Console.WriteLine(
+        $"Task {Title} snapshot {text}: {Stopwatch.ElapsedMilliseconds} ms"
+    );
 ```
 
 ```csharp
@@ -329,8 +332,9 @@ public class RandomEnumerator<T> : IEnumerator<T>
     object IEnumerator.Current => Current;
     public void Dispose() { }
     public bool MoveNext() => ++currentIndex < Source.Count;
-    public void Reset() => indexes = Enumerable.Range(currentIndex = 0, Source.Count)
-                                               .OrderBy(i => Guid.NewGuid()).ToArray();
+    public void Reset() => indexes =
+                        Enumerable.Range(currentIndex = 0, Source.Count)
+                        .OrderBy(i => Guid.NewGuid()).ToArray();
 }
 ```
 

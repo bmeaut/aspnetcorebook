@@ -19,7 +19,8 @@ public class Dog
     private int AgeInDays => DateTime.Now.Subtract(DateOfBirth).Days;
     public int Age => AgeInDays / 365;
     public int AgeInDogYears => AgeInDays * 7 / 365;
-    public override string ToString() => $"{Name} ({Age} | {AgeInDogYears}) [ID: {Id}]";
+    public override string ToString() =>
+            $"{Name} ({Age} | {AgeInDogYears}) [ID: {Id}]";
 }
 ```
 
@@ -34,7 +35,11 @@ A Main metódusban írhatjuk az alábbi példát:
 ```csharp
 static void Main(string[] args)
 {
-    Dog banan = new Dog() { Name = "Banán", DateOfBirth = new DateTime(2014, 06, 10) };
+    Dog banan = new Dog()
+    {
+            Name = "Banán",
+            DateOfBirth = new DateTime(2014, 06, 10)
+    };
     Console.WriteLine(banan);
     Console.ReadLine();
 }
@@ -249,8 +254,9 @@ Ha a `Dog` osztályban átírjuk a `ToString` metódusunkat, kicsit szebbé tehe
 
 ```csharp
 public override string ToString() =>
-    $"{Name.TrimPad(10)} ({Age.ToString().TrimPad(2)} | {AgeInDogYears.ToString().TrimPad(3)})
-      [ID: {Id.ToString().TrimPad(8)}]";
+    $"{Name.TrimPad(10)} ({Age.ToString().TrimPad(2)} | " +
+    $"{AgeInDogYears.ToString().TrimPad(3)})" +
+    $"[ID: {Id.ToString().TrimPad(8)}]";
 ```
 
 Mivel a használni kívánt bővítő metódusunk más névtérben van, ezért `using`-oljuk a névteret a fájl elején (*Ctrl+.*):
@@ -258,18 +264,21 @@ Mivel a használni kívánt bővítő metódusunk más névtérben van, ezért `
 Még egy kicsit szépíthetünk a helyzeten, ha a metódus típusparamétert is vár. Ekkor minden objektumra használható lesz a bővítő metódus, nem szükséges `ToString()`-et hívni a nem `string` típusú elemeken:
 
 ```csharp
-public static string TrimPad<T>(this T obj, int length) => TrimPad(obj.ToString(), length);
+public static string TrimPad<T>(this T obj, int length)
+            => TrimPad(obj.ToString(), length);
 ```
 
 Ez az új metódus az eredeti *overload*-ja: a `string`-et váró függvény fog meghívódni `string`-ek esetén, minden más esetben a másik implementáció.
 
 T> Mivel minden objektumra működik, ezért fontoljuk meg, mielőtt ilyen általános függvényt írunk, különben nagyon hosszú lesz minden alkalommal az *IntelliSense* legördülője.
 
-A `Dog` osztályban egyszerűsíthetjük a `ToString` implementációt:
+A `Dog` osztályban egyszerűsíthetjük a `ToString` implementációt, kivehetjük a property értékek lekérdezése utáni `ToString` hívásokat:
 
 ```csharp
 public override string ToString() =>
-    $"{Name.TrimPad(10)} ({Age.TrimPad(2)} | {AgeInDogYears.TrimPad(3)}) [ID: {Id.TrimPad(8)}]";
+    $"{Name.TrimPad(10)} ({Age.TrimPad(2)} | " +
+    $"{AgeInDogYears.TrimPad(3)})" +
+    $"[ID: {Id.TrimPad(8)}]";
 ```
 
 A bővítő metódusokat kiegészítésképpen használhatjuk *collection initializer*-ek bővítésére is. Próbáljunk meg a felsorolt `Dog` elemek közé beszúrni egy `string`-et, nézzük meg, mi történik!
@@ -281,8 +290,14 @@ Az **Extensions/DogCollectionExtensions.cs** fájlban vegyük fel az alábbi osz
 ```csharp
 public static class DogCollectionExtensions
 {
-    public static void Add(this ICollection<Dog> source, string name, DateTime? dateOfBirth = null)
-            => source.Add(new Dog { Name = name, DateOfBirth = dateOfBirth });
+    public static void Add(this ICollection<Dog> source,
+                            string name,
+                            DateTime? dateOfBirth = null) =>
+                source.Add(new Dog
+                            {
+                                Name = name,
+                                DateOfBirth = dateOfBirth
+                            });
 }
 ```
 
@@ -319,7 +334,8 @@ Tegyük fel, hogy egy kutyához bármilyen a domain modellünkbe nem illeszkedő
 public class Dog
 {
     //...
-    public Dictionary<string, object> Metadata { get; } = new Dictionary<string, object>();
+    public Dictionary<string, object> Metadata { get; }
+                    = new Dictionary<string, object>();
 
     public object this[string key]
     {
