@@ -11,7 +11,7 @@ A feltételezett előismeretek:
 - C# és objektumorientált nyelvi alapok
   - operátorok, változók, tömbök, struktúrák, függvények fogalma
   - operátor felüldefiniálás és függvényváltozatok
-  - alapvető memóriakezelés (heap, stack), mutatók fogalma, érték és referencia típsuok
+  - alapvető memóriakezelés (heap, stack), mutatók fogalma, érték és referencia típusok
   - alapvető vezérlési szerkezetek (ciklus, elágazás, stb.), érték- és referencia szerinti paraméterátadás
   - osztály, osztálypéldány fogalma, static, new operátor, osztály szintű változók, generikus típusok
   - leszármazás, virtuális tagfüggvények
@@ -49,10 +49,10 @@ A gyakorlatok az alábbi szoftverekből álló környezethez készültek:
 - .NET Core 2.2 SDK
 - [Telerik Fiddler](https://www.telerik.com/fiddler)
 
-A .NET Core széleskörű platformtámogatása miatt bizonyos nem Windows platformokon is elvégezhetőek a gyakorlatok Visual Studio helyett [Visual Studio Code](https://code.visualstudio.com/) használatával - azonban a gyakorlatok szövege a Visual Studio használatát feltételezi.
+A .NET Core széleskörű platformtámogatása miatt bizonyos nem Windows platformokon is elvégezhetők a gyakorlatok Visual Studio helyett [Visual Studio Code](https://code.visualstudio.com/) használatával - azonban a gyakorlatok szövege a Visual Studio használatát feltételezi.
 
 ## Kóddarabkák (snippet-ek)
 
-A gyakorlatanyagokat könnyen bemásolható kóddarabkák egészítik ki. A kóddarabkáknak a gyakorlat idejében van jelentőségük, mert könnyen és gyorsan bemásolhatóak, egyéb esetben nyugodtan figyelmen kívül hagyhatjuk a rájuk történő hivatkozásokat.
+A gyakorlatanyagokat könnyen bemásolható kóddarabkák egészítik ki. A kóddarabkáknak a gyakorlat idejében van jelentőségük, mert könnyen és gyorsan bemásolhatók, egyéb esetben nyugodtan figyelmen kívül hagyhatjuk a rájuk történő hivatkozásokat.
 
 A kóddarabkák lelőhelye: https://github.com/bmeaut/dotnet
