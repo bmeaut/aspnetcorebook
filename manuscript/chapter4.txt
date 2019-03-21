@@ -2,10 +2,10 @@
 
 ## Tuple nyelvi szinten, lokális függvények
 
-Készítsünk Fibonacci számsor kiszámolására alkalmas függvényt, ahol használjunk ki az alábbi két új nyelvi elemet. Természetesen nagyon sok féleképpen meg lehetne valósítani ezt a metódust, de most kifejezetten a Tuple-ök nyelvi támogatását és lokális függvényeket szeretnénk demonstrálni.
+Készítsünk Fibonacci számsor kiszámolására alkalmas függvényt, ahol használjunk ki az alábbi két új nyelvi elemet. Természetesen nagyon sok féleképpen meg lehetne valósítani ezt a metódust, de most kifejezetten a *tuple*-ök nyelvi támogatását és lokális függvényeket szeretnénk demonstrálni.
 
 - Lokális függvények: ezek a függvények csak adott metódusban láthatók. Két esetben érdemes őket használni: ha nem szeretnénk „szennyezni” a környező osztályt különféle privát segédmetódusokkal, vagy ha egy mélyebb, komplexebb hívási láncban nem szeretnénk a paramétereket folyamatosan „továbbpasszolni”, ugyanis ezek a metódusok elérik a külső scope-on található változókat is (ebben az esetben például az x-et).
-- Tuple típus: a tuple (ennes) több elem összefogása, ami gyors, nyelvi szinten támogatott adattovábbítást tesz lehetővé (gyakorlatilag inline, nevesítetlen struktúratípust hozunk így létre). Publikus API-kon, függvényeken nem érdemes használni, viszont privát, internal, package-szintű használatnál sebességnövekedést és API tisztulást érhetünk vele el. Az eredeti Tuple típushoz hasonlóan működnek, ellenben az Item1, Item2… tulajdonságok opcionálisan nevesítve is elérhetők benne. A Tuple-ökre a funkcionális nyelvek hatása miatt az utóbbi időben nagy hangsúlyt fektettek, így rekord-jellegűen kezelhetők, létezik például elem dekonstruálás
+- Tuple típus: a tuple (ennes) több elem összefogása, ami gyors, nyelvi szinten támogatott adattovábbítást tesz lehetővé (gyakorlatilag inline, nevesítetlen struktúratípust hozunk így létre). Publikus API-kon, függvényeken nem érdemes használni, viszont privát, `internal`, package-szintű használatnál sebességnövekedést és API tisztulást érhetünk vele el. Az eredeti `Tuple<>` típushoz hasonlóan működnek, ellenben az `Item1`, `Item2`… tulajdonságok opcionálisan nevesítve is elérhetők benne. A tuple-ökre a funkcionális nyelvek hatása miatt az utóbbi időben nagy hangsúlyt fektettek, így rekord-jellegűen kezelhetők, például könnyen dekonstruálhatók (lásd lentebb)
 
 ```csharp
 public static long Fibonacci(long x)
@@ -26,7 +26,7 @@ public static long Fibonacci(long x)
 
 ## Dispose minta
 
-A Dispose minta az erőforrás-felszabadítás megfelelő megvalósításához készült. Hasonló elv mentén üzemel, mint a destruktor, viszont a minta nem feltétlenül kötött az objektum életciklusának elejéhez és végéhez. Amennyiben egy objektum megvalósítja az IDisposable interfészt, van Dispose metódusa. A metódus meghívásával az objektum által használt, nem a keretrendszer által menedzselt erőforrásokat szabadítjuk fel. Nem csak memóriafoglalásra kell gondolni, hanem lehetnek nyitott fájlrendszeri handle-ök, adatkapcsolatok, stream-ek, vagy üzleti erőforrások, tranzakciók.
+A Dispose minta az erőforrás-felszabadítás megfelelő megvalósításához készült. Hasonló elv mentén üzemel, mint a destruktor, viszont a minta nem feltétlenül kötött az objektum életciklusának elejéhez és végéhez. Amennyiben egy objektum megvalósítja az `IDisposable` interfészt, van `Dispose` metódusa. A metódus meghívásával az objektum által használt, nem a keretrendszer által menedzselt erőforrásokat szabadítjuk fel. Nem csak memóriafoglalásra kell gondolni, hanem lehetnek nyitott fájlrendszeri handle-ök, adatkapcsolatok, stream-ek, vagy üzleti erőforrások, tranzakciók.
 
 Mérjük meg az első 50 Fibonacci szám kiszámítását (a mesterséges késleltetéssel):
 
@@ -46,7 +46,7 @@ static void Main(string[] args)
 
 Ez így jó, működik, viszont nem újrahasznosítható ez az időmérési mechanizmus.
 
-Készítsünk egy saját időmérő osztályt `StopwatchWrapper` méven, ami a `Stopwatch` használatát egyszerűsíti a Dispose mintán keresztül.
+Készítsünk egy saját időmérő osztályt `StopwatchWrapper` néven, ami a `Stopwatch` használatát egyszerűsíti a Dispose mintán keresztül.
 
 ```csharp
 public class StopwatchWrapper : IDisposable
@@ -68,7 +68,7 @@ Ha kérjük a villanykörte segítségét az `IDisposable`-ön, akkor 2x2 lehet�
 
 ![Dispose minta implementálása IntelliSense segítségével](images/csharp4-dispose.png)
 
-Fussuk át a kódot, ami szépen kommentezett. A pattern lényege, hogy nem menedzselt kód esetén az erőforrásokat szükséges felszabadítanunk, amit a Dispose metódusokban, ill. menedzselt kód esetén adott helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizumust!
+Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy nem menedzselt kód esetén az erőforrásokat szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén adott helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizumust!
 
 ```csharp
 protected virtual void Dispose(bool disposing)
@@ -106,7 +106,7 @@ static void Main(string[] args)
 }
 ```
 
-Tehát a using használatával a blokk elejét és végét tudjuk kezelni. Gyakorlatilag egy `try-finally`-val ekvivalens a minta, a `finally`-ben meghívódik a `Dispose` metódus.
+Tehát a `using` használatával a blokk elejét és végét tudjuk kezelni. Gyakorlatilag egy `try-finally`-val ekvivalens a minta, a `finally`-ben meghívódik a `Dispose` metódus.
 
 Vegyíthetjük ezt a változó kiemelésével is, de előbb készítsünk egy segédfüggvényt a `StopwatchWrapper`-be:
 
@@ -134,16 +134,14 @@ using (
 
 ## Aszinkron működés
 
-Töltsünk le egy HTML oldalt, és ezen a problémán keresztül bemutatjuk az aszinkron programozási modellt. A HttpClient működésének a részletesebb ismertetése most nem téma, csak a legalapabb funkciókat fogjuk használni.
+Töltsünk le egy HTML oldalt, és ezen a problémán keresztül bemutatjuk az aszinkron programozási modellt. A `HttpClient` működésének a részletesebb ismertetése most nem téma, csak a legalapvetőbb funkciókat fogjuk használni.
 
-A fő gond a hosszan futó műveletek blokkolhatják a fő/UI/aktuális szál futását, Ez kliens alkalmazások esetében úgy jelentkezik, hogy nem lesz a alkalmazásunk reszponzív a felhasználói inputok-ra, szerveralkalmazások esetében pedig az adott kérést kiszolgáló szál feleslegesen blokkolódik, amikor esetleg mással is tudna foglalkozni.
+A fő gond a hosszan futó műveletek blokkolhatják a fő/UI/aktuális szál futását, mindez kliens alkalmazások esetében úgy jelentkezik, hogy nem lesz a alkalmazásunk reszponzív a felhasználói inputok-ra; szerveralkalmazások esetében pedig az adott kérést kiszolgáló szál feleslegesen blokkolódik, amikor esetleg mással is tudna foglalkozni.
 
 Ötlet a hosszan tartó műveleteket végezzük aszinkron módon, egy másik szálon, és ha az befejeződött az eredményről valamilyen módon értesüljünk. Az előadáson bemutatásra kerültek a különböző modellek: Asynchronous Programming Model (APM), Event-based Asynchronous Pattern (EAP), Task-based Asynchronous Pattern (TAP).
 
 A TAP-ra már C# nyelvi támogatást is kapunk az `async`/`await` kulcsszavakon keresztül.
-Vegyünk fel egy új metódust és hívjuk meg a main metódusban. A megírt metódus írása során hivatkozzuk be a Systen.Net.Http névteret. A kód semmi más nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott url-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és kiírja a konzolra.
-
-Vegyünk fel egy új metódust és hívjuk meg a `Main` metódusban. A megírt metódus írása során hivatkozzuk be a `Systen.Net.Http` névteret. A kód semmi mást nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott url-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és kiírja a konzolra.
+Vegyünk fel egy új metódust és hívjuk meg a `Main` metódusban. A megírt metódus írása során hivatkozzuk be a `System.Net.Http` névteret. A kód semmi más nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott URL-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és kiírja a konzolra.
 
 ```csharp
 static void Main(string[] args)
@@ -167,13 +165,13 @@ public static async void LoadWebPageAsync()
 }
 ```
 
-**await:** Mindig egy `Task` awaitelhető (vagy taszk szerű dolog: vagyis van neki GetAwaiter metódusa, ami meghatározott metódusokkal rendelkező objektummal tér vissza)! Akár létre is hozhatunk egy `Task`-ot, amit egy lokális változóban tárolunk, akkor azt is tudjuk `await`-elni.
+**await:** Mindig egy `Task` awaitelhető (vagy taszk szerű dolog: vagyis van neki `GetAwaiter` metódusa, ami meghatározott metódusokkal rendelkező objektummal tér vissza)! Akár létre is hozhatunk egy `Task`-ot, amit egy lokális változóban tárolunk, akkor azt is tudjuk `await`-elni.
 
 **async:** ha await-elni akarunk, akkor muszáj `async`-nak lennie a tartalmazó metódusnak, mert ilyenkor építi fel a fordító az aszinkron végrehajtáshoz szükséges állapotgépet.
 
-Debuggoljuk ki! Nézzük meg melyik rész milyen szálon fut le. Azt is nézzük meg milyen sorrendben. A `LoadWebPageAsync` utáni rész előbb fog lefutni, mint az első await utáni rész.
+Debuggoljuk ki! Nézzük meg melyik rész milyen szálon fut le. Azt is nézzük meg milyen sorrendben. A `LoadWebPageAsync` utáni rész előbb fog lefutni, mint az első `await` utáni rész.
 
-Figyeljük meg, hogy az „Ez a vége” szöveg hamarabb kiíródik, mit a HTML oldal letöltése.
+Figyeljük meg, hogy az *Ez a vége* szöveg hamarabb kiíródik, mit a HTML oldal letöltése.
 
 Próbáljuk ki a `Console.ReadKey` nélkül is, ilyenkor jó eséllyel hamarabb leáll a process, minthogy a `Task` befejeződne. Az ilyen fire-and-forget típusú hívásoknál nem figyel arra senki, hogy itt még valami háttérművelet folyik.
 
@@ -189,9 +187,9 @@ Módosítsuk a `LoadWebPageAsync` fejlécét, hogy taszkot adjon vissza:
 public static async Task LoadWebPageAsync()
 ```
 
-Várjuk be az szinkron művelet végét a Main függvényben. Ehhez viszont a Main függvénynek is async-nak kell lennie. Ez GUI-s és szerver alkalmazásoknál nem gond, de a konzol alkalmazásokat csak a C# 7.1 óta támogatott. Ehhez állítsuk át a fordító verzióját: Project Properties → Build → Advanced → Language version → C# 7.1 (minimum).
+Várjuk be az szinkron művelet végét a `Main` függvényben. Ehhez viszont a `Main` függvénynek is async-nak kell lennie. Ez csak a C# 7.1 óta támogatott. Ehhez állítsuk át a fordító verzióját: Project Properties → Build → Advanced → Language version → C# 7.1 (minimum).
 
-Így már lehet aszinkron a Main metódus is, így lehet benne await-elni:
+Így már lehet aszinkron a Main metódus is, így lehet benne `await`-elni:
 
 ```csharp
 static async Task Main(string[] args)
@@ -273,11 +271,11 @@ Kivételt kapunk, mi a probléma? A kollekciót bejárás közben szerettük vol
 foreach (var p in numbers.ToList())
 ```
 
-Ez megoldja a problémát, sikerül eltávolítani az elemeket a kollekcióból. De miért? A `ToList` `IEnumerable` bővítő, tehát bejárhatja a kollekciót… ezután pedig egy másik `List<>` objektumban tárolja az elemeket.
+Ez megoldja a problémát, sikerül eltávolítani az elemeket a kollekcióból. De miért? A `ToList` `IEnumerable` bővítő, tehát bejárhatja a kollekciót, ezután pedig egy másik `List<>` objektumban tárolja az elemeket.
 
 ### Azonnali és késleltetett kiértékelés
 
-Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<T>` visszatérési értékű), az egyes elemeken történő iteráció a generátorok egymásba ágyazását jelenti, azaz az egyes generátorokban a yield return által visszaadott értéket fogja az enumerátor `MoveNext` metódusa visszaadni. Amíg az `IEnumerable`-re van referenciánk, és nem járjuk azt közvetlenül be, addig *késleltetett kiértékelésről* beszélünk.
+Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<T>` visszatérési értékű), az egyes elemeken történő iteráció a generátorok egymásba ágyazását jelenti, azaz az egyes generátorokban a `yield return` által visszaadott értéket fogja az enumerátor `MoveNext` metódusa visszaadni. Amíg az `IEnumerable`-re van referenciánk, és nem járjuk azt közvetlenül be, addig *késleltetett kiértékelésről* beszélünk.
 
 ```csharp
 var i = 0;

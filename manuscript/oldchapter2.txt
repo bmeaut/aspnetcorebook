@@ -1,0 +1,39 @@
+# Chapter 1
+
+This is some default content for a new Leanpub book.
+
+You can download the manuscript folder containing the plain text files from which this book is generated. That way, you can see how everything in this book is actually written.
+
+Here is the download link for a zip file with the manuscript of this book: [https://github.com/leanpub/default-new-book-content/archive/master.zip](https://github.com/leanpub/default-new-book-content/archive/master.zip).
+
+Please note you can find our manual here: [https://leanpub.com/help/manual](https://leanpub.com/help/manual).
+
+We also have a author Help Center here: [http://help.leanpub.com/author-help](http://help.leanpub.com/author-help).
+
+In the following chapters you'll see some simple examples of how to format your writing and how to insert images.
+
+A labor folyamán fordítsunk külön figyelmet a C# nyelv sajátosságainak ismertetésére! Röviden elmondhatjuk, hogy a Visual Studio, a .NET (CLR) és a C# szorosan kapcsolódó technológiák, és hogy általában összhangban van ezeknek a kiadási dátuma:
+
+|Year |C#  |Keywords and concepts                                                      |.NET   |Visual Studio |
+|-----|----|---------------------------------------------------------------------------|-------|------------- |
+|2002 |1.x |namespace, property, operator, delegate, event, garbage collection,        |1.x    |.NET 2002     |
+|     |    |                                                                           |       |              |
+|2003 |    |reference/value type, class, interface, constructor, enum, …               |       |.NET 2003     |
+|-----|----|---------------------------------------------------------------------------|-------|--------------|
+|2005 |2.0 |generics, anonymous methods, iterators, nullable types, property           |2.0    |.NET 2005     |
+|     |    |                                                                           |       |              |
+|     |    |accessibility, partial types, delegate co-/contravariance, static class,   |       |.NET 2003     |
+|     |    |                                                                           |       |              |
+|     |    |delegate reference                                                         |       |              |
+|-----|----|---------------------------------------------------------------------------|-------|--------------|
+|2007 |3.0 |var, object/collection initializer, auto-property, lambda, extension       |2.0-3.5|2008          |
+|     |    |                                                                           |       |              |
+|     |    |method, anonymous type, query expression, expression tree, partial method  |       |2010          |
+|-----|----|---------------------------------------------------------------------------|-------|------------- |
+|2010 |4.0 |dynamic ☹, named and optional arguments,                                  |4      |2010          |
+|     |    |                                                                           |       |              |
+|     |    |generic co-/contravariance, embedded interop types                         |       |              |
+|-----|----|---------------------------------------------------------------------------|-------|--------------|
+|2012 |5.0 |async/await, caller info attributes                                        |4.5    |2012          |
+|     |    |                                                                           |       |              |
+|     |    |                                                                           |       |2013          |

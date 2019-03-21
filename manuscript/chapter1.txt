@@ -11,11 +11,11 @@ Ezen a laboron célunk, hogy a hallgatók legalább részben megértsék és rá
 Navigáljunk a File → New → Project dialógusablakra! Magyarázzuk el, hogy van lehetőségünk előre gyártott sablonokból létrehozni projekteket.
 
 - Egy C# Project egy szerelvénnyé fordul (.dll, .exe).
-- A Solution dolga, hogy logikailag összefogja a Project-eket (több-többes kapcsolatban vannak).
+- A *Solution* dolga, hogy logikailag összefogja a *Project*-eket (több-többes kapcsolatban vannak).
 - Project-ek között referenciákat adhatunk másik projektekre úgy, hogy a fordítási mechanizmus figyelembe veszi a referenciákat és szükség esetén újrafordítja a szerelvényeket.
 - Project-ek hivatkozhatnak külső forrásból származó szerelvényekre is NuGet csomagok formájában. A NuGet egy egységes módszer szerelvényeink terjesztésére.
   
-Hozzunk létre egy új C# Console Application-t! Ehhez az Installed → Templates → Visual C# → Console App (.NET Framework)-öt válasszuk, vagy használjuk a jobb felső sarokban levő keresőt („cons”). A neve legyen HelloCSharp.
+Hozzunk létre egy új C# Console Application-t! Ehhez az Installed → Templates → Visual C# → Console App (.NET Framework)-öt válasszuk, vagy használjuk a jobb felső sarokban levő keresőt („cons”). A neve legyen *HelloCSharp*.
 
 Hozzunk létre hozzá új solution-t (csak azért, hogy szokják a hallgatók a koncepciót), és adjunk meg egy olyan helyet, ahová a hallgatók is menthetnek. A Create directory for solution lehetőséget hagyjuk üresen, így nem fog létrejönni egy felesleges mappa a könyvtárszerkezetben. A .NET Framework verziót állítsuk legalább 4.6.1-esre.
 
@@ -23,7 +23,7 @@ Hozzunk létre hozzá új solution-t (csak azért, hogy szokják a hallgatók a 
 
 - **.NET Standard:** az alábbi környezet megcélzásával a lehető leghordozhatóbb osztálykönyvtárakat készíthetjük el. A .NET standardizálásából készült egy szabványos megoldás, amelyet bármely másik .NET Standard-et támogató keretrendszer és alkalmazás felhasználhat (Mono/Xamarin, .NET Core, .NET Framework).
 - **.NET Core:** a .NET Framework modularizált, modernizált, cross-platform és nyílt forráskódú megvalósítása. Kisebb NuGet csomagokban érhető el a teljes .NET Framework funkcionalitása (Collections, Reflection, XML feldolgozás, stb.).
-- **.NET Framework:** a „klasszikus”, teljesértékű .NET keretrendszer, out-of-the-box támogatja a legelterjedtebb alkalmazásfejlesztési lehetőségeket. A .NET Core megjelenését követően is támogatott, enterprise környezetekben használatos, ugyanis teljes értékű support támogással rendelkezik.
+- **.NET Framework:** a „klasszikus”, teljesértékű .NET keretrendszer, out-of-the-box támogatja a legelterjedtebb alkalmazásfejlesztési lehetőségeket. A .NET Core megjelenését követően is támogatott, enterprise környezetekben használatos, ugyanis teljes értékű support támogatással rendelkezik.
 
 Az alábbi elemeket ismertethetjük, mielőtt a kódírásba belekezdünk:
 
@@ -31,7 +31,7 @@ Az alábbi elemeket ismertethetjük, mielőtt a kódírásba belekezdünk:
 - A projekt tulajdonságok (jobb klikk → Properties) oldalán az Application fülön megnézhetjük, hogy az Output type értéke határozza meg, hogy milyen jellegű (konzolos, Windows, osztálykönyvtár) alkalmazást készítünk.
 - Mutassuk meg, hogy milyen alapvető szerelvényekre adunk referenciát a projektben!
 - Nézzük meg a Program.cs fájl tartalmát és fussuk át a látható elemeket!
-- Magyarázzuk el a using és namespace kulcsszavak jelentését, egymáshoz képesti viszonyukat! A névtér értéke egy újonnan létrehozott fájlnál alapértelmezetten Projektnév.Mappaszerkezet alakú, érdemes konvencionálisan ezt követni. Sok hallgatónál nem tiszta, hogy hogyan viszonyul egymáshoz a namespace és a szerelvény fogalma, ezért próbáljuk meg ezt tisztázni!
+- Magyarázzuk el a `using` és `namespace` kulcsszavak jelentését, egymáshoz képesti viszonyukat! A névtér értéke egy újonnan létrehozott fájlnál alapértelmezetten Projektnév.Mappaszerkezet alakú, érdemes konvencionálisan ezt követni. Sok hallgatónál nem tiszta, hogy hogyan viszonyul egymáshoz a névtér és a szerelvény fogalma, ezért próbáljuk meg ezt tisztázni!
 - Utaljunk arra, hogy hackelés nélkül kizárólag objektumorientáltan tudunk kódot írni, így a `Program` egy osztály, a `Main` belépési pont pedig egy statikus metódus.
 - Beszéljünk röviden a C# elnevezési konvenciókról! A publikus elemeket (pl. Java-val és JavaScripttel ellentétben) és minden metódust ökölszabályként PascalCasing elnevezési konvenció követ, a nem publikus elemeknél camelCasing (ezek közül vannak kivételek és más konvenciók, de ez egy gyakori megközelítés).
 
@@ -50,11 +50,11 @@ Az IntelliSense-t demonstrálhatjuk az alábbi módon:
 - Írjuk be a Console és a .WriteLine() elemeket úgy, hogy gépelés közben az IntelliSense legördülőből válasszuk ki az elemet, majd Tab-bal véglegesítsük a választást.
 - Használjuk a cw code snippetet, amit az IntelliSense is jelez, azaz írjuk be: cw[TAB][TAB].
 - Ha a `Console.ReadLine()` helyett `Console.Readline()`-t írunk, elsőként az IDE azonnal javítja a hibát. Ha ezt a javítást visszavonjuk (Ctrl+Z), lehetőségünk van a javításra a Ctrl+. használatával: a fejlesztőeszköz észreveszi, hogy hibát vétettünk, és felkínálja a gyakori megoldásokat.
-- Overload-ok: jelöljük ki a WriteLine hívás nyitó zárójelét, és írjuk be ismét a nyitó zárójelet. Így előjön az overload-ok listája, amik közül a megfelelőt a föl/le iránybillentyűkkel választhatjuk ki. Az overload listát megnyithatjuk úgy is, hogy a zárójelben bárhova írunk egy ',' karaktert.
+- *Overload*-ok: jelöljük ki a `WriteLine` hívás nyitó zárójelét, és írjuk be ismét a nyitó zárójelet. Így előjön az overload-ok listája, amik közül a megfelelőt a föl/le iránybillentyűkkel választhatjuk ki. Az overload listát megnyithatjuk úgy is, hogy a zárójelben bárhova írunk egy ',' karaktert. Az overload azt jelenti, hogy ugyanazzal a függvénynévvel több, különböző szignatúrájú metódust is felvehetünk, a megfelelő függvény kiválasztása a megadott paraméterek száma és típusa alapján történik.
 
 Indítsuk el az alkalmazást! Ehhez a fent található Start lehetőséget használhatjuk, de mondjuk el, hogy ez a menü Debug → Start Debugging (F5) lehetőséggel ekvivalens.
 
-Mutassuk be a `for` és `foreach` vezérlési szerkezeteket! A projekt Properties oldalán (Alt+Enter a projekt kijelölése után) adjunk meg a Debug fülön a Start Options blokknál legalább 5 tetszőleges parancssori argumentumot (szóközzel elválasztva), pl. kutya alma béka banán ló.
+Mutassuk be a `for` és `foreach` vezérlési szerkezeteket! A projekt Properties oldalán (*Alt+Enter* a projekt kijelölése után) adjunk meg a Debug fülön a Start Options blokknál legalább öt tetszőleges parancssori argumentumot (szóközzel elválasztva), pl. kutya alma béka banán ló.
 
 ![.NET projektbeállítások - parancssor](images/csharp1-cmdargs.png)
 
@@ -70,17 +70,17 @@ Console.ReadLine();
 
 Indítsuk el, és gyönyörködjünk.
 
-Rakjunk egy Breakpointot (F9, vagy klikkeljünk baloldalon a függőleges sávon a kód sorszáma mellett) a `Console.WriteLine(args[i]);` sorra, majd indítsuk újra az alkalmazást! Amikor a breakpointon megáll az alkalmazás futása, a sor sárga színű lesz. Ekkor vigyük az egeret az i, az args és az args.Length elemek felé, és mutassuk meg, hogy láthatjuk az aktuális értékeiket, komplexebb objektumok esetén be tudjuk járni az objektumgráfot. A Watch ablaka is tehetünk kifejezéseket, és megmutathatjuk a Locals ablakot is. *F10*-zel (vagy a menüsoron a Step Over elemmel) lépjünk tovább, nézzük meg, milyen sorrendben értékelődik ki a `for` ciklus. Az *F5*-tel továbbengedhetjük az alkalmazás futását, majd zárjuk is be.
+Rakjunk egy Breakpointot (F9, vagy klikkeljünk baloldalon a függőleges sávon a kód sorszáma mellett) a `Console.WriteLine(args[i]);` sorra, majd indítsuk újra az alkalmazást! Amikor a breakpointon megáll az alkalmazás futása, a sor sárga színű lesz. Ekkor vigyük az egeret az `i`, az `args` és az `args.Length` elemek felé, és mutassuk meg, hogy láthatjuk az aktuális értékeiket, komplexebb objektumok esetén be tudjuk járni az objektumgráfot. A *Watch* ablakba is írhatunk kifejezéseket, és megmutathatjuk a *Locals* ablakot is. *F10*-zel (vagy a menüsoron a *Step Over* elemmel) lépjünk tovább, nézzük meg, milyen sorrendben értékelődik ki a `for` ciklus. Az *F5*-tel továbbengedhetjük az alkalmazás futását, majd zárjuk is be.
 
-Mutassuk meg a Conditional Breakpoint használatát is. Tegyünk még egy breakpointot a másik `Console.WriteLine`-ra is. Jobb egér gomb az első breakpointon → Conditions… Adjuk meg az alábbiakat: *Conditional Expression Is true* `(i == 3)`. A másik breakpointon is adjunk meg feltételt: *Hit Count = 4*. Mindkét alkalommal a 4. elemen (banán) állunk meg. Megjegyezhetjük, hogy a Conditional Breakpoint használatával nem érdemes mellékhatást okozó műveleteket megadni, illetve hogy jelentősen le tudja csökkenteni a debugolás sebességét.
+Mutassuk meg a Conditional Breakpoint használatát is. Tegyünk még egy breakpointot a másik `Console.WriteLine`-ra is. Jobb egér gomb az első breakpointon → Conditions… Adjuk meg az alábbiakat: *Conditional Expression Is true* `(i == 3)`. A másik breakpointon is adjunk meg feltételt: *Hit Count = 4*. Mindkét alkalommal a 4. elemen (banán) állunk meg. Megjegyezhetjük, hogy a Conditional Breakpoint használatával nem érdemes mellékhatást okozó műveleteket megadni, illetve hogy jelentősen le tudja csökkenteni a debuggolás sebességét.
 
 ### Tulajdonságok (Property-k)
 
 Hozzuk létre a Person adatosztályt! Ehhez jobb katt a projekten → Add → Class, a fájl neve legyen Person (a kiterjesztést automatikusan hozzábiggyeszti a Visual Studio, ha nem adjuk meg). .NET-ben nincs megkötés arra, hogy a kódokat tartalmazó fájlok és az egyes típusok számossága hogyan viszonyul egymáshoz: lehetséges egy kódfájlba is írnunk a teljes alkalmazás-kódot, illetve egy osztályt is szétdarabolhatunk több fájlra (ehhez a partial kulcsszót használjuk).
 
-A C# tulajdonság (*property*) egy szintaktikai édesítőszer, amely egy objektumpéldány (vagy osztály) egy explicit (memóriabeli) vagy implicit (származtatott vagy indirekt) jellemzőjét írja le. Egy tulajdonsággal két művelet végezhető: lekérdezés (get) és értékadás (set); ezeknek megadható külön a láthatósága és a kettő közül elegendő egy implementálása. A legtöbb C# szintaktikai édesítőszer a boilerplate kódok írásának elkerülése végett készült, így kevesebb kódolással érjük el ugyanazt az eredményt (sokszor az IL kód nem is változik, gyakorlatilag hasonló a kódgeneráláshoz).
+A C# tulajdonság (*property*) egy szintaktikai édesítőszer, amely egy objektumpéldány (vagy osztály) egy explicit (memóriabeli) vagy implicit (származtatott vagy indirekt) jellemzőjét írja le. Egy tulajdonsággal két művelet végezhető: lekérdezés (*get*) és értékadás (*set*); ezeknek megadható külön a láthatósága és a kettő közül elegendő egy implementálása. A legtöbb C# szintaktikai édesítőszer a boilerplate kódok írásának elkerülése végett készült, így kevesebb kódolással érjük el ugyanazt az eredményt (sokszor az IL kód nem is változik, gyakorlatilag hasonló a kódgeneráláshoz).
 
-A Person osztályban hozzuk létre a string Name property-t, name backer fielddel. Ehhez használjuk a *propfull* code snippetet (*propf[TAB][TAB]*, majd *[TAB]*-bal lehet lépkedni a módosítandó elemek között):
+A `Person` osztályban hozzuk létre a `string Name` property-t, `name` backer fielddel. Ehhez használjuk a *propfull* code snippetet (*propf[TAB][TAB]*, majd *[TAB]*-bal lehet lépkedni a módosítandó elemek között):
 
 ```csharp
 public class Person
@@ -100,7 +100,7 @@ public class Person
 }
 ```
 
-Magyarázzuk el, hogy igazából csak két további (kódban nem látható) metódust hozunk létre, mintha egy-egy GetName és SetName metódust készítenénk, viszont használat szempontjából ugyanolyannak tűnik, mintha egy sima mező lenne. A settert privát láthatóságúra tesszük, ezért csak egy Person példányon belülről tudjuk állítani a Name property értékét. Jegyezzük meg, hogy a getterben és setterben teljesen más jellegű műveleteket is végezhetünk (pl. elsüthetünk egy eseményt, hogy megváltozott a felhasználó neve, naplózhatjuk, hányszor kérték le a nevét, stb.). Mivel a backing field állításán kívül nem csinálunk semmit a kódban, ezért használhatjuk a *propg* code snippetet is:
+Magyarázzuk el, hogy igazából csak két további (kódban nem látható) metódust hozunk létre, mintha egy-egy `GetName` és `SetName` metódust készítenénk, viszont használat szempontjából ugyanolyannak tűnik, mintha egy sima mező lenne. A settert privát láthatóságúra tesszük, ezért csak egy Person példányon belülről tudjuk állítani a `Name` property értékét. Jegyezzük meg, hogy a getterben és setterben teljesen más jellegű műveleteket is végezhetünk (pl. elsüthetünk egy eseményt, hogy megváltozott a felhasználó neve, naplózhatjuk, hányszor kérték le a nevét, stb.). Mivel a backing field állításán kívül nem csinálunk semmit a kódban, ezért használhatjuk a *propg* code snippetet is:
 
 ```csharp
 public class Person
@@ -114,11 +114,11 @@ public class Person
 }
 ```
 
-Említsük meg a *prop* code snippetet is, ami mindkét módosítószót publikusan hagyja. Láthatósági módosítószót a get és set közül csak az egyik elé tehetünk ki, és az is csak szigoríthat a külső láthatóságon (ekkor a másik azt kapja meg).
+Említsük meg a *prop* code snippetet is, ami mindkét módosítószót publikusan hagyja. Láthatósági módosítószót a `get` és `set` közül csak az egyik elé tehetünk ki, és az is csak szigoríthat a külső láthatóságon (ekkor a másik a külsőt kapja meg).
 
 Ez a megoldás az előzővel teljes mértékben ekvivalens (csak nem látjuk a generált backing fieldet, de valójában ott van). Ha van időnk, akkor megmutathatjuk decompilerben, hogy valóban így van.
 
-Az előzőhöz hasonlóan vegyük fel a születési dátumot is. A születési dátum nem változhat, gyakorlatilag readonly mezőről van szó. Ha egy tulajdonság értékét az objektum is csak a konstruktorban tudja megadni, akkor a setter teljes mértékben elhagyható:
+Az előzőhöz hasonlóan vegyük fel a születési dátumot is. A születési dátum nem változhat, gyakorlatilag `readonly` mezőről van szó. Ha egy tulajdonság értékét az objektum is csak a konstruktorban tudja megadni, akkor a setter teljes mértékben elhagyható:
 
 ```csharp
 public DateTime DateOfBirth { get; }
@@ -130,7 +130,7 @@ public Person(string name, DateTime dateOfBirth)
 }
 ```
 
-Ez a szintaktika megegyezik azzal, mintha egy readonly mezőt használnánk, azaz a mező értéke legkésőbb a konstruktorban inicializálandó.
+Ez a szintaktika megegyezik azzal, mintha egy `readonly` mezőt használnánk, azaz a mező értéke legkésőbb a konstruktorban inicializálandó.
 
 Vegyünk fel neki egy azonosítót, ami egy `Guid` struktúra:
 
@@ -156,7 +156,7 @@ T>Alkalmazások fejlesztésekor a legfontosabb első lépések egyike, hogy az o
 
 ### Listázás
 
-A `Main` metódusban vegyünk fel néhány `Person` objektumot, és listázzuk ki a releváns tulajdonságaikat! Ehhez egy Person listában tároljuk a személyeket. A `List` generikus kollekció, azaz típusparamétert vár, típusokkal paraméterezhető. A `List` típusparamétere jelzi, hogy milyen típusú objektumokat tárol. Metódusok, tulajdonságok, típusok lehetnek generikusak. A genericitás fontos a kódunk újrafelhasználhatósága és karbantarthatósága érdekében.
+A `Main` metódusban vegyünk fel néhány `Person` objektumot, és listázzuk ki a releváns tulajdonságaikat! Ehhez egy `Person` listában tároljuk a személyeket. A `List` generikus kollekció, azaz típusparamétert vár, típusokkal paraméterezhető. A `List` típusparamétere jelzi, hogy milyen típusú objektumokat tárol. Metódusok, tulajdonságok, típusok lehetnek generikusak. A genericitás fontos a kódunk újrafelhasználhatósága és karbantarthatósága érdekében.
 
 ```csharp
 static void Main(string[] args)
@@ -175,7 +175,7 @@ static void Main(string[] args)
 
 Indítsuk el az alkalmazást, és nézzük meg, mi történik!
 
-Ha a `WriteLine` fölé visszük az egeret, látható, hogy az overload-ok közül az hívódik meg, amelyik objektumot vár paraméterül. Ebben az esetben a paraméter `ToString` metódusát hívja meg a `WriteLine`, ami alapértelmezés szerint az objektum fully qualified típusának nevét adják vissza. Tegyük szebbé a kiírást, override-oljuk a default `ToString` implementációt a Person osztályban:
+Ha a `WriteLine` fölé visszük az egeret, látható, hogy az overload-ok közül az hívódik meg, amelyik objektumot vár paraméterül. Ebben az esetben a paraméter `ToString` metódusát hívja meg a `WriteLine`, ami alapértelmezés szerint az objektum *fully qualified* típusának nevét adják vissza. Tegyük szebbé a kiírást, override-oljuk az alapértelmezett `ToString` implementációt a `Person` osztályban:
 
 ```csharp
 public override string ToString()

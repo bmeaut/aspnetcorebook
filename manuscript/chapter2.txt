@@ -2,11 +2,11 @@
 
 ## Előkészítés
 
-Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: File → New → Project… → Installed → Templates → Visual C# → .NET Core → Console Application (.NET Core). A neve legyen HelloCSharp2, itt ismét említsük meg a .NET konvenciókat az elnevezésre: PascalCasing típusneveknél/névtereknél/metódusoknál, camelCasing lokális és privát változók esetén. A betűszavakat is 3 betű felett (egyre gyakoribb, hogy már 2 betű esetén is) nem kapitális betűkkel, hanem PascalCasinget használva írjuk. A solutiont ne tegyük külön mappába (Create directory for solution elem legyen üresen hagyva).
+Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: File → New → Project… → Installed → Templates → Visual C# → .NET Core → Console Application (.NET Core). A neve legyen *HelloCSharp2*, itt ismét említsük meg a .NET konvenciókat az elnevezésre: PascalCasing típusneveknél/névtereknél/metódusoknál, camelCasing lokális és privát változók esetén. A betűszavakat is 3 betű felett (egyre gyakoribb, hogy már 2 betű esetén is) nem kapitális betűkkel, hanem PascalCasinget használva írjuk. A solutiont ne tegyük külön mappába (Create directory for solution elem legyen üresen hagyva).
 
 T> A laborhoz tartozó snippet fájl: cs2.md
 
-Adjunk a létrejövő projekthez egy Dog osztályt Dog.cs néven, ez lesz az adatmodellünk:
+Adjunk a létrejövő projekthez egy `Dog` osztályt *Dog.cs* néven, ez lesz az adatmodellünk:
 
 T> A snippet fájlból is bemásolhatjuk
 
@@ -27,9 +27,9 @@ Az adatmodell az előző órán létrehozotthoz nagyon hasonlít, ennek viszont 
 
 ## Objektum inicializálók
 
-Az object initializer segítségével egy éppen létrehozott objektum beállítható (set-elhető) tulajdonságait állítjuk be (a meghatározott sorrendben). Az object initializer csak konstruktorhívás esetén használható, így pl. factory által gyártott objektumpéldány esetén nem. Elsődleges célja, hogy elkülönüljön az objektumon végzett művelet az inicializáló, adatfeltöltő logikától.
+Az *object initializer* segítségével egy éppen létrehozott objektum beállítható (set-elhető) tulajdonságait állítjuk be (a meghatározott sorrendben). Az objektum inicializáló csak konstruktorhívás esetén használható, így pl. factory által gyártott objektumpéldány esetén nem. Elsődleges célja, hogy elkülönüljön az objektumon végzett művelet az inicializáló, adatfeltöltő logikától.
 
-A Program.cs-ben levő Main metódusban írhatjuk az alábbi példát:
+A Main metódusban írhatjuk az alábbi példát:
 
 ```csharp
 static void Main(string[] args)
@@ -54,7 +54,7 @@ Console.WriteLine(banan);
 Console.ReadLine();
 ```
 
-A `var` kulcsszóval implicit érhetjük el a C# statikus típusosságát: ha a fordító ki tudja találni a kontextusból az értékadás jobb oldalán álló érték típusát, nem szükséges a típus nevét explicit megadnunk, az implicit következik a kódból. Ebben az esetben a típus egyértelműen `Dog`. Ha csak deklarálni szeretnénk egy változót (nem adunk értékül a változónak semmit), akkor nem használhatjuk a var kulcsszót, ugyanis nem következik a kódból a változó típusa. Ekkor explicit meg kell adnunk a típust.
+A `var` kulcsszó jelentősége: ha a fordító ki tudja találni a kontextusból az értékadás jobb oldalán álló érték típusát, nem szükséges a típus nevét explicit megadnunk, az implicit következik a kódból. Ebben az esetben a típus egyértelműen `Dog`. Ha csak deklarálni szeretnénk egy változót (nem adunk értékül a változónak semmit), akkor nem használhatjuk a `var` kulcsszót, ugyanis nem következik a kódból a változó típusa. Ekkor explicit meg kell adnunk a típust.
 
 ```csharp
 var watson = new Dog { Name = "Watson" };
@@ -93,7 +93,7 @@ Az object initializer hasznos lehet abban az esetben is, ha át szeretnénk adni
 
 ## Using static
 
-Ha egy osztály statikus tagjait vagy egy statikus osztályt szeretnénk használni, lehetőségünk van a using static kulcsszavakkal az osztályt az aktuális kontextusunkba referálni. Ha a Console osztályt referáljuk ilyen módon, lehetőségünk van a rajta levő metódusok meghívására az aktuális kontextusunkban:
+Ha egy osztály statikus tagjait vagy egy statikus osztályt szeretnénk használni, lehetőségünk van a `using static` kulcsszavakkal az osztályt az aktuális kontextusunkba referálni. Ha a `Console` osztályt referáljuk ilyen módon, lehetőségünk van a rajta levő metódusok meghívására az aktuális kontextusunkban:
 
 ```csharp
 using System;
@@ -118,11 +118,11 @@ T> Ilyenkor a szimbólumütközések feloldására használatos általános szab
 
 Természetesen a referenciatípusok mind olyan típusok, melyek vehetnek fel null értéket, viszont esetenként jó volna, ha a `null` értéket egyébként felvenni nem képes típusok is lehetének ilyen értékűek, ezzel pl. jelezvén, hogy egy érték be van-e állítva vagy sem. Pl. egy szám esetén a 0 egy konkrét, helyes érték lehet a domain modellünkben, a `null` viszont azt jelenthetné, hogy nem vett fel értéket.
 
-Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz 2018 Watson életkora! A `Console.WriteLine` parancshoz vegyünk fel egy töréspontot (F9), ezután vegyük fel a `dog.Name` és `dog.AgeInDays` watch kifejezést a Watch ablakba! Ha F5-tel lépkedünk, láthatjuk, hogy Watson 2018 évesnek vélt. Amíg a program futása fel van függesztve a breakpointon, vegyünk fel egy másikat az AgeInDays tulajdonság kiértékelésébe a Dog osztályban! Láthatjuk, hogy a turpisság abból fakad, hogy a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéke `0001. 01. 01. 00:00:00`.
+Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz 2018 Watson életkora! A `Console.WriteLine` parancshoz vegyünk fel egy töréspontot (F9), ezután vegyük fel a `dog.Name` és `dog.AgeInDays` kifejezést a *Watch* ablakba! Ha *F5*-tel lépkedünk, láthatjuk, hogy Watson 2018 évesnek vélt. Amíg a program futása fel van függesztve a breakpointon, vegyünk fel egy másikat az `AgeInDays` tulajdonság kiértékelésébe a `Dog` osztályban! Láthatjuk, hogy a turpisság abból fakad, hogy a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéke `0001. 01. 01. 00:00:00`.
 
-Ennek a javításához az Age tulajdonság típusát változtassuk `int?`-re! Az `int?` szintaktikai édesítőszere a `Nullable<int>`-nek, egy olyan struktúrának, ami egy int értéket tárol, és tárolja, hogy az be van-e állítva vagy sem. A `Nullable<T>` szignatúráit megmutathatjuk, hogyha a kurzort a típusra helyezve F12-t nyomunk.
+Ennek a javításához az `Age` tulajdonság típusát változtassuk `int?`-re! Az `int?` szintaktikai édesítőszere a `Nullable<int>`-nek, egy olyan struktúrának, ami egy `int` értéket tárol, és tárolja, hogy az be van-e állítva vagy sem. A `Nullable<T>` szignatúráit megmutathatjuk, hogyha a kurzort a típusra helyezve *F12*-t nyomunk.
 
-Módosítsuk a Dog Age és DateOfBirth tulajdonságait, hogy tudjuk, be vannak-e állítva az értékeik:
+Módosítsuk a `Dog` `Age` és `DateOfBirth` tulajdonságait, hogy tudjuk, be vannak-e állítva az értékeik:
 
 ```csharp
 public DateTime? DateOfBirth { get; set; }
@@ -136,11 +136,11 @@ public int? AgeInDogYears => AgeInDays * 7 / 365;
 
 Az `AgeInDays` akkor ad vissza `null` értéket, ha a `DateOfBirth` maga is `null` volt. Tehát ha nincs megadva születési dátumunk, nem tudunk életkort sem számítani. Ehhez magyarázzuk el a `?.` („Elvis”, magyarban „Kozsó” - `null` conditional operator) operátor jelentését: a kiértékelendő érték jobb oldalát adja vissza, ha a bal oldal nem `null`, különben `null`t. A kifejezést meg kellett változtatnunk, hogy a `DateOfBirth`-ből vonjuk ki a jelenlegi dátumot és ezt negáljuk, ugyanis a `null` vizsgálandó érték a bináris operátor bal oldalán kell, hogy elhelyezkedjen.
 
-Ha most futtatjuk az alkalmazást, az AgeInDays és a származtatott tulajdonságok értéke null lesz, ha a születési dátum nincs megadva.
+Ha most futtatjuk az alkalmazást, az `AgeInDays` és a származtatott tulajdonságok értéke null lesz, ha a születési dátum nincs megadva.
 
 ## Kollekció inicializálók
 
-A kollekció inicializálók (collection initializer) egy szintaktikai édesítőszer arra az esetre, amikor kollekcióban levő elemeket a kollekció létrehozásával gyakorlatilag atomi műveletként szeretnénk kezelni.
+A kollekció inicializálók (collection initializer) egy szintaktikai édesítőszer arra az esetre, amikor kollekcióban levő elemeket a kollekció létrehozásával összevont műveletként szeretnénk kezelni.
 
 ```csharp
 var dogs = new List<Dog>();
@@ -163,7 +163,7 @@ dogs.Add(unknown);
 var dogs = new List<Dog> { banan, watson, unnamed, unknown };
 ```
 
-Ez a megoldás szintaktikailag és működésében is nagyon hasonló az objektum inicializálóhoz: kizárólag akkor kapjuk meg a dogs referenciát, ha a lista konstruktora lefutott, és minden elemet hozzá tudtunk adni a kollekcióhoz. Ha az alapértelmezett konstruktort használjuk, itt sem szükséges megadnunk a hívást jelző zárójeleket. A háttérben a kollekció Add() metódusa hívódik meg az elemek hozzáadására, tehát ez alapvetően megegyezik az alábbival:
+Ez a megoldás szintaktikailag és működésében is nagyon hasonló az objektum inicializálóhoz: kizárólag akkor kapjuk meg a `dogs` referenciát, ha a lista konstruktora lefutott, és minden elemet hozzá tudtunk adni a kollekcióhoz. Ha az alapértelmezett konstruktort használjuk, itt sem szükséges megadnunk a hívást jelző zárójeleket. A háttérben a kollekció `Add` metódusa hívódik meg az elemek hozzáadására, tehát ez alapvetően megegyezik az alábbival:
 
 ```csharp
 var _dogs = new List<Dog>();
@@ -182,7 +182,7 @@ T> Kivétel esetén sikertelen lesz értékadás.
 
 A bővítő metódusok (extension method) révén bármilyen típust – látszólag – kiegészíthetünk tetszőleges, további metódusokkal.
 
-Tegyük fel, hogy hiányolunk egy metódust a standard `string` típusról. Szeretnénk, hogy például konzolra történő listázáskor egy paraméterezhető karakterhosszúságú szöveggé vágná le a bemenetet vagy az adott hosszúságúra töltené ki szóközökkel. Ezt a feladatot megoldhatnánk például az alábbi módon: vegyünk fel egy **Extensions** nevű mappát a projekt gyökerében, ebben pedig egy `StringExtensions` osztályt egy **StringExtensions.cs** nevű fájlba:
+Tegyük fel, hogy hiányolunk egy metódust a standard `string` típusról. Szeretnénk, hogy például konzolra történő listázáskor egy paraméterezhető karakterhosszúságú szöveggé vágná le a bemenetet vagy az adott hosszúságúra töltené ki szóközökkel. Ezt a feladatot megoldhatnánk például az alábbi módon: vegyünk fel egy **Extensions** nevű mappát a projekt gyökerében, ebben pedig egy `StringExtensions` osztályt egy ugyanilyen nevű fájlba:
 
 ```csharp
 public static class StringExtensions
@@ -198,7 +198,7 @@ public static class StringExtensions
 }
 ```
 
-A `??` operátor (null coalescing operator) a kifejezés bal oldalán álló értéket adja vissza, ha az nem `null`, különben a jobb oldalán álló értéket (tehát kiolvashatjuk „különben, ha `null`”-ként is).
+A `??` operátor (null coalescing operátor) a kifejezés bal oldalán álló értéket adja vissza, ha az nem `null`, különben a jobb oldalán álló értéket (tehát kiolvashatjuk „különben, ha `null`”-ként is).
 
 Érdekességképp megvizsgálhatjuk az „egysoros” megoldást, kitérve ennek egyértelmű hátrányaira és előnyére:
 
@@ -211,6 +211,8 @@ public static string TrimPad(string text, int length) =>
             : text.Substring(0, length);
 ```
 
+T> Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
+
 Teszteljük is le, a `Main` metódusunk elején:
 
 ```csharp
@@ -218,13 +220,13 @@ for (var i = 0; i < 26; i++)
     Console.WriteLine(StringExtensions.TrimPad(new string((char)('a' + i), i), 20));
 ```
 
-Mivel a statikus osztályunk más névtérben van, használjuk a névteret a Program.cs fájl tetején:
+Mivel a statikus osztályunk más névtérben van, használjuk a névteret a **Program.cs** fájl tetején:
 
 ```csharp
 using HelloCSharp2.Extensions;
 ```
 
-Szebb volna, ha magán a string-en tudnánk használni ezt a metódust. Tegyük ki a this módosítószót a TrimPad metódus szignatúrájába:
+Szebb volna, ha magán a `string`-en tudnánk használni ezt a metódust. Tegyük ki a `this` módosítószót a `TrimPad` metódus szignatúrájába:
 
 ```csharp
 public static string TrimPad(this string text, int length)
@@ -238,7 +240,7 @@ Console.WriteLine(new string((char)('a' + i), i).TrimPad(20));
 
 Ez a megoldás ekvivalens a korábban használttal, szintén csak egy szintaktikai édesítőszerről van szó.
 
-T> A bővítő metódusnak statikus osztályban kell szerepelnie, a metódusnak statikusnak kell lennie, és a szükséges névteret az aktuális fájlban használnunk kell a using kulcsszóval.
+T> A bővítő metódusnak statikus osztályban kell szerepelnie, a metódusnak statikusnak kell lennie, és a szükséges névteret az aktuális fájlban használnunk kell a `using` kulcsszóval.
 Amikor statikus osztályban állapotmentes, statikus metódust hozunk létre, amely a bemeneti paramétereken dolgozik (helper), érdemes lehet azokat bővítő metódusként kezelni és az első paraméter elé kitenni a `this` módosítószót, így rövidítve a megírandó kód hosszát.
 
 Ha a `Dog` osztályban átírjuk a `ToString` metódusunkat, kicsit szebbé tehetjük az outputot:
@@ -249,7 +251,7 @@ public override string ToString() =>
       [ID: {Id.ToString().TrimPad(8)}]";
 ```
 
-Mivel a használni kívánt bővítő metódusunk más névtérben van, ezért `using`-oljuk a névteret a fájl elején (Ctrl+.):
+Mivel a használni kívánt bővítő metódusunk más névtérben van, ezért `using`-oljuk a névteret a fájl elején (*Ctrl+.*):
 
 Még egy kicsit szépíthetünk a helyzeten, ha a metódus típusparamétert is vár. Ekkor minden objektumra használható lesz a bővítő metódus, nem szükséges `ToString()`-et hívni a nem `string` típusú elemeken:
 
@@ -257,11 +259,11 @@ Még egy kicsit szépíthetünk a helyzeten, ha a metódus típusparamétert is 
 public static string TrimPad<T>(this T obj, int length) => TrimPad(obj.ToString(), length);
 ```
 
-Ez az új metódus az eredeti *overload*-ja. Ez azt jelenti, hogy ugyanazzal a függvénynévvel több, különböző szignatúrájú metódust is felvehetünk, a megfelelő függvény kiválasztása a megadott paraméterek száma és típusa alapján történik. Esetünkben a `string`-et váró függvény fog meghívódni `string`-ek esetén, minden más esetben a másik implementáció.
+Ez az új metódus az eredeti *overload*-ja: a `string`-et váró függvény fog meghívódni `string`-ek esetén, minden más esetben a másik implementáció.
 
-T> Mivel minden objektumra működik, ezért fontoljuk meg, mielőtt ilyen általános fóggvényt írunk, különben nagyon hosszú lesz minden alkalommal az *IntelliSense* legördülője.
+T> Mivel minden objektumra működik, ezért fontoljuk meg, mielőtt ilyen általános függvényt írunk, különben nagyon hosszú lesz minden alkalommal az *IntelliSense* legördülője.
 
-A Dog.cs-ben:
+A `Dog` osztályban egyszerűsíthetjük a `ToString` implementációt:
 
 ```csharp
 public override string ToString() =>
@@ -272,7 +274,7 @@ A bővítő metódusokat kiegészítésképpen használhatjuk *collection initia
 
 A fordító a nem megfelelő szignatúrájú Add metódus hiányára panaszkodik. Javítsunk ezen! Készítsünk egy olyan bővítő metódust, amely megengedi, hogy `string`-et adjunk a `Dog` kollekcióhoz!
 
-Az Extensions/DogCollectionExtensions.cs fájlban vegyük fel az alábbi osztályt:
+Az **Extensions/DogCollectionExtensions.cs** fájlban vegyük fel az alábbi osztályt:
 
 ```csharp
 public static class DogCollectionExtensions
@@ -282,11 +284,11 @@ public static class DogCollectionExtensions
 }
 ```
 
-T> Az expression bodied method szintaxist érdemes áthívás jellegű esetekben használni (esetünkben ez például egy másik szintaxis invokációját jelenti), azaz amikor a jobb oldali kifejezést közvetlenül vissza is akarjuk adni a hívónak. Egy void visszatéréssel rendelkező metódus esetén a típus (hiánya) nem okoz gondot, illetve a jobb oldali visszatérési értéket elrejthetjük, ha a metódusunk void visszatérésű.
+T> Az expression bodied method szintaxist érdemes áthívás jellegű esetekben használni (esetünkben ez például egy másik szintaxis invokációját jelenti), azaz amikor a jobb oldali kifejezést közvetlenül vissza is akarjuk adni a hívónak. Egy `void` visszatéréssel rendelkező metódus esetén a típus (hiánya) nem okoz gondot, illetve a jobb oldali visszatérési értéket elrejthetjük, ha a metódusunk `void` visszatérésű.
 
-T> Az utolsó paraméter ún. opcionális paraméter alapértelmezett értékkel. Ezt a paramétert nem szükséges megadnunk a függvény hívásakor, ekkor annak a változónak az értéke a megadott értékre fallback-el.
+T> Az utolsó paraméter ún. opcionális paraméter alapértelmezett értékkel. Ezt a paramétert nem szükséges megadnunk a függvény hívásakor, ekkor annak a változónak az értéke a megadott alapértelmezett értéket veszi fel.
 
-Ez a hívás egyszerűen áthív a „valódi” `Add` metódusba, ami `Dog` típusú elemet vár. Próbáljuk ki a hívást:
+Ez a hívás egyszerűen áthív a valódi `Add` metódusba, ami `Dog` típusú elemet vár. Próbáljuk ki a hívást:
 
 ```csharp
 var dogs = new List<Dog> { banan, watson, unnamed, unknown, "Mázli" };
@@ -307,7 +309,7 @@ var dogs = new List<Dog> {
 
 ## Index inicializálók
 
-A collection initializer analógiájára jött létre az index initializer nyelvi elem, ami a korábbihoz hasonlóan sorban hív meg egy operátort, hogy már inicializált objektumot kapjunk vissza. A különbség egyrészt a szintaxis, másrészt az ilyenkor meghívott metódus, ami az index operátor. Emlékeztethetjük a hallgatókat, hogy saját típusainkban lehetőségünk van definiálni és felüldefiniálni operátorokat, mint pl. +, -, indexelés, implicit cast, explicit cast, stb. Ilyenkor nem szükséges megvalósítanunk az IEnumerable interfészt, egyszerűen csak egy elérhető, beállítható indexer tulajdonságra van szükségünk.
+A collection initializer analógiájára jött létre az *index initializer* nyelvi elem, ami a korábbihoz hasonlóan sorban hív meg egy operátort, hogy már inicializált objektumot kapjunk vissza. A különbség egyrészt a szintaxis, másrészt az ilyenkor meghívott metódus, ami az index operátor. Emlékeztethetjük a hallgatókat, hogy saját típusainkban lehetőségünk van definiálni és felüldefiniálni operátorokat, mint pl. +, -, indexelés, implicit cast, explicit cast, stb. Ilyenkor nem szükséges megvalósítanunk az `IEnumerable` interfészt, egyszerűen csak egy elérhető, beállítható indexer tulajdonságra van szükségünk.
 
 Tegyük fel, hogy egy kutyához bármilyen a domain modellünkbe nem illeszkedő információ kerülhet, amire általános struktúrát szeretnénk. Vegyünk fel a `Dog` osztályba egy `string-object` szótárat, amiben bármilyen további információt tárolhatunk! Ezen felül állítsuk be a `Dog` indexerét, hogy az a `Metadata` indexelését végezze:
 
@@ -351,7 +353,7 @@ foreach (var dog in dogs)
     Console.WriteLine($"{dog.Key.TrimPad(10)} - {dog.Value}");
 ```
 
-Mivel az index- és a collection initializer nem vegyíthető, ezért a kettő közül most választanunk kell. Ilyenkor az Add metódusos overload-jainkat nem használhatjuk.
+Mivel az index- és a collection initializer nem vegyíthető, ezért a kettő közül most választanunk kell. Ilyenkor az `Add` metódus változatait nem használhatjuk.
 
 A `Dictionary<TKey, TValue>` rendelkezik egy `Add` metódussal, amelyik egy `TKey` és egy `TValue` típusú értéket vár, ezért használhatjuk a collection initializert is:
 

@@ -6,16 +6,16 @@ A labor kezdetén töltsük le a kapcsolódó anyagok közül a *HelloLinq-kiind
 
 Megnyitás után tekintsük át a kiinduló projektben levő fájlokat:
 
-- Program.cs: a programunk belépési pontját tartalmazó osztály. Található benne egy `Dogs` csak lekérdezhető tulajdonság, ami a Dog osztály statikus Repository tulajdonságába hív át.
-- Dog.cs: a korábbi méréseken használt adatmodell (apróbb módosításokkal). Bekerült egy Siblings tulajdonság, a `ToString` pedig kiírja a kutyához tartozó testvérek számát is (ehhez a `TrimPad` bővítő metódust használja). A statikus Repository tulajdonság mögött egy lustán inicializált `Lazy<T>` RepositoryHolder található, ami egy megfelelően formázott bemeneti CSV fájlból elkészíti számunkra az adatmodellt, amivel a későbbiekben dolgozunk. Ennek implementációját a labor végén nézzük meg, amennyiben marad idő. Az Import és Export függvények a kutyák sorosítását végzik el mindkét irányban.
-- Extensions/StringExtensions.cs: ez az osztály tartalmazza a korábban írt bővítő metódusunkat, a `TrimPad`-et, kicsit átalakítva.
-- dogs.csv: egy pontosvesszővel tagolt „adatbázis”, amelyben 100 db előre felvett kutya adata található.
+- **Program.cs**: a programunk belépési pontját tartalmazó osztály. Található benne egy `Dogs` csak lekérdezhető tulajdonság, ami a `Dog` osztály statikus `Repository` tulajdonságába hív át.
+- **Dog.cs**: a korábbi gyakorlatokon használt adatmodell (apróbb módosításokkal). Bekerült egy `Siblings` tulajdonság, a `ToString` pedig kiírja a kutyához tartozó testvérek számát is (ehhez a `TrimPad` bővítő metódust használja). A statikus `Repository` tulajdonság mögött egy lustán inicializált `Lazy<T> RepositoryHolder` található, ami egy megfelelően formázott bemeneti CSV fájlból elkészíti számunkra az adatmodellt, amivel a későbbiekben dolgozunk. Ennek implementációját a labor végén nézzük meg, amennyiben marad idő. Az `Import` és `Export` függvények a kutyák sorosítását végzik el mindkét irányban.
+- **Extensions/StringExtensions.cs**: ez az osztály tartalmazza a korábban írt bővítő metódusunkat, a `TrimPad`-et, kicsit átalakítva.
+- **dogs.csv**: egy pontosvesszővel tagolt „adatbázis”, amelyben 100 darab előre felvett kutya adata található.
 
 ## Lambda kifejezések, delegátok
 
 Gyakori feladat, hogy objektumok kollekciójával kell dolgoznunk. Képesek vagyunk olyan jellegű segédfüggvényeket készíteni, amik például egy kollekcióban kikeresik az összes olyan elemet, amely egy megadott feltételnek eleget tesz.
 
-A Program.cs fájlban dolgozzunk:
+A **Program.cs** fájlban dolgozzunk:
 
 ```csharp
 private static List<Dog> ListDogsByNamePrefix(IEnumerable<Dog> dogs, string prefix)
@@ -220,7 +220,7 @@ foreach (var text in Dogs
 }
 ```
 
-Nem nagy meglepetés, hogy az általunk megírt `Sum`, `Average` (melyek egyedi visszatérésűek), `Select` és `Where` (amik szekvenciális visszatérésűek, generátorok) metódusok mind a .NET keretrendszer részét képezik (a `System.Linq.Enumerable` statikus osztályban definiált bővítő metódusok). A **LINQ** – **L**anguage **IN**tegrated **Q**uery – ezeket a műveleteket teszi lehetővé `IEnumerable` és `IQueryable` interfészt megvalósító objektumokon. A LINQ a .NET Standard része, így out-of-the box „jár” bármely .NET keretrendszerhez. A LINQ koncepciója pontosan ez, azaz bővítő metódusok hozzáadása meglevő a funkcionalitáshoz (kollekciókhoz, lekérdezésekhez), sőt, külső library-k is adnak saját LINQ bővítő metódusokat. Cseréljük le a *Program.cs*-ben a `using HelloLinq.Extensions` hivatkozást `using System.Linq`-re: az általunk megírt kód továbbra is ugyanazt az eredményt produkálja!
+Nem nagy meglepetés, hogy az általunk megírt `Sum`, `Average` (melyek egyedi visszatérésűek), `Select` és `Where` (amik szekvenciális visszatérésűek, generátorok) metódusok mind a .NET keretrendszer részét képezik (a `System.Linq.Enumerable` statikus osztályban definiált bővítő metódusok). A **LINQ** – **L**anguage **IN**tegrated **Q**uery – ezeket a műveleteket teszi lehetővé `IEnumerable` és `IQueryable` interfészt megvalósító objektumokon. A LINQ a .NET Standard része, így out-of-the box „jár” bármely .NET keretrendszerhez. A LINQ koncepciója pontosan ez, azaz bővítő metódusok hozzáadása meglevő a funkcionalitáshoz (kollekciókhoz, lekérdezésekhez), sőt, külső library-k is adnak saját LINQ bővítő metódusokat. Cseréljük le a **Program.cs**-ben a `using HelloLinq.Extensions` hivatkozást `using System.Linq`-re: az általunk megírt kód továbbra is ugyanazt az eredményt produkálja!
 
 ## Anonim típusok
 
@@ -238,7 +238,7 @@ Az anonim típusok:
 - csak referencia típusúak lehetnek (objektumok, nem pedig struktúrák),
 - csak publikusan látható, csak olvasható tulajdonságokat tartalmazhatnak,
 - eseményeket és metódusokat nem tartalmazhatnak (delegate példányokat tulajdonságban viszont igen),
-- szerelvényen belül láthatók (internal) és nem származhat belőlük másik típus (sealed).
+- szerelvényen belül láthatók (`internal`) és nem származhat belőlük másik típus (`sealed`).
 
 Ha az egeret a `var` kulcsszavak, vagy egyes tulajdonságnevek fölé visszük, láthatjuk, hogy valóban fordítási idejű típusokról van szó.
 
@@ -256,7 +256,7 @@ T> Ha végeztünk az anonim típusok bemutatásával, az ezekkel kapcsolatos kó
 
 ## LINQ szintaxisok
 
-Az előző részben ismertetett jellegű lekérdezések nagyban hasonlítanak azokhoz, amiket DB lekérdezésekben alkalmazunk. A különbség itt az, hogy imperatív szintaxist használunk, szemben pl. az SQL-lel, ami deklaratívat. Ezért is van jelen a C# nyelvben az ún. **query syntax**, amely jóval hasonlatosabb az SQL szintaxisához, így az adatbázisokban jártas fejlesztők is könnyebben írhatnak lekérdezéseket. Ugyanakkor nem minden lekérdezést tudunk query syntax-szal leírni.
+Az előző részben ismertetett jellegű lekérdezések nagyban hasonlítanak azokhoz, amiket DB lekérdezésekben alkalmazunk. A különbség itt az, hogy imperatív szintaxist használunk, szemben pl. az SQL-lel, ami deklaratívat. Ezért is van jelen a C# nyelvben az ún. *query syntax*, amely jóval hasonlatosabb az SQL szintaxisához, így az adatbázisokban jártas fejlesztők is könnyebben írhatnak lekérdezéseket. Ugyanakkor nem minden lekérdezést tudunk query syntax-szal leírni.
 
 Az előző lekérdezést megírhatjuk az alábbi módon query syntax használatával:
 
@@ -276,7 +276,7 @@ foreach (var meta in query)
 }
 ```
 
-A query syntax végül a korábban is használt, ún. **fluent syntax**-szá fordul. A két szintaxist szokás ötvözni is, jellemzően akkor, ha query syntax-ban írjuk a lekérdezést, és a hiányzó funkcionalitást fluent syntax-szal pótoljuk.
+A query syntax végül a korábban is használt, ún. *fluent syntax*-szá fordul. A két szintaxist szokás ötvözni is, jellemzően akkor, ha query syntax-ban írjuk a lekérdezést, és a hiányzó funkcionalitást fluent syntax-szal pótoljuk.
 
 ## Expression<>
 
@@ -296,12 +296,12 @@ Console.WriteLine(e.Compile()(5));
 Mivel ezen az órán csak memóriabeli listákkal dolgozunk, így nem nagyon tudnánk kihasználni az `Expression`-ök erejét, így most csak `Func<>`-ot használtunk.
 
 A LINQ-to-Objects alapinterfésze (ami a lekérdezőfüggvényeket biztosítja) az `IEnumerable<>`, figyeljük meg, hogy a függvények `Func<>` / `Action<>` delegate-eket várnak.
-Emellett más, memóriabeli adatokon dolgóz LINQ technológia is létezik, pl. LINQ-to-XML saját API-val.
+Emellett más, memóriabeli adatokon dolgozó LINQ technológia is létezik, pl. LINQ-to-XML saját API-val.
 
 A nem memóriabeli adatokon dolgozó LINQ provider-ek `IQueryable<>`-t valósítanak meg. Az `IQueryable<>` az `IEnumerable<>`-ból származik, így neki is vannak `Func<>` / `Action<>`-ös függvényei, de emellett `Expression<>`-ösek is. Ez teszi lehetővé, hogy ne csak IL kódot generáljanak a lambda kifejezésekből, hanem helyette pl. SQL kifejezést.
 Idő hiányában az alábbi részt kihagyhatjuk.
 
-Rakjuk össze a korábbi, névkezdetet vizsgáló szűrőkifejezést dinamikusan, futás közben, kódból. A Compile során egy valódi fordítási folyamat történik (tehát futási időben kapunk hibát a fordítás sikertelenségéről):
+Rakjuk össze a korábbi, névkezdetet vizsgáló szűrőkifejezést dinamikusan, futás közben, kódból. A `Compile` függvény hívása során egy valódi fordítási folyamat történik (tehát futási időben kapunk hibát a fordítás sikertelenségéről):
 
 ```csharp
 using Expression = System.Linq.Expressions.Expression;
@@ -324,4 +324,4 @@ var predicate =          new Predicate<Dog>(expression.Compile() as Func<Dog, bo
 
 Query függvényeknek (`IQ<>` vagy `IE<>` függvényei vagy pl. `XDocument`) paraméterül adott lambdák (`Func<>` vagy `Expression<>`) => az adatforrásnak megfelelő nyelvű, a query-t végrehajtó kód (IL kód vagy SQL).
 
-LINQ-to-Objects esetén nincs LINQ provider (a provider az IQueryable.Provider-en keresztül érhető el, de a `List<>` nem IQueryable!), hiszen nincs feladata: kódot kap bemenetül, ugyanazt kellene kimenetül adnia. LINQ-to-XML is hasonló elven működik.
+LINQ-to-Objects esetén nincs LINQ provider (a provider az IQueryable.Provider-en keresztül érhető el, de a `List<>` nem IQueryable!), hiszen nincs feladata: kódot kap bemenetül, ugyanazt kellene kimenetül adnia. A LINQ-to-XML is hasonló elven működik.
