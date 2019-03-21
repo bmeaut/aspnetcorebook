@@ -66,7 +66,7 @@ public class StopwatchWrapper : IDisposable
 
 Ha kérjük a villanykörte segítségét az `IDisposable`-ön, akkor 2x2 lehetőségünk van: megvalósítjuk az interfészt implicit vagy explicit, illetve megvalósítjuk-e az interfészt a Dispose mintát alkalmazva. Valósítsuk meg implicit a Dispose mintát!
 
-![Implementing Dispose pattern via IntelliSense](images/csharp4-dispose.png)
+![Dispose minta implementálása IntelliSense segítségével](images/csharp4-dispose.png)
 
 Fussuk át a kódot, ami szépen kommentezett. A pattern lényege, hogy nem menedzselt kód esetén az erőforrásokat szükséges felszabadítanunk, amit a Dispose metódusokban, ill. menedzselt kód esetén adott helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizumust!
 
@@ -94,7 +94,7 @@ Az `IDisposable` interfészt megvalósító elemekkel használhatjuk a `using` k
 static void Main(string[] args)
 {
     /*leanpub-start-insert*/
-    using (new StopwatchWrapper("Fib 0-50"))
+    using (new StopwatchWrapper("Fib 1-50"))
     {
         foreach (var n in Enumerable.Range(1, 50))
         {
@@ -116,7 +116,11 @@ public void Snapshot(string text) =>
 ```
 
 ```csharp
-using (var sw = new StopwatchWrapper("Fib 0-50"))
+using (
+     /*leanpub-start-insert*/
+    var sw =
+     /*leanpub-end-insert*/
+        new StopwatchWrapper("Fib 0-50"))
 {
     foreach (var n in Enumerable.Range(1, 50))
     {
@@ -201,7 +205,7 @@ static async Task Main(string[] args)
 
 Figyeljük meg, hogy így már az „Ez a vége” felirat már a letöltés után jelenik meg.
 
-T> Az async Main háttere: a fordító egy saját (nem async-os) Main-t generál, ez lesz az igazi belépési pont. Annyit csinál, hogy áthív és bevárja a mi Main-ünket.
+T> Az `async Main` háttere: a fordító egy saját (nem `async`-os) `Main`-t generál, ez lesz az igazi belépési pont. Annyit csinál, hogy áthív és bevárja a mi `Main`-ünket.
 
 ### Háttérművelet eredményének visszaadása
 

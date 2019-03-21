@@ -70,17 +70,17 @@ Console.ReadLine();
 
 Indítsuk el, és gyönyörködjünk.
 
-Rakjunk egy Breakpointot (F9, vagy klikkeljünk baloldalon a függőleges sávon a kód sorszáma mellett) a `Console.WriteLine(args[i]);` sorra, majd indítsuk újra az alkalmazást! Amikor a breakpointon megáll az alkalmazás futása, a sor sárga színű lesz. Ekkor vigyük az egeret az i, az args és az args.Length elemek felé, és mutassuk meg, hogy láthatjuk az aktuális értékeiket, komplexebb objektumok esetén be tudjuk járni az objektumgráfot. A Watch ablaka is tehetünk kifejezéseket, és megmutathatjuk a Locals ablakot is. F10-zel (vagy a menüsoron a Step Over elemmel) lépjünk tovább, nézzük meg, milyen sorrendben értékelődik ki a for ciklus. Az F5-tel továbbengedhetjük az alkalmazás futását, majd zárjuk is be.
+Rakjunk egy Breakpointot (F9, vagy klikkeljünk baloldalon a függőleges sávon a kód sorszáma mellett) a `Console.WriteLine(args[i]);` sorra, majd indítsuk újra az alkalmazást! Amikor a breakpointon megáll az alkalmazás futása, a sor sárga színű lesz. Ekkor vigyük az egeret az i, az args és az args.Length elemek felé, és mutassuk meg, hogy láthatjuk az aktuális értékeiket, komplexebb objektumok esetén be tudjuk járni az objektumgráfot. A Watch ablaka is tehetünk kifejezéseket, és megmutathatjuk a Locals ablakot is. *F10*-zel (vagy a menüsoron a Step Over elemmel) lépjünk tovább, nézzük meg, milyen sorrendben értékelődik ki a `for` ciklus. Az *F5*-tel továbbengedhetjük az alkalmazás futását, majd zárjuk is be.
 
-Mutassuk meg a Conditional Breakpoint használatát is. Tegyünk még egy breakpointot a másik Console.WriteLine-ra is. Jobb egér gomb az első breakpointon → Conditions… Adjuk meg az alábbiakat: Conditional Expression; Is true; `(i == 3)`. A másik breakpointon is adjunk meg feltételt: Hit Count; =; 4. Mindkét alkalommal a 4. elemen (banán) állunk meg. Megjegyezhetjük, hogy a Conditional Breakpoint használatával nem érdemes mellékhatást okozó műveleteket megadni, illetve hogy jelentősen le tudja csökkenteni a debugolás sebességét.
+Mutassuk meg a Conditional Breakpoint használatát is. Tegyünk még egy breakpointot a másik `Console.WriteLine`-ra is. Jobb egér gomb az első breakpointon → Conditions… Adjuk meg az alábbiakat: *Conditional Expression Is true* `(i == 3)`. A másik breakpointon is adjunk meg feltételt: *Hit Count = 4*. Mindkét alkalommal a 4. elemen (banán) állunk meg. Megjegyezhetjük, hogy a Conditional Breakpoint használatával nem érdemes mellékhatást okozó műveleteket megadni, illetve hogy jelentősen le tudja csökkenteni a debugolás sebességét.
 
 ### Tulajdonságok (Property-k)
 
 Hozzuk létre a Person adatosztályt! Ehhez jobb katt a projekten → Add → Class, a fájl neve legyen Person (a kiterjesztést automatikusan hozzábiggyeszti a Visual Studio, ha nem adjuk meg). .NET-ben nincs megkötés arra, hogy a kódokat tartalmazó fájlok és az egyes típusok számossága hogyan viszonyul egymáshoz: lehetséges egy kódfájlba is írnunk a teljes alkalmazás-kódot, illetve egy osztályt is szétdarabolhatunk több fájlra (ehhez a partial kulcsszót használjuk).
 
-A C# tulajdonság (property) egy szintaktikai édesítőszer, amely egy objektumpéldány (vagy osztály) egy explicit (memóriabeli) vagy implicit (származtatott vagy indirekt) jellemzőjét írja le. Egy tulajdonsággal két művelet végezhető: lekérdezés (get) és értékadás (set); ezeknek megadható külön a láthatósága és a kettő közül elegendő egy implementálása. A legtöbb C# szintaktikai édesítőszer a boilerplate kódok írásának elkerülése végett készült, így kevesebb kódolással érjük el ugyanazt az eredményt (sokszor az IL kód nem is változik, gyakorlatilag hasonló a kódgeneráláshoz).
+A C# tulajdonság (*property*) egy szintaktikai édesítőszer, amely egy objektumpéldány (vagy osztály) egy explicit (memóriabeli) vagy implicit (származtatott vagy indirekt) jellemzőjét írja le. Egy tulajdonsággal két művelet végezhető: lekérdezés (get) és értékadás (set); ezeknek megadható külön a láthatósága és a kettő közül elegendő egy implementálása. A legtöbb C# szintaktikai édesítőszer a boilerplate kódok írásának elkerülése végett készült, így kevesebb kódolással érjük el ugyanazt az eredményt (sokszor az IL kód nem is változik, gyakorlatilag hasonló a kódgeneráláshoz).
 
-A Person osztályban hozzuk létre a string Name property-t, name backer fielddel. Ehhez használjuk a propfull code snippetet (propf[TAB][TAB], majd [TAB]-bal lehet lépkedni a módosítható elemek között):
+A Person osztályban hozzuk létre a string Name property-t, name backer fielddel. Ehhez használjuk a *propfull* code snippetet (*propf[TAB][TAB]*, majd *[TAB]*-bal lehet lépkedni a módosítandó elemek között):
 
 ```csharp
 public class Person
@@ -100,7 +100,7 @@ public class Person
 }
 ```
 
-Magyarázzuk el, hogy igazából csak két további (kódban nem látható) metódust hozunk létre, mintha egy-egy GetName és SetName metódust készítenénk, viszont használat szempontjából ugyanolyannak tűnik, mintha egy sima mező lenne. A settert privát láthatóságúra tesszük, ezért csak egy Person példányon belülről tudjuk állítani a Name property értékét. Jegyezzük meg, hogy a getterben és setterben teljesen más jellegű műveleteket is végezhetünk (pl. elsüthetünk egy eseményt, hogy megváltozott a felhasználó neve, naplózhatjuk, hányszor kérték le a nevét, stb.). Mivel a backing field állításán kívül nem csinálunk semmit a kódban, ezért használhatjuk a propg code snippetet is:
+Magyarázzuk el, hogy igazából csak két további (kódban nem látható) metódust hozunk létre, mintha egy-egy GetName és SetName metódust készítenénk, viszont használat szempontjából ugyanolyannak tűnik, mintha egy sima mező lenne. A settert privát láthatóságúra tesszük, ezért csak egy Person példányon belülről tudjuk állítani a Name property értékét. Jegyezzük meg, hogy a getterben és setterben teljesen más jellegű műveleteket is végezhetünk (pl. elsüthetünk egy eseményt, hogy megváltozott a felhasználó neve, naplózhatjuk, hányszor kérték le a nevét, stb.). Mivel a backing field állításán kívül nem csinálunk semmit a kódban, ezért használhatjuk a *propg* code snippetet is:
 
 ```csharp
 public class Person
@@ -114,7 +114,7 @@ public class Person
 }
 ```
 
-Említsük meg a prop code snippetet is, ami mindkét módosítószót publikusan hagyja. Láthatósági módosítószót a get és set közül csak az egyik elé tehetünk ki, és az is csak szigoríthat a külső láthatóságon (ekkor a másik azt kapja meg).
+Említsük meg a *prop* code snippetet is, ami mindkét módosítószót publikusan hagyja. Láthatósági módosítószót a get és set közül csak az egyik elé tehetünk ki, és az is csak szigoríthat a külső láthatóságon (ekkor a másik azt kapja meg).
 
 Ez a megoldás az előzővel teljes mértékben ekvivalens (csak nem látjuk a generált backing fieldet, de valójában ott van). Ha van időnk, akkor megmutathatjuk decompilerben, hogy valóban így van.
 
@@ -156,7 +156,7 @@ T>Alkalmazások fejlesztésekor a legfontosabb első lépések egyike, hogy az o
 
 ### Listázás
 
-A `Main` metódusban vegyünk fel néhány Person objektumot, és listázzuk ki a releváns tulajdonságaikat! Ehhez egy Person listában tároljuk a személyeket. A `List` generikus kollekció, azaz típusparamétert vár, típusokkal paraméterezhető. A `List` típusparamétere jelzi, hogy milyen típusú objektumokat tárol. Metódusok, tulajdonságok, típusok lehetnek generikusak. A genericitás fontos a kódunk újrafelhasználhatósága és karbantarthatósága érdekében.
+A `Main` metódusban vegyünk fel néhány `Person` objektumot, és listázzuk ki a releváns tulajdonságaikat! Ehhez egy Person listában tároljuk a személyeket. A `List` generikus kollekció, azaz típusparamétert vár, típusokkal paraméterezhető. A `List` típusparamétere jelzi, hogy milyen típusú objektumokat tárol. Metódusok, tulajdonságok, típusok lehetnek generikusak. A genericitás fontos a kódunk újrafelhasználhatósága és karbantarthatósága érdekében.
 
 ```csharp
 static void Main(string[] args)
@@ -175,7 +175,7 @@ static void Main(string[] args)
 
 Indítsuk el az alkalmazást, és nézzük meg, mi történik!
 
-Ha a WriteLine fölé visszük az egeret, látható, hogy az overload-ok közül az hívódik meg, amelyik objektumot vár paraméterül. Ebben az esetben a paraméter `ToString` metódusát hívja meg a `WriteLine`, ami alapértelmezés szerint az objektum fully qualified típusának nevét adják vissza. Tegyük szebbé a kiírást, override-oljuk a default ToString implementációt a Person osztályban:
+Ha a `WriteLine` fölé visszük az egeret, látható, hogy az overload-ok közül az hívódik meg, amelyik objektumot vár paraméterül. Ebben az esetben a paraméter `ToString` metódusát hívja meg a `WriteLine`, ami alapértelmezés szerint az objektum fully qualified típusának nevét adják vissza. Tegyük szebbé a kiírást, override-oljuk a default `ToString` implementációt a Person osztályban:
 
 ```csharp
 public override string ToString()
@@ -190,11 +190,11 @@ Ennek az implementációjára más szintaktikai édesítőszereket is használha
 public override string ToString() => $"{Name} ({Age}) [ID: {Id}]";
 ```
 
-A két implementáció ekvivalens, először az elsőt, majd a másodikat mutassuk meg. A második implementáció az „expression bodied method” és a string interpoláció kombinálásából adódik.
+A két implementáció ekvivalens, először az elsőt, majd a másodikat mutassuk meg. A második implementáció az ún. *expression bodied method* és a *string interpoláció* kombinálásából adódik.
 
 Próbáljuk ki az alkalmazást!
 
-Hozzuk létre a Student osztályt, ami származik a Personből!
+Hozzuk létre a `Student` osztályt, ami származik a `Person` ozstályból!
 
 ```csharp
 public class Student : Person
@@ -209,7 +209,7 @@ public class Student : Person
 }
 ```
 
-A Main metódusban vegyünk fel néhány hallgatót is:
+A `Main` metódusban vegyünk fel néhány hallgatót is:
 
 ```csharp
 people.Add(new Student("Nagy Sándor", new DateTime(1995, 11, 23), "RHSSDR"));
