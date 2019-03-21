@@ -18,12 +18,14 @@ Gyakori feladat, hogy objektumok kollekciójával kell dolgoznunk. Képesek vagy
 A **Program.cs** fájlban dolgozzunk:
 
 ```csharp
-private static List<Dog> ListDogsByNamePrefix(IEnumerable<Dog> dogs, string prefix)
+private static List<Dog> ListDogsByNamePrefix(IEnumerable<Dog> dogs,
+                                              string prefix)
 {
     var result = new List<Dog>();
     foreach (var dog in dogs)
     {
-        if (dog.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        if (dog.Name.StartsWith(prefix,
+                                StringComparison.OrdinalIgnoreCase))
             result.Add(dog);
     }
     return result;
@@ -54,7 +56,7 @@ Oldjuk meg úgy, hogy az általános problémát is megoldjuk! Ehhez az szüksé
 
 ```csharp
 private static List<Dog> ListDogsByPredicate(IEnumerable<Dog> dogs,
-    Predicate<Dog> predicate)
+                                             Predicate<Dog> predicate)
 {
     var result = new List<Dog>();
     foreach (var dog in dogs)
@@ -71,8 +73,11 @@ A `Main` metódusban így hívhatjuk meg (felhasználhatjuk az eredeti ciklust):
 ```csharp
 /*leanpub-start-insert*/
 foreach(var dog in ListDogsByPredicate(Dogs,
-    delegate (Dog d) { return d.Name.StartsWith(searchText,
-                                                StringComparison.OrdinalIgnoreCase); } ))
+    delegate (Dog d) {
+        return d.Name.StartsWith(searchText,
+                                 StringComparison.OrdinalIgnoreCase);
+                     })
+        )
 /*leanpub-end-insert*/
     Console.WriteLine(dog);
 ```
@@ -134,14 +139,16 @@ Hozzunk létre egy *EnumerableExtensions* (I betű nélkül, az ugyanis interfé
 ```csharp
 public static class EnumerableExtensions
 {
-    public static int Sum<T>(this IEnumerable<T> source, Func<T, int> sumSelector)
+    public static int Sum<T>(this IEnumerable<T> source,
+                                  Func<T, int> sumSelector)
     {
         var result = 0;
         foreach (var elem in source)
             result += sumSelector(elem);
         return result;
     }
-    public static double Average<T>(this IEnumerable<T> source, Func<T, int> sumSelector)
+    public static double Average<T>(this IEnumerable<T> source,
+                                         Func<T, int> sumSelector)
     {
         var result = 0.0; // Az osztás művelet miatt double
         var elements = 0;
@@ -152,7 +159,8 @@ public static class EnumerableExtensions
         }
         return result/elements;
     }
-    public static int Min<T>(this IEnumerable<T> source, Func<T, int> valueSelector)
+    public static int Min<T>(this IEnumerable<T> source,
+                                  Func<T, int> valueSelector)
     {
         int value = 0;
         foreach (var elem in source)
@@ -163,7 +171,8 @@ public static class EnumerableExtensions
         }
         return value;
     }
-    public static int Max<T>(this IEnumerable<T> source, Func<T, int> valueSelector)
+    public static int Max<T>(this IEnumerable<T> source,
+                                  Func<T, int> valueSelector)
         => -source.Min(e => -valueSelector(e));
 }
 ```
@@ -192,7 +201,8 @@ private static void Main(string[] args)
 Gyakran előfordul, hogy egy listát szűrni vagy projektálni szeretnénk. Írjunk saját generátort ezekhez a műveletekhez az `EnumerableExtensions`-be:
 
 ```csharp
-public static IEnumerable<T> Where<T>(this IEnumerable<T> source, Predicate<T> predicate)
+public static IEnumerable<T> Where<T>(this IEnumerable<T> source,
+                                           Predicate<T> predicate)
 {
     foreach (var elem in source)
     {
@@ -200,7 +210,8 @@ public static IEnumerable<T> Where<T>(this IEnumerable<T> source, Predicate<T> p
             yield return elem;
     }
 }
-public static IEnumerable<TValue> Select<T, TValue>(this IEnumerable<T> source, Func<T, TValue> selector)
+public static IEnumerable<TValue> Select<T, TValue>(this IEnumerable<T> source,
+                                                         Func<T, TValue> selector)
 {
     foreach (var elem in source)
     {
