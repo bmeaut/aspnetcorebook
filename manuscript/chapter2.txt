@@ -2,7 +2,7 @@
 
 ## Előkészítés
 
-Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: File → New → Project… → Installed → Templates → Visual C# → .NET Core → Console Application (.NET Core). A neve legyen *HelloCSharp2*, itt ismét említsük meg a .NET konvenciókat az elnevezésre: PascalCasing típusneveknél/névtereknél/metódusoknál, camelCasing lokális és privát változók esetén. A betűszavakat is 3 betű felett (egyre gyakoribb, hogy már 2 betű esetén is) nem kapitális betűkkel, hanem PascalCasinget használva írjuk. A solutiont ne tegyük külön mappába (Create directory for solution elem legyen üresen hagyva).
+Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: File → New → Project… → Installed → Templates → Visual C# → .NET Core → Console Application (.NET Core). A neve legyen *HelloCSharp2*, itt ismét említsük meg a .NET konvenciókat az elnevezésre: PascalCasing típusneveknél/névtereknél/metódusoknál, camelCasing lokális és privát változók esetén. A betűszavakat is 3 betű felett (egyre gyakoribb, hogy már 2 betű esetén is) nem kapitális betűkkel, hanem PascalCasinget használva írjuk. A solutiont ne tegyük külön mappába (*Create directory for solution* elem legyen üresen hagyva).
 
 T> A laborhoz tartozó snippet fájl: cs2.md
 
@@ -27,7 +27,7 @@ Az adatmodell az előző órán létrehozotthoz nagyon hasonlít, ennek viszont 
 
 ## Objektum inicializálók
 
-Az *object initializer* segítségével egy éppen létrehozott objektum beállítható (set-elhető) tulajdonságait állítjuk be (a meghatározott sorrendben). Az objektum inicializáló csak konstruktorhívás esetén használható, így pl. factory által gyártott objektumpéldány esetén nem. Elsődleges célja, hogy elkülönüljön az objektumon végzett művelet az inicializáló, adatfeltöltő logikától.
+Az *object initializer* segítségével egy éppen létrehozott objektum beállítható tulajdonságait állítjuk be (a meghatározott sorrendben). Az objektum inicializáló csak konstruktorhívás esetén használható, így pl. factory metódus által gyártott objektumpéldány esetén nem. Elsődleges célja, hogy elkülönüljön az objektumon végzett művelet az inicializáló, adatfeltöltő logikától.
 
 A Main metódusban írhatjuk az alábbi példát:
 
@@ -118,7 +118,7 @@ T> Ilyenkor a szimbólumütközések feloldására használatos általános szab
 
 Természetesen a referenciatípusok mind olyan típusok, melyek vehetnek fel null értéket, viszont esetenként jó volna, ha a `null` értéket egyébként felvenni nem képes típusok is lehetének ilyen értékűek, ezzel pl. jelezvén, hogy egy érték be van-e állítva vagy sem. Pl. egy szám esetén a 0 egy konkrét, helyes érték lehet a domain modellünkben, a `null` viszont azt jelenthetné, hogy nem vett fel értéket.
 
-Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz 2018 Watson életkora! A `Console.WriteLine` parancshoz vegyünk fel egy töréspontot (F9), ezután vegyük fel a `dog.Name` és `dog.AgeInDays` kifejezést a *Watch* ablakba! Ha *F5*-tel lépkedünk, láthatjuk, hogy Watson 2018 évesnek vélt. Amíg a program futása fel van függesztve a breakpointon, vegyünk fel egy másikat az `AgeInDays` tulajdonság kiértékelésébe a `Dog` osztályban! Láthatjuk, hogy a turpisság abból fakad, hogy a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéke `0001. 01. 01. 00:00:00`.
+Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz 2018 Watson életkora! A `Console.WriteLine` parancshoz vegyünk fel egy töréspontot (F9), ezután vegyük fel a `dog.Name` és `dog.AgeInDays` kifejezést a *Watch* ablakba! Ha *F5*-tel lépkedünk, láthatjuk, hogy Watson 2018 évesnek vélt. Amíg a program futása fel van függesztve a törésponton, vegyünk fel egy másikat az `AgeInDays` tulajdonság kiértékelésébe a `Dog` osztályban! Láthatjuk, hogy a turpisság abból fakad, hogy a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéke `0001. 01. 01. 00:00:00`.
 
 Ennek a javításához az `Age` tulajdonság típusát változtassuk `int?`-re! Az `int?` szintaktikai édesítőszere a `Nullable<int>`-nek, egy olyan struktúrának, ami egy `int` értéket tárol, és tárolja, hogy az be van-e állítva vagy sem. A `Nullable<T>` szignatúráit megmutathatjuk, hogyha a kurzort a típusra helyezve *F12*-t nyomunk.
 
@@ -135,6 +135,8 @@ public int? AgeInDogYears => AgeInDays * 7 / 365;
 ```
 
 Az `AgeInDays` akkor ad vissza `null` értéket, ha a `DateOfBirth` maga is `null` volt. Tehát ha nincs megadva születési dátumunk, nem tudunk életkort sem számítani. Ehhez magyarázzuk el a `?.` („Elvis”, magyarban „Kozsó” - `null` conditional operator) operátor jelentését: a kiértékelendő érték jobb oldalát adja vissza, ha a bal oldal nem `null`, különben `null`t. A kifejezést meg kellett változtatnunk, hogy a `DateOfBirth`-ből vonjuk ki a jelenlegi dátumot és ezt negáljuk, ugyanis a `null` vizsgálandó érték a bináris operátor bal oldalán kell, hogy elhelyezkedjen.
+
+T> Az Elvis operátor nevének erdetére több magyarázatot is lehet találni, a források annyiban nagyrészt megegyeznek, hogy a kérdőjel tekeredő része az énekes jellegzetes bodorodó hajviseletére emlékeztet, a pontok pedig a szemeket jelölik, így végülis a ?. egy Elvis emotikonként fogható fel. Ezen logika mentén adódik a magyar megfelelő, a Kozsó operátor, hiszen a szem körül tekergőző legikonikusabb hajtincs a magyar zenei kultúrában Kozsó nevéhez köthető.
 
 Ha most futtatjuk az alkalmazást, az `AgeInDays` és a származtatott tulajdonságok értéke null lesz, ha a születési dátum nincs megadva.
 
@@ -241,7 +243,7 @@ Console.WriteLine(new string((char)('a' + i), i).TrimPad(20));
 Ez a megoldás ekvivalens a korábban használttal, szintén csak egy szintaktikai édesítőszerről van szó.
 
 T> A bővítő metódusnak statikus osztályban kell szerepelnie, a metódusnak statikusnak kell lennie, és a szükséges névteret az aktuális fájlban használnunk kell a `using` kulcsszóval.
-Amikor statikus osztályban állapotmentes, statikus metódust hozunk létre, amely a bemeneti paramétereken dolgozik (helper), érdemes lehet azokat bővítő metódusként kezelni és az első paraméter elé kitenni a `this` módosítószót, így rövidítve a megírandó kód hosszát.
+Amikor statikus osztályban állapotmentes, statikus metódust hozunk létre, amely a bemeneti paramétereken dolgozik, érdemes lehet azokat bővítő metódusként kezelni és az első paraméter elé kitenni a `this` módosítószót, így rövidítve a megírandó kód hosszát.
 
 Ha a `Dog` osztályban átírjuk a `ToString` metódusunkat, kicsit szebbé tehetjük az outputot:
 
@@ -344,7 +346,7 @@ Mivel indexelni általában kollekciókat szokás (tömb, lista, szótár), ezé
 var dogs = new Dictionary<string, Dog>
 {
     ["banan"] = banan,
-    ["pimpedli"] = watson,
+    ["watson"] = watson,
     ["unnamed"] = unnamed,
     ["unknown"] = unknown
 };
@@ -352,6 +354,33 @@ var dogs = new Dictionary<string, Dog>
 foreach (var dog in dogs)
     Console.WriteLine($"{dog.Key.TrimPad(10)} - {dog.Value}");
 ```
+
+Elsőre jó ötletnek tűnhet kiváltani a szövegliterálokat a `Name` property használatával.
+
+```csharp
+var dogs = new Dictionary<string, Dog>
+{
+    [banan.Name] = banan,
+    [watson.Name = watson,
+    [unnamed.Name] = unnamed,
+    [unknown.Name] = unknown
+};
+//ArgumentNullException!
+```
+
+Ez azonban kivételt okoz, amikor a kutya neve nincs kitöltve, azaz `null` értékű. Esetünkben elég lenne az adott változó neve szövegként. Erre jó a `nameof` operátor.
+
+```csharp
+var dogs = new Dictionary<string, Dog>
+{
+    [nameof(banan)] = banan,
+    [nameof(watson)] = watson,
+    [nameof(unnamed)] = unnamed,
+    [nameof(unknown)] = unknown
+};
+```
+
+Ez a változat már nem fog kivételt okozni.
 
 Mivel az index- és a collection initializer nem vegyíthető, ezért a kettő közül most választanunk kell. Ilyenkor az `Add` metódus változatait nem használhatjuk.
 

@@ -324,4 +324,4 @@ var predicate =          new Predicate<Dog>(expression.Compile() as Func<Dog, bo
 
 Query függvényeknek (`IQ<>` vagy `IE<>` függvényei vagy pl. `XDocument`) paraméterül adott lambdák (`Func<>` vagy `Expression<>`) => az adatforrásnak megfelelő nyelvű, a query-t végrehajtó kód (IL kód vagy SQL).
 
-LINQ-to-Objects esetén nincs LINQ provider (a provider az IQueryable.Provider-en keresztül érhető el, de a `List<>` nem IQueryable!), hiszen nincs feladata: kódot kap bemenetül, ugyanazt kellene kimenetül adnia. A LINQ-to-XML is hasonló elven működik.
+LINQ-to-Objects esetén nincs LINQ provider (a provider az `IQueryable.Provider`-en keresztül érhető el, de a `List<>` nem `IQueryable`!), hiszen nincs feladata: kódot kap bemenetül, ugyanazt kellene kimenetül adnia. A LINQ-to-XML is hasonló elven működik.

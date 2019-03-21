@@ -100,7 +100,19 @@ public class Person
 }
 ```
 
-Magyarázzuk el, hogy igazából csak két további (kódban nem látható) metódust hozunk létre, mintha egy-egy `GetName` és `SetName` metódust készítenénk, viszont használat szempontjából ugyanolyannak tűnik, mintha egy sima mező lenne. A settert privát láthatóságúra tesszük, ezért csak egy Person példányon belülről tudjuk állítani a `Name` property értékét. Jegyezzük meg, hogy a getterben és setterben teljesen más jellegű műveleteket is végezhetünk (pl. elsüthetünk egy eseményt, hogy megváltozott a felhasználó neve, naplózhatjuk, hányszor kérték le a nevét, stb.). Mivel a backing field állításán kívül nem csinálunk semmit a kódban, ezért használhatjuk a *propg* code snippetet is:
+Magyarázzuk el, hogy igazából csak két további (kódban nem látható) metódust hozunk létre, mintha egy-egy `GetName` és `SetName` metódust készítenénk, viszont használat szempontjából ugyanolyannak tűnik, mintha egy sima mező lenne. A settert privát láthatóságúra tesszük, ezért csak egy Person példányon belülről tudjuk állítani a `Name` property értékét. Jegyezzük meg, hogy a getterben és setterben teljesen más jellegű műveleteket is végezhetünk (pl. elsüthetünk egy eseményt, hogy megváltozott a felhasználó neve, naplózhatjuk, hányszor kérték le a nevét, stb.). A property egyik nagy erénye, hogy osztályon kívülről az osztályváltozóknál megszokott szintaxissal használhatjuk.
+
+A `Main` függvénybe írhatjuk például:
+
+```csharp
+Person p= new Person("Eric Lippert");
+p.Name = "Mads Torgersen";
+Console.WriteLine(p.Name);
+```
+
+Debuggerrel mutassuk meg, hogy az első sor a konstruktort, míg a második a property setterét, végül a harmadik sor ugyanazon property getterét hívja.
+
+Mivel a backing field állításán kívül nem csinálunk semmit a kódban, ezért használhatjuk a *propg* code snippetet is:
 
 ```csharp
 public class Person
@@ -112,6 +124,12 @@ public class Person
         Name = name;
     }
 }
+```
+
+A láthatóság miatt a `Main` függvényünkben a setter hívás már nem fordul, kommentezzük ki.
+
+```csharp
+//p.Name = "Mads Torgersen";
 ```
 
 Említsük meg a *prop* code snippetet is, ami mindkét módosítószót publikusan hagyja. Láthatósági módosítószót a `get` és `set` közül csak az egyik elé tehetünk ki, és az is csak szigoríthat a külső láthatóságon (ekkor a másik a külsőt kapja meg).
@@ -194,7 +212,7 @@ A két implementáció ekvivalens, először az elsőt, majd a másodikat mutass
 
 Próbáljuk ki az alkalmazást!
 
-Hozzuk létre a `Student` osztályt, ami származik a `Person` ozstályból!
+Hozzuk létre a `Student` osztályt, ami származik a `Person` osztályból!
 
 ```csharp
 public class Student : Person

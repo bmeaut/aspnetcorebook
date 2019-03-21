@@ -68,7 +68,7 @@ Ha kérjük a villanykörte segítségét az `IDisposable`-ön, akkor 2x2 lehet�
 
 ![Dispose minta implementálása IntelliSense segítségével](images/csharp4-dispose.png)
 
-Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy nem menedzselt kód esetén az erőforrásokat szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén adott helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizumust!
+Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy nem menedzselt kód esetén az erőforrásokat szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén adott helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizmust!
 
 ```csharp
 protected virtual void Dispose(bool disposing)
@@ -136,7 +136,7 @@ using (
 
 Töltsünk le egy HTML oldalt, és ezen a problémán keresztül bemutatjuk az aszinkron programozási modellt. A `HttpClient` működésének a részletesebb ismertetése most nem téma, csak a legalapvetőbb funkciókat fogjuk használni.
 
-A fő gond a hosszan futó műveletek blokkolhatják a fő/UI/aktuális szál futását, mindez kliens alkalmazások esetében úgy jelentkezik, hogy nem lesz a alkalmazásunk reszponzív a felhasználói inputok-ra; szerveralkalmazások esetében pedig az adott kérést kiszolgáló szál feleslegesen blokkolódik, amikor esetleg mással is tudna foglalkozni.
+A fő gond a hosszan futó műveletek blokkolhatják a fő/UI/aktuális szál futását, mindez kliens alkalmazások esetében úgy jelentkezik, hogy nem lesz a alkalmazásunk reszponzív a felhasználói bemenetekre; szerveralkalmazások esetében pedig az adott kérést kiszolgáló szál feleslegesen blokkolódik, amikor esetleg mással is tudna foglalkozni.
 
 Ötlet a hosszan tartó műveleteket végezzük aszinkron módon, egy másik szálon, és ha az befejeződött az eredményről valamilyen módon értesüljünk. Az előadáson bemutatásra kerültek a különböző modellek: Asynchronous Programming Model (APM), Event-based Asynchronous Pattern (EAP), Task-based Asynchronous Pattern (TAP).
 
@@ -165,7 +165,7 @@ public static async void LoadWebPageAsync()
 }
 ```
 
-**await:** Mindig egy `Task` awaitelhető (vagy taszk szerű dolog: vagyis van neki `GetAwaiter` metódusa, ami meghatározott metódusokkal rendelkező objektummal tér vissza)! Akár létre is hozhatunk egy `Task`-ot, amit egy lokális változóban tárolunk, akkor azt is tudjuk `await`-elni.
+**await:** Mindig egy `Task` `await`-elhető (vagy taszk szerű dolog: vagyis van neki `GetAwaiter` metódusa, ami meghatározott metódusokkal rendelkező objektummal tér vissza)! Akár létre is hozhatunk egy `Task`-ot, amit egy lokális változóban tárolunk, akkor azt is tudjuk `await`-elni.
 
 **async:** ha await-elni akarunk, akkor muszáj `async`-nak lennie a tartalmazó metódusnak, mert ilyenkor építi fel a fordító az aszinkron végrehajtáshoz szükséges állapotgépet.
 
@@ -298,7 +298,7 @@ foreach (var n in numbers
 }
 ```
 
-A `ToList` hívásunk először bejárja az iterátort és visszaad egy listát, amelybe összegyűjti az `IEnumerable` elemeit. Ezért az `i` változónk a második esetben nem együtt inkrementálódik a bejárással, mert az kétszer történik meg. Az első bejáráskor (a `ToList` hívásakor) inkerementálódik az `i` értéke, másodjára pedig már csak bejárjuk a kapott listát. Eddigre az `i` értéke már meg van növelve.
+A `ToList` hívásunk először bejárja az iterátort és visszaad egy listát, amelybe összegyűjti az `IEnumerable` elemeit. Ezért az `i` változónk a második esetben nem együtt inkrementálódik a bejárással, mert az kétszer történik meg. Az első bejáráskor (a `ToList` hívásakor) inkrementálódik az `i` értéke, másodjára pedig már csak bejárjuk a kapott listát. Eddigre az `i` értéke már meg van növelve.
 
 Ezzel a megközelítéssel futásidőben is állíthatunk össze egy időben változó lekérdezést, amit majd egyszer, a későbbiekben fogunk bejárni (pl. sorosításkor).
 
