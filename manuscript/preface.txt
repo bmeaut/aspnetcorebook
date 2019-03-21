@@ -56,3 +56,7 @@ A .NET Core széleskörű platformtámogatása miatt bizonyos nem Windows platfo
 A gyakorlatanyagokat könnyen bemásolható kóddarabkák egészítik ki. A kóddarabkáknak a gyakorlat idejében van jelentőségük, mert könnyen és gyorsan bemásolhatók, egyéb esetben nyugodtan figyelmen kívül hagyhatjuk a rájuk történő hivatkozásokat.
 
 A kóddarabkák lelőhelye: https://github.com/bmeaut/dotnet
+
+## Kódrészletek kimásolása
+
+A kódrészletek sorszámozással vannak ellátva, ez pedig kimásoláskor gondot okozhat. Ilyenkor alkalmazhatjuk a blokk jellegű kijelölést, amit a legtöbb olvasóalkalmazás támogat, leggyakrabban az *[ALT]* billentyű kijelölés alatti folyamatos nyomvatartásával. Blokk alapú kijelöléssel kijelölhetjük csak a kódrészletet a sorszámok nélkül.
