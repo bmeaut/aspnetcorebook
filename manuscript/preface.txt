@@ -13,11 +13,12 @@ A feltételezett előismeretek:
   - operátor felüldefiniálás és függvényváltozatok
   - alapvető memóriakezelés (heap, stack), mutatók fogalma, érték és referencia típusok
   - alapvető vezérlési szerkezetek (ciklus, elágazás, stb.), érték- és referencia szerinti paraméterátadás
-  - osztály, osztálypéldány fogalma, static, new operátor, osztály szintű változók, generikus típusok
+  - osztály, osztálypéldány fogalma, static, `new` operátor, osztály szintű változók, generikus típusok
   - leszármazás, virtuális tagfüggvények
-  - C# event, delegate típusok és delegate példányok
+  - C# esemény, delegate típusok és delegate példányok
   - Visual Studio használatának alapjai
-- SQL nyelvi alapok (SELECT, UPDATE, INSERT, DELETE), valamint alapvető relációs adatmodell ismeretek (táblák, elsődleges- és idegen kulcsok)
+  - operációs rendszer kapcsolatok, folyamatok, szálak, parancssor, parancssori argumentumok, környezeti változók
+- SQL nyelvi alapok (SELECT, UPDATE, INSERT, DELETE utasítások), valamint alapvető relációs adatmodell ismeretek (táblák, elsődleges- és idegen kulcsok)
 
 A fentiek elsajátításához segítséget nyújthat Reiter István ingyenesen letölthető könyvei a https://reiteristvan.wordpress.com címen.
 
@@ -40,7 +41,7 @@ Ahogyan a fenti verziók változnak, úgy avulhatnak el a jegyzetben mutatott el
 A gyakorlatok az alábbi szoftverekből álló környezethez készültek:
 
 - Windows 10 operációs rendszer
-- [Visual Studio 2017](https://visualstudio.microsoft.com/downloads/) (az ingyenes Community edition is elég) az alábbi Workload-okat telepítve:
+- [Visual Studio 2017](https://visualstudio.microsoft.com/downloads/) (az ingyenes Community edition is elég) az alábbi *Workload*-okat telepítve:
   - .NET desktop development
   - Data storage and processing
   - .NET Core cross-platform development
