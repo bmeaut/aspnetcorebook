@@ -100,7 +100,7 @@ Ugyanúgy fog indulni, mint VS-ből, mert az újabb .NET Core verziókban már a
 
 Most az alkalmazásunk Production módban indul el, és ha a *localhost:5000*-es oldalt szeretnénk megnyitni a böngészőben nem kapunk hibaoldalt, de a konzolon megjelenik a naplóbejegyzés.
 
-T> Megj.: konzolban a setx ENV\_NAME Value utasítással tudunk felvenni, ami a konzol bezárásáig marad érvényben, ha permanensen akarjuk tartani ezt akkor ezt a /M kapcsolóval tudjuk megtenni. (Admin/nem admin konzolok különbözőképpen viselkednek)
+T> A konzolban a setx ENV\_NAME Value utasítással tudunk felvenni, ami a konzol bezárásáig marad érvényben, ha permanensen akarjuk tartani ezt akkor ezt a /M kapcsolóval tudjuk megtenni. (Admin/nem admin konzolok különbözőképpen viselkednek)
 
 Az alkalmazás számára a különböző beállításokat JSON állományokban tárolhatjuk, amelyek akár környezetenként különbözőek is lehetnek. A generált projektünkben ez az **appsettings.json**, nézzünk bele - főleg naplózási beállítások vannak benne. A fájl a Solution Explorer ablakban „kinyitható”, alatta megtaláljuk az **appsettings.Development.json**-t. Ez a *Development* nevű konfigurációra vonatkozó beállítások.
 
@@ -126,7 +126,7 @@ T> Parancssorban a dotnet run –launch-profile [profilnév] kapcsolóval adhatj
 
 T> A 2.0 előtti ASP.NET Core verzióknál utólag manuálisan kellett az alkalmazásbeállításokat kezelő modult felkonfigurálni (pl., hogy a Development.json felülírja az alap appsettings.json-t). Ezt ma már elintézi a `CreateDefaultBuilder` hívás. Érdemes most megnézni ennek a függvénynek a [konfigurációját](https://github.com/aspnet/AspNetCore/blob/v2.2.3/src/DefaultBuilder/src/WebHost.cs#L148.) (a kapcsolódó snippetek között is megtalálható a link).
 
-T> Számos forrásból lehet konfigurációt megadni: parancssor, környezeti változó, fájl (ezt láttuk most), felhő (Azure Key Vault). Ezek közül többet is használhatunk egyszerre, a különböző források konfigurációja a közös kulcsok mentén összefésülődik. A források (*provider*-ek) között sorrendet adunk meg, amikor regisztráljuk őket, a legutolsóként regisztrált provider konfigurációja a legerősebb. Az alapértelmezett provider-ek regisztrációját szintén elintézi a `CreateDefaultBuilder`.
+T> Számos forrásból lehet konfigurációt megadni: parancssor, környezeti változó, fájl (ezt láttuk most), felhő (Azure Key Vault), stb. Ezek közül többet is használhatunk egyszerre, a különböző források konfigurációja a közös kulcsok mentén összefésülődik. A források (*provider*-ek) között sorrendet adunk meg, amikor regisztráljuk őket, a legutolsóként regisztrált provider konfigurációja a legerősebb. Az alapértelmezett provider-ek regisztrációját szintén elintézi a `CreateDefaultBuilder`.
 
 ### Statikus fájl mw
 
@@ -174,7 +174,7 @@ public IConfiguration Configuration { get; }
 
 A `Startup` függvény végén törésponton megállva megvizsgálhatjuk például a `Configuration["AllowedHosts"]` értéket - az appsettings.json szerint ennek \* értékűnek kell lennie.
 
-## Web API
+## Mvc middleware - Web API
 
 Minden API-nál nagyon magas szinten az a cél, hogy egy kérés hatására egy szerveroldali kódrészlet meghívódjon. ASP.NET Core-ban a kódrészleteket függvényekbe írjuk, a függvények pedig ún. *controllerek*-be kerülnek. Összességében tehát a cél, hogy a webes kérés hatására egy kontroller egy függvénye meghívódjon.
 
