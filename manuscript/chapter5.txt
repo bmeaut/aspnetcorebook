@@ -68,11 +68,11 @@ T> Debuggerrel mutassuk meg, hogy a `Main` ilyenkor is meghívódik, illetve, ah
 
 T> Az IIS Express a Microsoft web szerverének (IIS) fejlesztői célra optimalizált változata. Alapvetően csak ugyanarról a gépről érkező (localhost) kéréseket szolgál ki.
 
-A másik lehetőség, ha közvetlenül a konzolos alkalmazást szeretnénk futtatni, akkor ezt az indítógombot lenyitva a projekt nevét kiválasztva tehetjük meg. Ebben az esetben egy beágyazott web szerverhez (Kestrel) futnak be a kérések. Próbáljuk ki a Kestrelt közvetlenül futtatva!
+A másik lehetőség, ha közvetlenül a konzolos alkalmazást szeretnénk futtatni, akkor ezt az indítógombot lenyitva a projekt nevét kiválasztva tehetjük meg. Ebben az esetben egy beágyazott web szerverhez (*Kestrel*) futnak be a kérések. Próbáljuk ki a Kestrelt közvetlenül futtatva!
 
 Két dolog is történik: az alkalmazásunk konzolos alkalmazásként kezd futni, illetve az előző esethez hasonlóan a böngésző is elindul. Figyeljük meg a konzolban megjelenő naplóüzeneteket.
 
-T> Bár ezek a hosztolási opciók fejlesztői környezetben nagyon kényelmesek, érdemes áttekinteni az éles hosztolási opciókat: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/?view=aspnetcore-2.2
+T> Bár ezek a hosztolási opciók fejlesztői környezetben nagyon kényelmesek, érdemes áttekinteni az éles hosztolási opciókat: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/?view=aspnetcore-2.2. A Kestrel ugyan jelenleg már alkalmas arra, hogy kipublikáljuk közvetlenül a világhálóra, de mivel nem rendelkezik túl bő konfigurációs és biztonsági beállításokkal, így érdemes egy fejlettebb webszervert a Kestrel elé rakni proxy gyanánt, például az IIS-t vagy nginx-et.
 
 Rakjunk most az utolsó middleware-ünk be egy kivétel dobást a kiírás helyett, hogy kipróbáljuk a hibakezelő MW-t.
 
@@ -318,5 +318,3 @@ Töréspontot letéve (pl. a `DummyController` konstruktorának végén) ellenő
 Ez az eljárás tehát a futtató felhasználó saját könyvtárából a GUID alapján kikeresi a projekthez tartozó **secrets.json**-t, annak tartalmát pedig futás közben összefésüli az **appsettings.json** tartalmával. Így szenzitív adat nem kerül a projekt könyvtárába.
 
 T> Mivel a *User Secrets* tároló csak Development mód esetén jut érvényre, így ha az éles változatnak szüksége van ezekre a titkos értékekre, akkor további trükkökre van szükség. Ilyen megoldás lehet, ha Azure Key Vault-ból [töltjük be](https://docs.microsoft.com/en-us/aspnet/core/security/key-vault-configuration?view=aspnetcore-2.2) a szenzitív beállításokat.
-
-[^kestrel]: A Kestrel jelenleg már alkalmas arra, hogy kipublikáljuk közvetlenül a világhálóra, de mivel nem rendelkezik túl bő konfigurációs és biztonsági beállításokkal, így érdemes egy fejlettebb webszervert a Kestrel elé rakni proxy gyanánt, például az IIS-t vagy nginx-et.
