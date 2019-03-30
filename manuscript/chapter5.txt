@@ -9,7 +9,7 @@ Ezen a laboron nem a beépített API projektsablont fogjuk felhasználni, hanem 
 Hozzunk létre a Visual Studioban egy új projektet: (C# → Web → ASP.NET Core Web Application (.NET Core)), a neve legyen *HelloAspNetCore*.
 A következő dialógusablakban válasszuk ki az *ASP.NET Core 2.2* opciót és azon belül a Empty sablont. Most szándékosan nem a *Web Api* vagy a *Web Application* opciót választottuk, mivel a labor célja egy általános ASP.NET Core alkalmazás működésének megismerése, amit most saját kezűleg fogunk felépíteni.
 
-![ASP.NET Core templates](images/aspnetcore1-choosetemplate.png)
+![ASP.NET Core projektsablonok](images/aspnetcore1-choosetemplate.png)
 
 ### Eredmény
 
@@ -150,7 +150,7 @@ A statikus fájlkezelés a teljes modularitás jegyében egy külön middleware-
  }
 ```
 
-Próbáljuk ki! Láthatjuk hogy a *localhost:port* címen még mindig a *Hello World* szöveg tűnik fel, de amint a *localhost:port/\[képfájlnév\]*-vel próbálkozunk, a kép töltődik be. A static file MW megszakítja a pipeline futását, ha sikerül neki kiszolgálnia a fájlt, viszont ha nem, akkor továbbhív a következő MW-be.
+Próbáljuk ki! Láthatjuk hogy a *localhost:port* címen még mindig a *Hello World* szöveg tűnik fel, de amint a *localhost:port/\[képfájlnév\]*-vel próbálkozunk, a kép töltődik be. A static file MW megszakítja a pipeline futását, ha egy általa ismert fájltípusra hivatkozunk, egyébként továbbhív a következő MW-be.
 
 T> Ezt az egysoros middleware-re tett törésponttal is szemléltethetjük. Figyeljünk arra, hogy csak az `await`-es sorra kerüljön a töréspont és ne az egész `app.Run` sorra, illetve csak akkor nézzük, hogy mi fut le, amikor a kép URL-re hívunk.
 
