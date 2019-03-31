@@ -1,56 +1,45 @@
-# Entity Framework Core
-
-## Célkitűzés
-
-A labor célja, hogy a hallgatók megismerkedjenek az Entity Framework Core alapjaival, ezen belül is részletesebben a Code-First alapú fejlesztéssel.
-
-## Előfeltételek
-
-- Visual Studio 2017
-- .NET Core SDK
+# Entity Framework Core I-II.
 
 ## Az Entity Framework mapping módszerei
 
-Az OR leképzés két részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektum modell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk Code-First mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot Reverse Engeniered Code-First-nek hívjuk, de ezt általában csak kompatibilitási célból szoktuk használni.
+Az OR leképzés két részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektum modell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk *Code-First* mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot *Reverse Engineered Code-First*-nek hívjuk.
 
 ### A Code-first mapping módszer
 
 A Code-First lényege, hogy elsőként az OO entitásokat definiáljuk egyszerűen programkódban, majd a mapping-et szintén programkódban. A mapping alapján az EF képes az adatbázis létrehozására, inicializálására és a séma változáskövetésére is (Migrations).
 
-![ASP.NET Core templates](images/aspnetcore1-choosetemplate.png)
-
 ### Az entitások definiálása
 
-Készítsünk egy konzolos alkalmazást, majd a projekten belül hozzunk létre egy Entities mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
+Készítsünk egy konzolos alkalmazást, majd a projekten belül hozzunk létre egy *Entities* nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
 
-- Product (Id:int, Name:string, UnitPrice:int)
-- Order (Id:int, OrderDate:DateTime)
-- Category (Id:int, CategoryName:string)
+- **Product** (Id:int, Name:string, UnitPrice:int)
+- **Order** (Id:int, OrderDate:DateTime)
+- **Category** (Id:int, Name:string)
 Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (prop snippet).
 
 ### Mapping és egyéb metaadatok megadása I.
 
-Eddig megadtuk az entitás nevét, az attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen az attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál a megadásra. Az egyik módszer, hogy attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
-A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: pl. gyakori, hogy az elsődleges kulcs neve tartalmazza az „id” szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor az attribútumos vagy fluent megadással tehetjük meg.
+Eddig megadtuk az entitás nevét, az attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen az attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál ezek megadására. Az egyik módszer, hogy attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
+A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: pl. gyakori, hogy az elsődleges kulcs neve tartalmazza az *id* szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor az attribútumos vagy fluent megadással tehetjük meg.
 
-T> EF 6-ban saját konvenciókat is megadhatunk, viszont Core-ban (még) nem.
+T> EF 6-ban saját konvenciókat is megadhatunk, viszont Core-ban [még](https://github.com/aspnet/EntityFrameworkCore/issues/214) nem.
 
-Elsőként azt nézzük meg, hogy mit talál ki az EF, ha semmi plusz adatot nem adunk meg.
+Elsőként azt fogjuk megnézni, hogy mit talál ki az EF, ha semmi plusz adatot nem adunk meg.
 
 ### Relációk
 
 Az entitások közötti kapcsolatokat mutatja az alábbi ábra:
 
-![EF Core kapcsolatok](images/efcore-rels.png)
+![EF Core példaséma](images/efcore-rels.png)
 
 A Product-Category egy-többes kapcsolathoz egy idegen kulcs property és egy navigációs property tartozik a `Product` osztályban és egy navigációs property a `Category`-ban. A többes navigációs property-k legyenek csak olvashatók és a típusuk legyen `ICollection<>`.
 
 T> Általánosságban nem kötelező egy kapcsolat mindkét oldalán navigációs property-t felvenni, de erősen javasolt és mindig jó, ha van. Az entitáson végzendő műveleteket egyszerűsíti, illetve a konvenciós logika is következtet belőle.
 
-Az Order-Product több-többes kapcsolatothoz nem elég egy-egy kollekciót felvenni a két osztályban. Létre kell hozzuk a kapcsolótáblának megfelelő entitást is, ami egy-egy Product és Order közötti kapcsolatot reprezentálja.
+Az Order-Product több-többes kapcsolatokhoz nem elég egy-egy kollekciót felvenni a két osztályban. Létre kell hozzuk a kapcsolótáblának megfelelő entitást is, ami egy-egy Product és Order közötti kapcsolatot reprezentálja.
 
-    - **ProductOrders** (ProductId:int, OrderId:int)
-  
+- **ProductOrders** (ProductId:int, OrderId:int)
+
 ![Product-Order kapcsolótábla](images/efcore-bridgetab.png)
 
 Ezután így néznek ki az entitások (segítség a gépeléshez: bit.ly/dotnetlabor6-7)
@@ -59,3 +48,257 @@ Ezután így néznek ki az entitások (segítség a gépeléshez: bit.ly/dotnetl
 <<(code/efcore-order.cs)
 <<(code/efcore-product.cs)
 <<(code/efcore-productorder.cs)
+
+T> A fenti kódok kóddarabkákként is elérhetőek.
+
+## Kapcsolat az adatbázissal
+
+### DbContext - NuGet
+
+Az entitásokat definiáltuk, a mapping-et az EF eszére bíztuk, a következő lépés a DB séma létrehozása a mapping alapján, amit képes az EF létrehozni. Műveletet az ún. *kontext*-en keresztül tudunk végezni. Érdemes saját kontext típust létrehozni, amit az alap `DbContext`-ből származtatunk. Eddig még nem is írtunk semmilyen EF specifikus kódot, most viszont már kell a `DbContext` típus, így NuGet-ből hozzá kell adnunk a **Microsoft.EntityFrameworkCore.SqlServer** csomagot. Nem ez a csomag tartalmazza a `DbContext`-et, viszont függőségként hivatkozza (**Microsoft.EntityFrameworkCore**).
+
+T> Először használunk NuGet csomagkezelőt, röviden mutassuk be a felületet, hol lehet figyelni a függőségeket, honnan láthatjuk, hogy ez egy *.NET Standard* csomag, fájl szinten hova kerül be a függőség (.csproj).
+
+Adjunk hozzá új osztályt a projekthez `NorthwindContext` néven, ebben definiáljuk, hogy milyen entitáskollekciókon lehet műveleteket végezni.
+
+Az Entity Framework önmagában független az adatbázis implementációktól, azokhoz különböző *adatbázis providereken* keresztül kapcsolódik. A **Microsoft.EntityFrameworkCore.SqlServer** csomag hivatkozza az EF absztrakt relációs komponensét (*EntityFrameworkCore.Relational*), és tartalmazza az *MS SQL Server*-hez tartozó providert. A providert a `DbContext` `OnConfiguring` metódusában adhatjuk meg, esetünkben a `UseSqlServer` metódussal, ami egy connection stringet vár.
+
+MS SQL Server helyett a *LocalDB* nevű fejlesztői adatbázist használjuk, mely fejlesztői szempontból gyakorlatilag megegyezik az MS SQL Server-rel. A LocalDB a Visual Studio-val együtt települ, minden Windows felhasználónak külön LocalDB példány indítható el. A Visual Studio az SQL Server Object Explorer ablak megnyitásakor létrehozza az *MSSQLLocalDB* nevű példányt.
+
+T> A LocalDB külön is letölthető, illetve a vele együtt települő *sqllocaldb* parancs segítségével egyszerűen kezelhető. Minderről bővebb információ a dokumentációban [olvasható](https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/sql-server-2016-express-localdb).
+
+Az automatikusan létrejövő MSSQLLocalDB nevű LocalDB példány connection stringjét adjuk meg, pontosabban az *SQL Server Object Explorer* ablak segítésével másoljuk ki: *(localdb)\MSSQLLocalDB* szerveren jobbklikk → Properties → Connection String. A kimásolt stringben az *Initial Catalog* értékét (a DB nevét) a **master**-ről változtassuk meg valamilyen más névre, például a neptun kódunkra.
+
+![Connection string megszerzése az SQL Server Object Explorer-ből](images/efcore-ssoe.png)
+
+T> Mivel a connection string-ben különleges karakterek (pl. '\') vannak, ne felejtsük el a @-ot a string elé írni!
+
+```csharp
+public class NorthwindContext : DbContext
+{
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseSqlServer(@"<connstring>");
+    }
+
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Order> Orders { get; set; }
+}
+```
+
+T> A nagyobb rugalmasság érdekében érdemes a connection stringet konfigurációs fájlba helyezni, és egy saját `IDbContextFactory` implementációval, vagy az ASP.NET konfigurációs megoldásaival felolvasni. Erre egy későbbi gyakorlaton nézünk példát.
+
+Az első verziós DAL rétegünk ezzel kész is van.
+
+## Sémamódosítás
+
+### Code-First Migrations
+
+A kódban történő sémamódosításokat követni tudja a keretrendszer, és a változások alapján frissíteni tudja az adatbázis sémáját lefele, illetve felfele irányban is. Ezt a mechanizmust nevezzük migrációnak. Esetünkben a séma nulláról felhúzása is már módosításnak számít.
+
+A migráció elvégzésére parancssoros utasításokat kell igénybe vennünk. Itt kétfajta megközelítés is adott: vannak PowerShell és vannak klasszikus cmd (dotnet cli) parancsaink.
+Fel kell telepítsük a projektünkbe valamelyik NuGet csomagot:
+
+- **Powershell**: Microsoft.EntityFrameworkCore.Tools (telepítsük fel most ezt)
+- **Parancssor**: Microsoft.EntityFrameworkCore.Tools.DotNet
+
+Hozzuk elő a **Package Manager Console**-t. (Tools → Library Package Manager). Ellenőrizzük, hogy a *Default Project* legördülőben a mi projektünk van-e kiválasztva. Az `Add-Migration <név>` paranccsal tudunk készíteni egy új migrációs lépést, így az első migrációnk a kiinduló sémánk migrációját fogja tartalmazni.
+
+```powershell
+Add-Migration Init
+```
+
+Figyeljük meg mit generált a projektünkbe ez a parancs. Itt a migrációhoz egy osztályt készít, ami tartalmazza azokat az utasításokat, amikkel fel- vagy le tudjuk frissíteni az adatbázis sémánkat. Fontos, hogy lefordítsuk a projektet, mert ezen és a többi kódunk alapján fog futni a migráció.
+
+Fordítás után adjuk ki az `Update-Database` parancsot, amivel egy adott migrációs állapotig próbálja frissíteni a sémát. Ha nem adunk meg sémanevet akkor a legfrissebb migrációig frissít:
+
+```powershell
+Update-Database Init
+```
+
+Ellenőrizzük le az adatbázis sémáját az *SQL Server Object Explorer* ablakban. Mutassuk meg, hogy pusztán konvenciók alapján milyen tulajdonságokat talált ki az EF.
+
+T> Kódból is legenerálhatnánk az adatbázist az aktuális sémával a `DbContext.Database.EnsureCreated` metódus segítségével, viszont ez a későbbiekben megnehezíti a további sémamódosítást, mivel mindig el kellene dobjuk az adatbázist, illetve a migrációt sem könnyű utólag bevezetni.
+
+## Mapping és egyéb mataadatok megadása II. – fluent és attribute mapping konfiguráció
+
+Definiáljuk felül a kontext-ünkben az ős `OnModelCreating` metódusát és itt állítsunk be pár mapping információt.
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+    modelBuilder.Entity<Category>()
+        .Property(c => c.Name)
+        .HasMaxLength(15)
+        .IsRequired();
+}
+```
+
+Ezzel a `Name` property hosszát állítottuk be és megadtuk, hogy kötelező (nem `NULL`-ozató) mező.
+
+A fluent mellett próbáljuk ki az attribútumos konfigurációt is. Állítsuk át az alapértelmezett táblanevet a `Product` osztály esetében a `Table` attribútummal.
+
+```csharp
+[Table("PRODUCT")]
+public class Product
+{
+    // ...
+}
+```
+
+T> Érdemes megfigyelni a táblanevek kapcsán, hogy eleve többesszámosított neveket találunk az adatbázisban. Ezt az `IPluralizer` service végzi, melyhez saját implementáció is írható.
+
+Mivel már létezik az adatbázisunk migráció segítségével kell frissítsük az adatbázis sémáját. Készítsünk egy új migrációs lépést az `Add-Migration` utasítással és frissítsük a sémát az `Update-Database` paranccsal.
+
+T>Ha van időnk megnézhetjük az adatbázison futtatott SQL-t is a Script-Migration paranccsal. Például ez mutatja a legutóbbi módosítást érvényesítő SQL-t: `Script-Migration -From Init`
+
+```powershell
+Add-Migration CategoryName_ProductTableName
+Update-Database CategoryName_ProductTableName
+```
+
+T> Természetesen mivel még nincsenek adataink az adatbázisban akár el is dobhatnánk az adatbázist és újra legenerálhatnánk nulláról a sémát, de most kifejezetten a migrációt szeretnénk gyakorolni. Az `Add-Migration` kimenete figyelmeztet, hogy adatvesztés is történhet. Vannak veszélyes migrációs műveletek, ezért érdemes átnézni a generálódó migrációs kódot.
+
+Nézzük meg milyen migrációs osztályt generáltunk, és hogy ez milyen utasításokat tartalmaz.
+
+Ellenőrizzük, hogy a Name oszlop most már az új kényszereknek megfelelően lett-e felvéve, és hogy a termékek tábla megfelelő néven jelenik-e meg. Ezzel kész a DAL rétegünk konfigurációja.
+
+## Adatbázis naplózás
+
+A következő feladat könnyebb követhetősége érdekében állítsuk be a naplózást az Entity Framework kapcsán.
+
+Az Entity Framework Core az ASP.NET Core-ban is megismert naplózó mechanizmusra épül rá az `ILoggerFactory` interfészen keresztül. Mi most a konzolon keresztül szeretnénk figyelni az éppen végrehajtott SQL utasításokat. Mivel a mi konzolos alkalmazásunkban nincs `Startup` osztály, így naplózást a `DbContext` `OnConfiguring` metódusában kell beállítanunk egy konzolos providert tartalmazó logger factory-ra. Ehhez a `Microsoft.Extensions.Logging.Console` NuGet csomagot kell a projektünkhöz adni.
+
+```csharp
+//kóddarabka
+private ILoggerFactory GetLoggerFactory()
+{
+  IServiceCollection serviceCollection = new ServiceCollection();
+  serviceCollection.AddLogging(builder => builder.AddConsole());
+  return serviceCollection.BuildServiceProvider()
+          .GetService<ILoggerFactory>();
+}
+
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+    optionsBuilder.UseSqlServer(_connStr)
+    //leanpub-start-insert
+        .UseLoggerFactory(GetLoggerFactory());
+    //leanpub-end-insert
+}
+```
+
+W> Ez az eljárás 2.2 specifikus! 3.0-ban és 2.2 előtt is más API volt/lesz az ajánlott!
+
+T> Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug outputra is írhatunk. Ehhez a Microsoft.Extensions.Logging.Debug csomagban található AddDebug metódust kell használjuk.
+
+## Adatbázisműveletek
+
+### Beszúrás
+
+Írjunk egy egyszerű beszúró kódot a `Program` osztályba. Várjunk paraméterül egy kontext-et, és csak akkor szúrjunk be az adatbázisba bármit, ha még üres.
+
+```csharp
+using System.Linq;
+
+static void SeedDatabase(NorthwindContext ctx)
+{
+    if (!ctx.Products.Any())
+    {
+        var cat_drink = new Category { Name = "Ital" };
+         var cat_food = new Category { Name = "Étel" };
+        ctx.Categories.Add(cat_drink);
+        ctx.Categories.Add(cat_food);
+        ctx.Products.Add(new Product { Name = "Sör", UnitPrice = 50, Category = cat_drink });
+        ctx.Products.Add(new Product { Name = "Bor", Category = cat_drink });
+        ctx.Products.Add(new Product { Name = "Tej", CategoryId = cat_drink.Id });
+        ctx.SaveChanges();
+    }
+}
+```
+
+Figyeljük meg, hogy milyen egyszerű bánni a kapcsolódó elemekkel. (Hivatkozhatunk rájuk ID-val vagy referenciával) Az ID-s hivatkozást is szépen le tudja kezelni azáltal, hogy a még nem perzisztált, újonnan hozzáadott objektumok egyedi negatív azonosítót kapnak, amikor hozzáadjuk őket valamelyik `DbSet`-hez. Persze érdemes körültekintően eljárni itt is, lásd a szakasz végén lévő hibára futó kódrészletet.
+
+Hívjuk meg a `Main` függvényben és próbáljuk meg lekérdezni az első terméket. Rakjunk a `Main` végére egy `Console.ReadKey`-t, hogy legyen időnk megnézni a naplót.
+
+```csharp
+static void Main(string[] args)
+{
+    //leanpub-start-insert
+    using (var ctx = new NorthwindContext())
+    {
+        SeedDatabase(ctx);
+
+        var p = ctx.Products.FirstOrDefault();
+    }
+    Console.ReadKey();
+    //leanpub-end-insert
+}
+```
+
+Próbáljuk ki! Nézzük meg a konzolon az utasításokat. Mutassuk meg a változásokat az adatbázisban.
+
+Ha a kategória objektumok referenciái semmilyen módon nem kerülnek be a kontextusba mielőtt az ID-s hivatkozást beállítanánk, akkor a hivatkozás 0 értékű lesz. Például az alábbi változat is hibára fut, mert nullás `CategoryID`-ra hivatkozunk, ami nem létezik (ez eddigi változatot kommentezzük ki):
+
+```csharp
+//kóddarabka
+static void SeedDatabase(NorthwindContext ctx)
+{
+    var cat_drink = new Category { Name = "Ital2" };
+    var sör2 = new Product { Name = "Sör2", UnitPrice = 50, CategoryId = cat_drink.Id };
+    ctx.Products.Add(sör2);
+    ctx.Categories.Add(cat_drink);
+    ctx.SaveChanges();
+}
+```
+
+T> Figyeljük meg, hogy a konzol naplóban, hogy a `Category` beszúrása még megtörténik, de a `Product` hozzáadása már elszáll. A debuggerrel, ha megállunk a `SaveChanges` híváson, akkor látható, hogy a `CategoryId` értéke nulla.
+
+Kétféleképpen is javíthatjuk a kódot: a `CategoryId` beállítása előtt hozzáadjuk az új kategóriát a kontextushoz, vagy a navigációs property-t töltjük a `CategoryId` helyett. A harmadik változatunk az utóbbi módszert követi (ez eddigi változatot kommentezzük ki):
+
+```csharp
+//kóddarabka
+static void SeedDatabase(NorthwindContext ctx)
+{
+    var cat_drink = new Category { Name = "Ital2" };
+    var sör2 = new Product { Name = "Sör2", UnitPrice = 50, Category = cat_drink };
+    ctx.Products.Add(sör2);
+    ctx.Categories.Add(cat_drink);
+    ctx.SaveChanges();
+}
+```
+
+Ennek már le kell futnia, sikeresek a beszúrások.
+
+### Ősfeltöltés (seeding) elvárt adattartalom megadásával
+
+A kontextuskonfiguráció részeként megadhatjuk, hogy milyen adattartalmat szeretnénk az egyes táblákban látni. A kontext `OnModelCreating` függvényének végére:
+
+```csharp
+modelBuilder.Entity<Category>().HasData(new Category {Id = 1, Name = "Ital"});
+
+//kóddarabka
+modelBuilder.Entity<Product>()
+    .HasData(new Product { Id=1, Name = "Sör", UnitPrice = 50, CategoryId = 1 },
+             new Product { Id=2, Name = "Bor", UnitPrice = 550, CategoryId = 1 },
+             new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 });
+```
+
+Fontos, hogy ezen módszer esetén mindenképp kézzel meg kell adnunk az elsődleges kulcs értékeket. Fordítás után generáltassunk új migrációt és frissítsük is az adatbázist - ez utóbbi hibára fog futni:
+
+```powershell
+Add-Migration Seed
+Update-Database
+```
+
+A `HasData` alapján generált migrációs kód nem veszi figyelembe az időközben bekerült adatokat, csak a modellt és a többi migrációt nézi. Ha megnézzük a generált kódot, láthatjuk, hogy csak sima beszúrások. Mivel mi közben jól összeszemeteltük az adatbázist, a migráció által kiadott beszúró műveletek jó eséllyel hibára futnak.
+
+Ha szeretnénk tiszta lappal indulni, bármikor kipucolhatjuk az adatbázist a speciális nullás migrációra való frissítéssel, majd újrahúzhatjuk a `HasData`-nak köszönhetően kezdeti adatokkal ősfeltöltve.
+
+```powershell
+Update-Database 0
+Update-Database
+```
