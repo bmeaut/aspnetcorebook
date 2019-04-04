@@ -71,7 +71,7 @@ Az automatikusan létrejövő MSSQLLocalDB nevű LocalDB példány connection st
 
 ![Connection string megszerzése az SQL Server Object Explorer-ből](images/efcore-ssoe.png)
 
-T> Mivel a connection string-ben különleges karakterek (pl. '\') vannak, ne felejtsük el a @-ot a string elé írni!
+T> Mivel a connection string-ben különleges karakterek (pl. '\\') vannak, ne felejtsük el a @-ot a string elé írni!
 
 ```csharp
 public class NorthwindContext : DbContext
@@ -193,7 +193,7 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 
 W> Ez az eljárás 2.2 specifikus! 3.0-ban és 2.2 előtt is más API volt/lesz az ajánlott!
 
-T> Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug outputra is írhatunk. Ehhez a Microsoft.Extensions.Logging.Debug csomagban található AddDebug metódust kell használjuk.
+T> Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug outputra is írhatunk. Ehhez a *Microsoft.Extensions.Logging.Debug* csomagban található `AddDebug` metódust kell használjuk.
 
 ## Adatbázisműveletek
 
@@ -302,3 +302,123 @@ Ha szeretnénk tiszta lappal indulni, bármikor kipucolhatjuk az adatbázist a s
 Update-Database 0
 Update-Database
 ```
+
+Ezek után a `SeedDatabase` hívásra nincs szükség, kommentezzük ki a `Main` függvényben.
+
+## Lekérdezések
+
+Minden rész után az előző szakasz kódját kommentezzük ki, hogy ne keltsen felesleges zajt a kimeneten az előző utasítás, illetve ne legyenek felesleges mellékhatások.
+
+Kérdezzük le azokat a termékeket, melyeknek neve egy adott betűt tartalmaz. A `Main` függvény `using` blokkjába:
+
+```csharp
+//SeedDatabase(ctx);
+//var p = ctx.Products.FirstOrDefault();
+
+//leanpub-start-insert
+var q = from p in ctx.Products
+        where p.Name.Contains("ö")
+        select p.Name;
+
+foreach (var name in q)
+{
+    Console.WriteLine(name);
+}
+//leanpub-end-insert
+```
+
+ A debuggerrel léptessük át az egyes utasításokon a program futását. A késleltetett kiértékelés miatt csak a `foreach` végrehajtása közben fog az adatbázishoz fordulni az EF. Nézzük meg a lefuttatott SQL-t is. Sikerült az `IQueryable<>`-ben található `Expression`-t SQL utasítássá alakítania.
+
+ Az EF elég sok C# függvényt SQL-lé tud fordítani. Példaképp alakítsuk a visszaadott nevet nagybetűssé.
+
+```csharp
+var q = from p in ctx.Products
+       where p.Name.Contains("ö")
+       select p.Name
+//leanpub-start-insert
+            .ToUpper();
+//leanpub-end-insert
+```
+
+Figyeljük meg a konzolon a generált SQL-t: a projekciós részbe bekerült az `UPPER` SQL függvény.
+
+## Vegyes kiértékelés
+
+A fák sem nőnek az égig, az EF sem tud minden C# függvényt SQL-lé fordítani. Próbáljuk ki úgy, hogy a `Contains`-t karakterrel hívjuk meg a szűrésben.
+
+```csharp
+var q = from p in ctx.Products
+       where p.Name.Contains('ö')
+       select p.Name;
+```
+
+Figyeljük meg, hogy a futtatott lekérdezés itt nem tartalmazza a feltételünket. A teljes táblát lekérdezte az EF és memóriában futtatta le azokat a részeket, amit nem tudott SQL utasítássá fordítani (jelen esetben a karakterrel paraméterezett `Contains`-t) - ez az ún. *Mixed Query Evaluation*. Sőt figyelmeztetést (warning) is kaptunk ezzel kapcsolatban, mivel a lekérdezés hatékonysága jelentősen romlott ezzel.
+
+Milyen jó lenne, ha ezt a kellemetlen helyzetet az EF kivétel formájában közölné velünk, így a későbbiekben egy kevésbé tapasztalt fejlesztő nem kérdezi le feleslegesen a teljes táblát. Ehhez állítsuk át ezt a kontext beállításaiban az alábbi opciót:
+
+```csharp
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+    optionsBuilder.UseSqlServer(_connStr)
+        .UseLoggerFactory(GetLoggerFactory())
+        //leanpub-start-insert
+        .ConfigureWarnings(c => c.Throw(RelationalEventId.QueryClientEvaluationWarning));
+        //leanpub-end-insert
+}
+```
+
+Próbáljuk ki, hogy tényleg kivétel keletkezik-e.
+
+T> Persze egy tapasztalatlanabb fejlesztő bevethet egy szőnyeg alá söprő trükköt, és még a `where` feltétel előtt a `Products` `DbSet`-re `ToList`-et hív. A lekérdezés a `ToList` hívása során fut le, és a további `select` és `where` műveletek már mindenképpen a memóriában történnek meg.
+
+W> Különösen fontos, hogy lehetőleg minden EF lekérdezésünket ellenőrizzük le, hogy minden része ott fut-e le (adatbázisban vagy memóriában), ahol számítunk rá. A kódra ránézve ez nem mindig látszik egyértelműen.
+
+## Lekérdezések összefűzése
+
+```csharp
+var q = from p in ctx.Products
+        where p.Name.Contains("r")
+        select p;
+
+var q2 = from p in q
+         where p.UnitPrice > 20
+         select p.Name;
+
+foreach (var name in q2)
+{
+    Console.WriteLine(name);
+}
+```
+
+Ismét figyeljük meg a naplóban, mikor fut le és milyen lekérdezés. Itt is látszik a késleltetett kiértékelés és a lekérdezések össze lesznek fűzve, egy lekérdezés hajtódik végre.
+
+T> Ez rámutat az EF egy nagy előnyére, bonyolult lekérdezéseket megírhatunk kisebb, egyszerűbb részletekben írhatunk meg, az EF pedig összevonja, sőt optimalizálhatja is a lekérdezést.
+
+Próbáljuk ki, `var q =` helyett `IEnumerable<Product> q=`-val is, ilyenkor nem fűzi össze a lekérdezést. A `q2` műveletei már memóriában fognak lefutni, hiszen a `q2` adatforrásként csak egy `IEnumerable`-t lát.
+
+Próbáljuk ki, `var q` = helyett `IQueryable<Product> q=` -val is, ilyenkor megint összefűzi a lekérdezést.
+
+T> Nem lehet elégszer hangsúlyozni az `IQueryable` és az `IEnumerable` közti különbségeket. Az `IQueryable` kifejezések SQL-é fordulnak (amikor letudnak), míg az IEnumerable-en végzett műveletek minden esetben memóriában hajtódnak végre.
+
+T> Ha nem akarunk véletlenül memóriabeli kiértékelésre váltani, az implicit típus (`var`) alkalmazása jó szolgáltat tehet,
+
+## Beszúrás több-többes kapcsolatba
+
+Azokat a termékeket szeretnénk megrendelni, amiknek a nevében van „r”. Használjuk fel újra az előző, hasonló lekérdezésünket.
+
+```csharp
+var q = from p in ctx.Products
+        where p.Name.Contains("r")
+        select p;
+
+var order = new Order { OrderDate = DateTime.Now };
+foreach (var p in q)
+{
+    order.ProductOrders.Add(new ProductOrder { Product = p, Order = order });
+}
+
+ctx.Orders.Add(order);
+ctx.SaveChanges();
+```
+
+Ismét figyeljük, hogy milyen SQL generálódik. Az `Order` létrehozása után nekünk még egy új `ProductOrder` entitást is létre kell hoznunk, amit a több-több kapcsolatra használunk fel. Figyeljük meg, hogy minden `Order` hozzáadásával `ProductOrder` is bekerült a kontextusba, majd el is mentődött az adatbázisba.
