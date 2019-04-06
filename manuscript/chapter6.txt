@@ -495,10 +495,14 @@ foreach (var p in products)
 Ha nem akarunk minden oszlopot lekérdezni az összes érintett táblából, akkor a select részt úgy is megírhatjuk, hogy csak a szükséges adatokat kérdezze le, ez az ún. *query result shaping*.
 
 ```csharp
-var products = ctx.Products.Select(
-            p=> new {ProductName=p.Name
-                    , CategoryName=p.Category.Name
-                    ,OrderDates= p.ProductOrders.Select(po=>po.Order.OrderDate).ToArray()}
+var products = ctx.Products.Select(p=> new
+    {
+        ProductName=p.Name,
+        CategoryName=p.Category.Name,
+        OrderDates= p.ProductOrders
+                     .Select(po=>po.Order.OrderDate)
+                     .ToArray()
+    }
 );
 
 foreach (var p in products)
@@ -535,8 +539,11 @@ A `Find` az elsődleges kulcs alapján keres ki egy entitást. Nem kell ismernü
 Töröljük ki az adatbázisból az előbb létrehozott megrendelések közül az egyiket.
 
 ```csharp
-var orderToRemove = (from p in ctx.Orders
-             select p).First();
+var orderToRemove =
+    (
+      from p in ctx.Orders
+      select p
+    ).First();
 
 ctx.Orders.Remove(orderToRemove);
 ctx.SaveChanges();
@@ -611,10 +618,13 @@ modelBuilder.Entity<Product>().HasData(
     new Product
     {
          Id =1, Name = "Sör", UnitPrice = 50, CategoryId = 1,
+        //leanpub-start-insert
          ShipmentRegion = ShipmentRegion.Asia
+        //leanpub-end-insert
     },
     new Product { Id=2, Name = "Bor", UnitPrice = 550, CategoryId = 1 },
     new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 },
+    //leanpub-start-insert
     new Product
     {
         Id = 4, Name = "Whiskey", UnitPrice = 960, CategoryId = 1,
@@ -625,6 +635,7 @@ modelBuilder.Entity<Product>().HasData(
         Id = 5, Name = "Whiskey", UnitPrice = 960, CategoryId = 1,
         ShipmentRegion = ShipmentRegion.EU | ShipmentRegion.NorthAmerica
     }
+     //leanpub-end-insert
   );
 ```
 
