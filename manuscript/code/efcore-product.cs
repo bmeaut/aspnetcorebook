@@ -7,5 +7,6 @@ public class Product
     public int CategoryId { get; set; }
     public Category Category { get; set; }
 
-    public ICollection<ProductOrder> ProductOrders { get; } = new List<ProductOrder>();
+    public ICollection<ProductOrder> ProductOrders { get; } 
+                                    = new List<ProductOrder>();
 }
