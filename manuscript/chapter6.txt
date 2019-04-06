@@ -2,7 +2,7 @@
 
 ## Az Entity Framework mapping módszerei
 
-Az OR leképzés két részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektum modell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk *Code-First* mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot *Reverse Engineered Code-First*-nek hívjuk.
+Az OR leképzés két részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektum modell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk *Code-First* mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot *Reverse Engineered Code-First*-nek hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
 
 ### A Code-first mapping módszer
 
