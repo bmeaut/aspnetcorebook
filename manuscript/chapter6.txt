@@ -6,7 +6,7 @@ Az OR leképzés két részből áll, az egyik az adatbázis séma, a másik ped
 
 ### A Code-first mapping módszer
 
-A Code-First lényege, hogy elsőként az OO entitásokat definiáljuk egyszerűen programkódban, majd a mapping-et szintén programkódban. A mapping alapján az EF képes az adatbázis létrehozására, inicializálására és a séma változáskövetésére is (Migrations).
+A Code-First módszer lényege, hogy elsőként az OO entitásokat definiáljuk egyszerűen programkódban, majd a leképezést szintén programkódban. A leképezés alapján az EF képes az adatbázis létrehozására, inicializálására és a séma változáskövetésére is (lásd *Code-First Migrations*).
 
 ### Az entitások definiálása
 
@@ -20,6 +20,7 @@ Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-impleme
 ### Mapping és egyéb metaadatok megadása I.
 
 Eddig megadtuk az entitás nevét, az attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen az attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál ezek megadására. Az egyik módszer, hogy attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
+
 A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: pl. gyakori, hogy az elsődleges kulcs neve tartalmazza az *id* szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor az attribútumos vagy fluent megadással tehetjük meg.
 
 T> EF 6-ban saját konvenciókat is megadhatunk, viszont Core-ban [még](https://github.com/aspnet/EntityFrameworkCore/issues/214) nem.
