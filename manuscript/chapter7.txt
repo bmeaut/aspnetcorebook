@@ -1,68 +1,249 @@
-# Entity Framework Core I-II.
+# ASP.NET Core webszolgáltatások I.
 
-## Az Entity Framework mapping módszerei
+## Kiinduló projektek beüzemelése
 
-Az OR leképzés két részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektum modell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk *Code-First* mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot *Reverse Engineered Code-First*-nek hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
+A kiinduló solution két .NET Standard 2.0 osztálykönyvtárat foglal magába, melyek egy N-rétegű architektúra egy-egy rétegét valósítják meg
 
-### A Code-first mapping módszer
+- **WebApiLabor.DAL**: lényegében az Entity Framework gyakorlatok anyagát tartalmazza, ez az adatelérési rétegünk.
+- **WebApiLabor.Bll**: a DAL rétegre épülő, az üzleti logikát megvalósító szolgáltatásokat tartalmazza. A *Dtos*, *Exceptions* mappák egyelőre nem érdekesek, első körben nem fogjuk még a bennük lévő típusokat használni.
 
-A Code-First módszer lényege, hogy elsőként az OO entitásokat definiáljuk egyszerűen programkódban, majd a leképezést szintén programkódban. A leképezés alapján az EF képes az adatbázis létrehozására, inicializálására és a séma változáskövetésére is (lásd *Code-First Migrations*).
+Adjunk hozzá a solution-höz egy új Web projektet (C# → Web → ASP.NET Core Web Application (.NET Core)), a neve legyen *WebApiLabor.API*.
 
-### Az entitások definiálása
+A következő dialógusablakban válasszuk ki az *ASP.NET Core 2.2* opciót és azon belül a API sablont. Más egyéb extrát (HTTPS, Docker, stb.) ne kérjünk. Adjuk hozzá projekt függőségként a *Bll* projektet.
 
-Készítsünk egy konzolos alkalmazást, majd a projekten belül hozzunk létre egy *Entities* nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
+### Adatbázis inicializálása Code-First migrációval
 
-- **Product** (Id:int, Name:string, UnitPrice:int)
-- **Order** (Id:int, OrderDate:DateTime)
-- **Category** (Id:int, Name:string)
-Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (prop snippet).
+Az EF gyakorlatok alapján megoldható, így itt csak rövidítve ismertetjük.
 
-### Mapping és egyéb metaadatok megadása I.
+Hozzunk létre egy új LocalDB adatbázist egy választott névvel, pl. neptun kód, northwind, stb. A `NorthwindContext.OnConfiguring`-ban lévő connection string-ben ennek megfelelően írjuk át az adatbázis nevét.
 
-Eddig megadtuk az entitás nevét, az attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen az attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál ezek megadására. Az egyik módszer, hogy attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
+Fordítsuk a teljes solution-t, állítsuk be indítandó (startup) projektnek az új Web API projektet. A Package Manager Console-t nyissuk meg és ellenőrizzük, állítsuk be Default Project-ként a DAL projektet.
 
-A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: pl. gyakori, hogy az elsődleges kulcs neve tartalmazza az *id* szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor az attribútumos vagy fluent megadással tehetjük meg.
+```powershell
+Update-Database
+```
 
-T> EF 6-ban saját konvenciókat is megadhatunk, viszont Core-ban [még](https://github.com/aspnet/EntityFrameworkCore/issues/214) nem.
+W> Fontos, hogy a fenti parancs két projektet ismerjen: azt, amelyikben a kontext van, ill. a kontextet használó futtatható projektet. A VS Package Manager Console-jában futtatva alapértelmezésben az előbbit a Default Project értéke adja meg, utóbbit az indítandó projekt. Továbbá ezeket a projekteket meg lehet adni [paraméterként](https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/powershell#common-parameters) is.
 
-Elsőként azt fogjuk megnézni, hogy mit talál ki az EF, ha semmi plusz adatot nem adunk meg.
+Ellenőrizzük, hogy rendben lefutott-e a migráció, létrejöttek-e az adatbázis objektumok, feltöltődtek-e a táblák.
 
-### Relációk
+## Az EF kontext és naplózás bekötése az ASP.NET Core DI rendszerébe
 
-Az entitások közötti kapcsolatokat mutatja az alábbi ábra:
+Most már van `ConfigureServices` függvényünk (lásd ASP.NET Core bevezető gyakorlatot), regisztráljuk az EF kontextet és az EF naplózó szolgáltatást a DI rendszerbe.
 
-![EF Core példaséma](images/efcore-rels.png)
+A kontext regisztrálása a `Startup.ConfigureServices` függvénybe:
 
-A Product-Category egy-többes kapcsolathoz egy idegen kulcs property és egy navigációs property tartozik a `Product` osztályban és egy navigációs property a `Category`-ban. A többes navigációs property-k legyenek csak olvashatók és a típusuk legyen `ICollection<>`.
+```csharp
+services.AddDbContext<NorthwindContext>(o =>
+    o.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"])
+    .ConfigureWarnings(
+        c => c.Throw(RelationalEventId.QueryClientEvaluationWarning)));
+```
 
-T> Általánosságban nem kötelező egy kapcsolat mindkét oldalán navigációs property-t felvenni, de erősen javasolt és mindig jó, ha van. Az entitáson végzendő műveleteket egyszerűsíti, illetve a konvenciós logika is következtet belőle.
+Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit az alapértelmezett `WebHost` már inicializál, így ezzel kapcsolatban nincs teendőnk. Kommentezzük ki a szükségtelenné vált `GetLoggerFactory`, `OnModelCreating` függvényeket a `NorthwindContext` osztályban. Cserébe egy új konstruktorra lesz szükségünk, ami `DbContextOptions<NorthwindContext>`-et vár.
 
-Az Order-Product több-többes kapcsolatokhoz nem elég egy-egy kollekciót felvenni a két osztályban. Létre kell hozzuk a kapcsolótáblának megfelelő entitást is, ami egy-egy Product és Order közötti kapcsolatot reprezentálja.
+```csharp
+public NorthwindContext(DbContextOptions<NorthwindContext> options)
+    : base(options){}
+```
 
-- **ProductOrders** (ProductId:int, OrderId:int)
+Az *appsettings.Development.json*-ba vegyük fel a connection string-et. Átmásolhatjuk a kikommentezett részből vagy az SQL Server Object Explorer-ből.
 
-![Product-Order kapcsolótábla](images/efcore-bridgetab.png)
+```javascript
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "System": "Information",
+      "Microsoft": "Information"
+    }
+  },
+  //leanpub-start-insert
+  "ConnectionStrings": {
+    "DefaultConnection": "<connection string>"
+  }
+  //leanpub-end-insert
+}
+```
 
-Ezután így néznek ki az entitások (segítség a gépeléshez: bit.ly/dotnetlabor6-7)
+Fordítást követően kipróbálhatjuk az EF működését egy adatbázis újrainicializációval.
 
-<<(code/efcore-category.cs)
-<<(code/efcore-order.cs)
-<<(code/efcore-product.cs)
-<<(code/efcore-productorder.cs)
+```powershell
+Update-Database 0
+Update-Database
+```
 
-T> A fenti kódok kóddarabkákként is elérhetőek.
+T> Itt mutatkozik meg, hogy a migráció lényegében egy teljes alkalmazásindítást jelent a `Startup` osztályon keresztül, inicializálódik a DI konténer, a konfigurációs objektum, stb.
 
-## Kapcsolat az adatbázissal
+## EF kontext használata a kontroller rétegben
 
-### DbContext - NuGet
+Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál.  A *Controllers* mappában hozzunk létre egy kontrollert (Add → Controller... → API Controller with actions using Entity Framework). A felbukkanó ablakban válasszuk ki a `Product` entitás osztályt, a kontextet és adjunk meg nevet ( `EFProductsController`).
 
-Az entitásokat definiáltuk, a mapping-et az EF eszére bíztuk, a következő lépés a DB séma létrehozása a mapping alapján, amit képes az EF létrehozni. Műveletet az ún. *kontext*-en keresztül tudunk végezni. Érdemes saját kontext típust létrehozni, amit az alap `DbContext`-ből származtatunk. Eddig még nem is írtunk semmilyen EF specifikus kódot, most viszont már kell a `DbContext` típus, így NuGet-ből hozzá kell adnunk a **Microsoft.EntityFrameworkCore.SqlServer** csomagot. Nem ez a csomag tartalmazza a `DbContext`-et, viszont függőségként hivatkozza (**Microsoft.EntityFrameworkCore**).
+W> Figyeljünk rá, hogy ne a `Dto` névtérből adjuk meg a DTO típust a tényleges entitástípus helyett.
 
-T> Először használunk NuGet csomagkezelőt, röviden mutassuk be a felületet, hol lehet figyelni a függőségeket, honnan láthatjuk, hogy ez egy *.NET Standard* csomag, fájl szinten hova kerül be a függőség (.csproj).
+A legenerálódó kontroller már használható is. Állítsuk át a zöld nyíl mellett az indítási konfigurációt a projektnevesre, hogy kestrel induljon és így lássuk a konzolon a naplót. Indítsuk a projektet és próbáljuk például lekérni az összes terméket az **api/efproducts** címről.
 
-Adjunk hozzá új osztályt a projekthez `NorthwindContext` néven, ebben definiáljuk, hogy milyen entitáskollekciókon lehet műveleteket végezni.
+Figyeljük meg, hogy a controller a konstruktorban igényli meg a DI-tól az EF kontextet, amit a szokásos módon osztályváltozóban tárol el.
 
-Az Entity Framework önmagában független az adatbázis implementációktól, azokhoz különböző *adatbázis providereken* keresztül kapcsolódik. A **Microsoft.EntityFrameworkCore.SqlServer** csomag hivatkozza az EF absztrakt relációs komponensét (*EntityFrameworkCore.Relational*), és tartalmazza az *MS SQL Server*-hez tartozó providert. A providert a `DbContext` `OnConfiguring` metódusában adhatjuk meg, esetünkben a `UseSqlServer` metódussal, ami egy connection stringet vár.
+## Köztes réteg alkalmazása
+
+A rétegezett arhitektúra elveit követve gyakori eljárás, hogy a controller nem éri el közvetlenül az EF kontextet, hanem csak egy extra rétegen keresztül. A controller projekt így függetleníthető az EF-től.
+
+Ehhez a megoldáshoz készítsünk külön kontroller változatot. A *Controllers* mappába hozzunk létre egy kontrollert (Add → Controller... → API Controller with read/write actions) `ProductsController` néven.
+
+A megoldáshoz a Bll projektben már létezik a `ProductService` osztály, aminek szintén függősége az EF kontext és megvalósítja szükséges CRUD műveleteket. Az EF gyakorlaton tanultakra visszautalva mutassuk be a műveletek implementációját. Függőségeknél előnyösebb, ha interfészekre hivatkozunk, mert tesztelésnél az interfész mögötti implementációt általában egyszerűbb cserélni. Szerencsére az `IProductService` interfész is már rendelkezésünkre áll.
+
+Injektáljunk `IProductService`-t az új kontrollerbe.
+
+```csharp
+private readonly IProductService _productService;
+public ProductsController(IProductService productService)
+{
+    _productService = productService;
+}
+```
+
+Adjuk meg a DI konténernek, hogy hogyan kell egy `IProductService` típusú függőséget létrehozni. A `ConfigureServices` függvénybe:
+
+```csharp
+services.AddTransient<IProductService, ProductService>();
+```
+
+A függőség injektálás úgy működik, hogy kontrollereket is a központi DI komponens példányosítja, és ilyenkor megvizsgálja a konstruktor paramétereket. Ha a konténerben talál alkalmas beregisztrált osztályt, akkor azt létrehozza és átadja a konstruktornak. Ezt hívjuk konstruktor injektálásnak. Ha a létrehozandó függőségnek is vannak konstruktor paraméterei, akkor azokat is megpróbálja feloldani, így rekurzívan a teljes függőségi objektum hierarchiát le tudja kezelni ( ha abban nincs irányított kör).
+
+A regisztráció során több lehetőségünk is van. Egyrészt nem kötelező interfészt megadni egy osztály beregisztrálásához, az osztályt önmagában is be lehet regisztrálni, ilyenkor a konstruktorban is osztályként kell elkérni a függőségeket.
+
+Háromféle példányosítási stratégiával regisztrálhatjuk be az osztályainkat:
+
+- **Transient**: minden egyes injektálás során új példány jön létre
+- **Scoped**: HTTP kérésenként egy példány kerül létrehozásra és a kérésen belül mindenkinek ez lesz injektálva
+- **Singleton**: mindenkinek ugyanaz a példány kerül átadásra kéréstől függetlenül
+
+Írjunk új `Get()` változatot az eredeti helyett a `ProductsController`-be az `IProductService` függőséget felhasználva:
+
+```csharp
+[HttpGet]
+public IEnumerable<Product> Get()
+{
+    return _productService.GetProducts();
+}
+```
+
+Próbáljuk ki (*api/products*). A konzolon láthatóan hibát kapunk, mert a `ProductService` lekérdező függvénye eager loading-gal (`Include`) navigációs property-ket is kitölt, így könnyen hivatkozási kör jön létre, amit a JSON sorosító alapértelmezésben kivétellel jutalmaz. A sorosítást az MVC middleware végzi, a kontrollerfüggvény visszatérési értékét sorosítja a HTTP tartalomegyeztetési szabályok szerint. Böngésző kliens esetén alapesetben JSON formátum lesz a befutó. Persze a sorosítás ennél közvetlenebbül is [konfigurálható](https://docs.microsoft.com/en-us/aspnet/core/web-api/advanced/formatting), ha szükséges. A sorosítók beállítását tehát az MVC middleware konfigurációja során adhatjuk meg. Állítsuk be, hogy a sorosító oldja fel a kört úgy, hogy az újból sorosítandó elemet ne sorosítsa, azaz ne zárja be a kört.
+
+```csharp
+services.AddMvc()
+    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+    //leanpub-start-insert
+    .AddJsonOptions(
+        json => json.SerializerSettings.ReferenceLoopHandling
+                = ReferenceLoopHandling.Ignore);
+    //leanpub-end-insert
+```
+
+T> Nem csak ezzel a stratégiával oldható fel a körkörös hivatkozás, lásd például [itt](https://stackoverflow.com/a/23461179/472575).
+
+Próbáljuk ki így is az alkalmazást: ugyanannyi terméket kapunk vissza, de az egyes termékekről jóval több adatot.
+
+## REST konvenciók alkalmazása
+
+A REST megközelítés nem csak átviteli közegnek tekinti a HTTP-t, hanem a protokoll részeit felhasználja, hogy kiegészítő információkat vigyen át. Emiatt előnyös lenne, ha nagyobb ellenőrzésünk lenne a HTTP válasz felett, szerencsére az ASP.NET Core biztosítja ehhez a megfelelő API-kat.
+
+Egyik legegyszerűbb ilyen irányelv, hogy a lekérdezések eredményeként, ha megtaláltuk és visszaadtuk a kért adatokat, akkor **200 (OK)** HTTP válaszkódot adjunk. 
+
+T> A HTTP kérést érintő irányelvekről egy jó összefoglaló elérhető [itt](https://www.restapitutorial.com/lessons/httpmethods.html).
+
+Az eddig megírt `Get()` függvényünk most is **200 (OK)**-ot ad, ezt le is ellenőrizhetjük a böngészőnk hálózati monitorozó eszközében.
+
+T> A HTTP kommunikáció megfigyelésére használhatjuk a böngészők beépített eszközeit, minta mailyen a [Firefox Developer Tools](https://developer.mozilla.org/en-US/docs/Tools), illetve [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/). Általában az \[F12\] billentyűvel aktiválhatók. Emellett, ha egy teljesértékű HTTP kliensre van szükségünk, amivel például könnyen tudunk nem csak GET kéréseket küldeni, akkor a [Postman](https://www.getpostman.com/) és a [Fiddler](https://www.telerik.com/download/fiddler) külön telepítendő eszközök ajánlhatók. A Fiddler, mint proxy megoldás, egy Windows gépen folyó HTTP kommunikáció megfigyelésére is alkalmas.
+
+Első körben a két lekérdező függvényt írjuk át úgy, hogy a HTTP válaszkódokat explicit megadjuk. A jelenlegi legmodernebb mód ehhez az `AsyncResult<>` használata. Elég `T`-t visszaadnunk a függvényben, automatikusan `AsyncResult<T>` típussá konvertálódik. Tehát elvileg írhatnánk ezt:
+
+```csharp
+//NEM FORDUL!
+[HttpGet]
+public ActionResult<IEnumerable<Product>> Get()
+{
+    return _productService.GetProducts();
+}
+```
+
+Azonban ez nem fordul, mert interfész típus esetén nem működik a konverzió. Konkrét típust, pl. egy listát kell megadnunk.
+
+```csharp
+[HttpGet]
+public ActionResult<IEnumerable<Product>> Get()
+{
+    return _productService.GetProducts()
+    //leanpub-start-insert
+        .ToList();
+    //leanpub-end-insert
+}
+```
+
+T> Ez most nem volt nagy érvágás teljesítményügyileg, a BLL-ben már legyártjuk a listát, csak épp `IEnumerable<>`-ként adjuk át. A fenti `ToList` gyakorlatilag nem csinál semmit.
+
+A másik `Get` függvény még egyszerűbb:
+
+```csharp
+[HttpGet("{id}", Name = "Get")]
+public ActionResult<Product> Get(int id)
+{
+    return _productService.GetProduct(id);
+}
+```
+
+Próbáljuk ki mindkét függvényt, ellenőrizzük a státuszkódokat is.
+
+Ami fura, hogy még mindig nem állítottunk explicit státuszkódokat. A logikánk most még nagyon egyszerű, csak a hibamentes ágat néztük, így eddig az `ActionResult` alapértelmezései megoldották, hogy **200 (OK)**-ot kapjunk.
+
+Most viszont következzen egy létrehozó művelet:
+
+```csharp
+[HttpPost]
+public ActionResult<Product> Post([FromBody] Product product)
+{
+    var created = _productService.InsertProduct(product);
+    return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+}
+```
+
+Itt már látszik az `ActionResult` haszna. A konvenciónak megfelelően 201-es kódot akarunk visszaadni. Ehhez a `ControllerBase` ősosztály biztosít segédfüggvényt. A segédfüggvény olyan `ActionResult` leszármazottat ad vissza, ami 201-es kódot szolgáltat a kliensnek. Másik konvenció, hogy a *Location* HTTP fejlécben legyen egy URL az új termék lekérdező műveletének meghívásához.
+
+Próbáljuk ki a műveletet Fiddlerben vagy Postman-ben! Egy `Product`-ot kell felküldenünk. JSON formátumú példát találunk a kóddarabkák között. Ne felejtsük el a *Content-Type* fejlécet  application/json-re állítani! Figyeljük meg a kapott választ. A válaszból másoljuk ki a *Location* fejlécből az URL-t és hívjuk meg böngészőből.
+
+A módosító, törlő műveleteknél a konvenció megengedi, hogy üres törzsű (body) választ adjunk, ilyenkor a válaszkód **204 (No Content)**. Ilyesfajta válasz előállításához is van segédfüggvény, illetve elég csak az `IActionResult` interfészt megadni visszatérési típusnak:
+
+```csharp
+ [HttpPut("{id}")]
+ public IActionResult Put(int id, [FromBody] Product product)
+ {
+     _productService.UpdateProduct(id, product);
+     return NoContent();
+ }
+
+ [HttpDelete("{id}")]
+ public IActionResult Delete(int id)
+ {
+     _productService.DeleteProduct(id);
+     return NoContent();
+ }
+```
+
+Próbáljuk kitörölni az újonnan felvett terméket Fiddler/Postman-ből (*DELETE* igés kérés az *api/products/<új id>* címre). Sikerülnie kell, mert még nincs rá idegen kulcs hivatkozás.
+
+A fenti műveletek során csak a hibamentes ágat valósítottuk meg. A többi ágat (hibás kérés, erőforrás nem található stb.) a felesleges boilerplate kódok elkerülése végett majd külön middleware-ekben illetve MVC filterekben valósítjuk meg a későbbiekben.
+
+## DTO osztályok
+
+Közvetlenül az entitástípusok sorosítása láthatóan működik, de nem szerencsés. A modell kifejezetten az EF számára lett megalkotva és hogy a lekérdező műveleteket minél kényelmesebben végezhessük. A kliensoldal számára érdemes külön modellt megalkotni, a DTO (*Data Transfer Object*) modellt, ami a kliensoldal igényeit veszi figyelembe: **pontosan** annyi adatot tartalmaz, amire a kliensnek szüksége van.
+
+A *Bll* projektben jelenleg egy nagyon egyszerű DTO modell található a *Dtos* mappában:
+
+- nincs benne minden navigációs property, pl. `Category.Products`
+- nincs benne a kapcsolótáblát reprezentáló entitás
+- a termékből közvetlenül elérhetők a megrendelések
+
 
 MS SQL Server helyett a *LocalDB* nevű fejlesztői adatbázist használjuk, mely fejlesztői szempontból gyakorlatilag megegyezik az MS SQL Server-rel. A LocalDB a Visual Studio-val együtt települ, minden Windows felhasználónak külön LocalDB példány indítható el. A Visual Studio az SQL Server Object Explorer ablak megnyitásakor létrehozza az *MSSQLLocalDB* nevű példányt.
 
@@ -122,7 +303,7 @@ Ellenőrizzük le az adatbázis sémáját az *SQL Server Object Explorer* ablak
 
 T> Kódból is legenerálhatnánk az adatbázist az aktuális sémával a `DbContext.Database.EnsureCreated` metódus segítségével, viszont ez a későbbiekben megnehezíti a további sémamódosítást, mivel mindig el kellene dobjuk az adatbázist, illetve a migrációt sem könnyű utólag bevezetni.
 
-### Mapping és egyéb mataadatok megadása II. – fluent és attribute mapping konfiguráció
+## Mapping és egyéb mataadatok megadása II. – fluent és attribute mapping konfiguráció
 
 Definiáljuk felül a kontext-ünkben az ős `OnModelCreating` metódusát és itt állítsunk be pár mapping információt.
 
