@@ -3,7 +3,9 @@
 ## Kiegészítő anyagok, segédeszközök
 
 - kóddarabka fájl: aspnetcorerest.md
-- kiinduló solution: https://github.com/bmeaut/WebApiLab2019
+- kiinduló solution: https://github.com/bmeaut/WebApiLab2019/tree/init
+  - elég csak zip-ként letölteni, nem kell klónozni
+  - figyeljünk rá, hogy az *init* ágat töltsük le
 - Fiddler vagy Postman HTTP kérések küldéséhez
 
 ## Kiinduló projektek beüzemelése
