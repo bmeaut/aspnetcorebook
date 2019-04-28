@@ -7,6 +7,7 @@
   - elég csak zip-ként letölteni, nem kell klónozni
   - figyeljünk rá, hogy az *init* ágat töltsük le
 - Fiddler vagy Postman HTTP kérések küldéséhez
+- [NSwag Studio](https://github.com/RicoSuter/NSwag/releases) a klienskód generáláshoz
 
 ## Kiinduló projektek beüzemelése
 
@@ -48,7 +49,7 @@ services.AddDbContext<NorthwindContext>(o =>
         c => c.Throw(RelationalEventId.QueryClientEvaluationWarning)));
 ```
 
-Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit az alapértelmezett `WebHost` már inicializál, így ezzel kapcsolatban nincs teendőnk. Kommentezzük ki a szükségtelenné vált `GetLoggerFactory`, `OnModelCreating` függvényeket a `NorthwindContext` osztályban. Cserébe egy új konstruktorra lesz szükségünk, ami `DbContextOptions<NorthwindContext>`-et vár.
+Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit az alapértelmezett `WebHost` már inicializál, így ezzel kapcsolatban nincs teendőnk. Kommentezzük ki a szükségtelenné vált `GetLoggerFactory`, `OnConfiguring` függvényeket a `NorthwindContext` osztályban. Cserébe egy új konstruktorra lesz szükségünk, ami `DbContextOptions<NorthwindContext>`-et vár.
 
 ```csharp
 public NorthwindContext(DbContextOptions<NorthwindContext> options)
@@ -397,3 +398,213 @@ public async Task<IActionResult> Put(int id, [FromBody] Product product)
 ```
 
 Próbáljuk ki, például küldjünk PUT-ot az `api/products/1` címre, állítsuk be a *Content-Type: application/json* fejlécet és a POST-nál használt JSON-t küldjük a törzsben. Ezzel az 1-es `id`-jű termék adatait fogjuk felülírni.
+
+## Egyszerű kliens
+
+A tárgy tematikájának ugyan nem része a kliensoldal, de demonstrációs céllal egy egyszerű kliensoldalról indított hívást implementálunk. A webes API-khoz nagyon sokféle technikával írhatunk klienst, mivel gyakorlatilag csak két képességgel kell rendelkezni:
+
+1. HTTP alapú kommunikáció, HTTP kérések küldése, a válasz feldolgozása
+2. JSON sorosítás
+
+A fentiekhez szinte minden manapság használt kliensoldali technológia ad támogatást. Mi most egy sima, klasszikus .NET Framework alapú konzol alkalmazást írunk kliens gyanánt.
+
+Adjunk a solution-höz egy konzolos projektet (.NET Framework, legalább v4.6.1) *WebApiLabor.Client* néven. A C# verziót emeljük föl a korábbi C# gyakorlathoz hasonlóan legalább 7.1-re a projekttulajdonságok *Build* fülén, az *Advanced* gombbal. A *Program.cs*-ben írjuk meg az egy terméket lekérdező függvényt (`GetProductAsync`) és hívjuk meg a `Main` függvényből.
+
+```csharp
+static async Task Main(string[] args)
+{
+    Console.Write("ProductId: ");
+    var id = Console.ReadLine();
+    await GetProductAsync(Int32.Parse(id));
+
+    Console.ReadKey();
+}
+
+public static async Task GetProductAsync(int id)
+{
+    using (var client = new HttpClient())
+    {
+        /*Port-ot írjuk át a szervernek megfelelően*/
+        var response = await client.
+            GetAsync(new Uri($"http://localhost:5000/api/Products/{id}"));
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(json);
+        }
+    }
+}
+```
+
+T> Ha .NET-ben írjuk a klienst, akkor szinte biztosan a klasszikus .NET Framework-öt kell használnunk, hiszen az elterjedtebb .NET alapú kliens technológiák (WinForms, WPF) .NET Framework alapúak ... legalábbis a .NET Core v3 megjelenéséig.
+
+Állítsuk be, hogy a szerver és a kliensoldal is elinduljon (solution jobb gomb → Set startup projects...)
+
+Próbáljuk ki - a termék nyers JSON formában jelenik meg a konzolon. Ehhez még JSON sorosítót sem kellett használnunk. A következő lépés az lenne, hogy a JSON alapján visszasorosítanánk egy objektumba. Ehhez kliensoldalon is kellene lennie egy Product DTO-nak megfelelő osztálynak. Hogyan jöhetnek létre a kliensoldali modellosztályok?
+
+- kézzel létrehozzuk őket a JSON alapján - macerás
+- a DTO-kat osztálykönyvtárba szervezzük, mindkét oldal hivatkozza - csak akkor működik, ha mindkét oldal .NET-es, ráadásul könnyen kaphat az osztálykönyvtár olyan függőséget, ami igazából csak az egyik oldalnak kell csak, így meg mindkét oldal meg fogja kapni.
+- generáltatjuk valamilyen eszközzel a szerveroldal alapján - ezt próbáljuk most ki
+
+## OpenAPI/Swagger szerveroldal
+
+Az *OpenAPI* (eredeti nevén: *swagger*) eszközkészlet segítségével egy JSON alapú leírását tudjuk előállítani a szerveroldali API-nknak. A leírás alapján generálhatunk dokumentációt, sőt kliensoldali kódot is a kliensoldali fejlesztők számára. Jelenleg a legfrissebb specifikáció az OpenAPI v3-as (OAS v3). Az egyes verziók dokumentációja elérhető [itt](https://github.com/OAI/OpenAPI-Specification/tree/master/versions).
+
+Az OpenAPI nem .NET specifikus, különféle nyelven írt szervert és a klienst is támogat. Ugyanakkor készültek kifejezetten a .NET-hez is swagger eszközök, ezek közül használunk párat most. .NET környezetben legelterjedtebb eszközkészletek:
+
+- [NSwag](https://github.com/RicoSuter/NSwag) - szerver- és kliensoldali generálás is. Részleges OAS v3 támogatás.
+- [Swashbuckle](https://github.com/domaindrivendev/Swashbuckle.AspNetCore) - csak szerveroldali generálás. OAS v3 támogatás betában.
+- [AutoRest](https://github.com/Azure/autorest) - *npm* csomag .NET Core függőséggel, csak kliensoldali kódgeneráláshoz
+- [Swagger codegen](https://github.com/swagger-api/swagger-codegen) - java alapú kliensoldali generátor
+
+Első lépésként a szerveroldali kódunk alapján swagger leírást generálunk *NSwag* segítségével. Kommentezzük ki a `ProductsController`-en kívül a többi kontroller teljes kódját. A *launchsettings.json*-ben a *launchUrl* értékeket.
+
+```javascript
+"profiles": {
+  "IIS Express": {
+      //..
+     //leanpub-start-insert
+    "launchUrl": "swagger",
+     //leanpub-end-insert
+     //..
+  },
+  "WebApiLabor.Api": {
+    //..
+    //leanpub-start-insert
+    "launchUrl": "swagger",
+    //leanpub-end-insert
+    //..
+    }
+  }
+}
+```
+
+Adjuk hozzá a projekthez az `NSwag.AspNetCore` csomagot, most a `Package Manager Console`-ból. Figyeljünk rá, hogy a *Default project* az Api projektünk legyen - ebbe fog bekerülni az új függőség.
+
+```powershell
+Install-Package NSwag.AspNetCore
+```
+
+Konfiguráljuk a szükséges szolgáltatásokat a DI rendszerbe.
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    //...
+    //leanpub-start-insert
+    services.AddSwaggerDocument();
+    //leanpub-end-insert
+}
+```
+
+A swagger leíró, ill. a swagger dokumentációs felület kiszolgálására regisztráljunk egy-egy middleware-t.
+
+```csharp
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    //leanpub-start-insert
+    app.UseSwagger();
+    app.UseSwaggerUi3();
+    //leanpub-end-insert
+    app.UseMvc();
+}
+```
+
+T> Az NSwag már támogatja az OpenAPI v3-as specifikációt, de a Visual Studioba beépített kliensoldali kódgenerátorok még nem, így csak v2-es specifikáció szerinti leírót generálunk. 
+
+Próbáljuk ki, hogy működik-e a dokumentációs felület a **/swagger** útvonalon, illetve a leíró elérhető-e a **/swagger/v1/swagger.json** útvonalon.
+
+T> A swagger leíró linkje megtalálható a dokumentációs felület címsora alatt.
+
+A dokumentációs felületen fedezzük fel a `ProductsController` műveleteit, a visszatérési értékek leírását (példa, illetve modell-leíró), ill. a modell-leírókat a műveletlista alatt. Hívjuk is meg a **/api/Products/{id}** változatot, kitöltve a szükséges paramétert.
+
+Az NSwag képes a kódunk XML kommentjeit hasznosítani a dokumentációs felületen. Írjuk meg egy művelet XML kommentjét.
+
+```csharp
+/*kóddarabka*/
+/// <summary>
+/// Get a specific product with the given identifier
+/// </summary>
+/// <param name="id">Product's identifier</param>
+/// <returns>Returns a specific product with the given identifier</returns>
+/// <response code="200">Returns a specific product with the given identifier</response>
+[HttpGet("{id}", Name = "Get")]
+public ActionResult<Product> Get(int id)
+```
+
+A swagger komponensünk az XML kommenteket nem a forráskódból, hanem egy generált állományból képes kiolvasni. Állítsuk be ennek a generálását a projekt build beállításai között ( Build → XML documentation file). A checkbox bekattintásakor felajánlott értéket el is fogadhatjuk.
+
+![.NET projektbeállítások - XML dokumentációs fájl generálása](images/aspnetcorerest-xmlcomments.png)
+
+Másik kis testreszabási lehetőség, amit kipróbálunk, a felsorolt típusok szövegként való generálása (az egész számos kódolás helyett). A `ConfigureServices`-ben a JSON sorosítást konfiguráljuk:
+
+```csharp
+services.AddMvc()
+    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+    .AddJsonOptions(
+        json => json.SerializerSettings.ReferenceLoopHandling
+                = ReferenceLoopHandling.Ignore)
+     //leanpub-start-insert
+    .AddJsonOptions(options =>
+        options.SerializerSettings.Converters.
+            Add(new StringEnumConverter()));
+     //leanpub-end-insert
+```
+
+W> Figyeljünk rá, hogy a `StringEnumConverter` a Json.NET-es legyen, ne az EF-es.
+
+Próbáljuk ki, hogy az XML kommentünk megjelenik-e a megfelelő műveletnél, illetve a modell-leírókban a `Product.ShipmentRegion` szöveges értékeket vesz-e fel.
+
+## OpenAPI/Swagger kliensoldal
+
+A kliensoldalt az *NSwag Studio* eszközzel generáltatjuk. Előkészítésként adjuk a projekthez az alábbiakat:
+
+- *Newtonsoft.Json* NuGet csomagot
+- a *System.Runtime.Serialization* és a  *System.ComponentModel.DataAnnotations* .NET FW szerelvényeket függőségként
+- egy osztályt `Api` néven
+
+Indítsuk el a projektünket (a szerveroldalra lesz most szükség) és az NSwag Studio-t és adjuk meg az NSwag Studio-ban az alábbi beállításokat:
+
+- Input rész (bal oldal): válasszuk a *Swagger Specification* fület és adjuk meg a swagger leírónk címét. Nyomjuk meg a **Create local Copy** gombot.
+- Input rész (bal oldal) - Runtime: Default
+- Output rész (jobb oldal) - jelöljük be a CSharp Client jelölőt
+- Output rész (jobb oldal) - CSharp Client fül - Settings alfül: fölül a *Namespace* mezőben adjunk meg egy névteret, pl. *WebApiLabor.Client.Api*
+
+Jobb oldalt alul a *Generate Ouputs* gombbal generáltathatjuk a kliensoldali kódot.
+
+A generált kóddal írjuk felül az *Api.cs* tartalmát (ehhez le kell állítani a futtatást). Ezután a projektnek fordulnia kell. Írjunk meg a *Program.cs*-ben a `GetProduct` új változatát:
+
+```csharp
+public static async Task<Product> GetProduct2Async(int id)
+{
+    using (var httpClient = new HttpClient())
+    {
+        ProductsClient client= new ProductsClient(httpClient);
+        return await client.GetAsync(id);
+    }
+}
+```
+
+Használjuk az új változatot a `Main` függvényben.
+
+```csharp
+static async Task Main(string[] args)
+{
+    //..
+    //leanpub-start-insert
+    //await GetProductAsync(Int32.Parse(id));
+    var p = await GetProduct2Async(int.Parse(id));
+    Console.WriteLine(p.Name);
+    //leanpub-end-insert
+    Console.ReadKey();
+}
+```
+
+Próbáljuk ki, hogy megjelenik-e a kért termék neve.
+
+T> Ez csak egy minimálpélda volt, az NSwag nagyon sok beállítással [rendelkezik](https://github.com/RicoSuter/NSwag/wiki).
+
+## Hibakezelés
+
+Eddig főleg csak a hibamentes ágakat (happy path) néztük. A REST konvenciók rendelkeznek arról is, hogy bizonyos hibahelyezetekben milyen HTTP választ illik adni, például ha a kérésben hivatkozott azonosító nem létezik - 404-es hiba a bevett eljárás. Státuszkódok szempontjából a korábban idézett oldal ad segítséget, a válasz törzsében a hibaüzenet szerkezete tekintetében az RFC 7807 ad iránymutatást a Problem Details típusú válaszok bevezetésével.
+
