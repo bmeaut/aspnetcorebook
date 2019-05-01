@@ -26,7 +26,7 @@ Az EF gyakorlatok alapján megoldható, így itt csak rövidítve ismertetjük.
 
 Hozzunk létre egy új LocalDB adatbázist egy választott névvel, pl. neptun kód, northwind, stb. A `NorthwindContext.OnConfiguring`-ban lévő connection string-ben ennek megfelelően írjuk át az adatbázis nevét.
 
-Fordítsuk a teljes solution-t, állítsuk be indítandó (startup) projektnek az új Web API projektet. A Package Manager Console-t nyissuk meg és ellenőrizzük, állítsuk be Default Project-ként a DAL projektet.
+Fordítsuk a teljes solution-t, állítsuk be indítandó (startup) projektnek az új Web API projektet. A *Package Manager Console*-t nyissuk meg és ellenőrizzük, állítsuk be Default Project-ként a DAL projektet.
 
 ```powershell
 Update-Database
@@ -510,8 +510,6 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 }
 ```
 
-T> Az NSwag már támogatja az OpenAPI v3-as specifikációt, de a Visual Studioba beépített kliensoldali kódgenerátorok még nem, így csak v2-es specifikáció szerinti leírót generálunk. 
-
 Próbáljuk ki, hogy működik-e a dokumentációs felület a **/swagger** útvonalon, illetve a leíró elérhető-e a **/swagger/v1/swagger.json** útvonalon.
 
 T> A swagger leíró linkje megtalálható a dokumentációs felület címsora alatt.
@@ -570,6 +568,8 @@ Indítsuk el a projektünket (a szerveroldalra lesz most szükség) és az NSwag
 - Output rész (jobb oldal) - jelöljük be a CSharp Client jelölőt
 - Output rész (jobb oldal) - CSharp Client fül - Settings alfül: fölül a *Namespace* mezőben adjunk meg egy névteret, pl. *WebApiLabor.Client.Api*
 
+![NSwag Studio beállítások](images/aspnetcorerest-nswagstudio.png)
+
 Jobb oldalt alul a *Generate Ouputs* gombbal generáltathatjuk a kliensoldali kódot.
 
 A generált kóddal írjuk felül az *Api.cs* tartalmát (ehhez le kell állítani a futtatást). Ezután a projektnek fordulnia kell. Írjunk meg a *Program.cs*-ben a `GetProduct` új változatát:
@@ -606,5 +606,282 @@ T> Ez csak egy minimálpélda volt, az NSwag nagyon sok beállítással [rendelk
 
 ## Hibakezelés
 
-Eddig főleg csak a hibamentes ágakat (happy path) néztük. A REST konvenciók rendelkeznek arról is, hogy bizonyos hibahelyezetekben milyen HTTP választ illik adni, például ha a kérésben hivatkozott azonosító nem létezik - 404-es hiba a bevett eljárás. Státuszkódok szempontjából a korábban idézett oldal ad segítséget, a válasz törzsében a hibaüzenet szerkezete tekintetében az RFC 7807 ad iránymutatást a Problem Details típusú válaszok bevezetésével.
+Eddig főleg csak a hibamentes ágakat (happy path) néztük. A REST konvenciók rendelkeznek arról is, hogy bizonyos hibahelyezetekben milyen HTTP választ illik adni, például ha a kérésben hivatkozott azonosító nem létezik - 404-es hiba a bevett eljárás. Státuszkódok szempontjából a korábban idézett oldal ad segítséget, a válasz törzsében a hibaüzenet szerkezete tekintetében az [RFC 7807](https://tools.ietf.org/html/rfc7807) ad iránymutatást az ún. *Problem Details* típusú válaszok bevezetésével. Az ASP.NET Core 2.1-es verzió óta támogatja a Problem Details válaszokat, és általában automatikusan ilyen válaszokat küld.
 
+### 400 Bad Request
+
+Kezdjük a kliens által küldött nem helyes adatokkal. Ez a hibakód nem összekeverendő a 415-tel, ahol az adat formátuma nem megfelelő (XML vagy JSON): ezt általában nem kell kézzel lekezeljük, mivel ezt az ASP.NET megteszi helyettünk. 400-zal olyan hibákat szoktunk lekezelni, ahol a küldött adat formátuma megfelelő, de valamilyen saját validációs logikának nem felel meg a kapott objektum pl.: egységár nem lehet negatív stb.
+
+Itt használjuk fel a .NET ún. *Data Annotation* attribútumait, amiket a DTO-kon érvényesíthetünk, és az ASP.NET Core figyelembe vesz a művelet végrehajtása során. Vegyük fel a `Product` DTO osztályban néhány megkötést attribútumok formájában.
+
+```csharp
+//leanpub-start-insert
+[Required(ErrorMessage = "Product name is required.", AllowEmptyStrings = false)]
+//leanpub-end-insert
+public string Name { get; set; }
+
+//leanpub-start-insert
+[Range(1, int.MaxValue, ErrorMessage = "Unit price must be higher than 0.")]
+//leanpub-end-insert
+public int UnitPrice { get; set; }
+```
+
+Próbáljuk ki a swagger felületen a **POST /api/Product** művelet meghívásával. Paraméterként kiindulhatunk a felület által adott minta JSON-ból, csak töröljük ki a navigációs property-ket és sértsük meg valamelyik (mindkét) fenti szabályt.
+
+A válasz 400-as kód és valami hasonló, RFC 7807-nek megfelelő törzs lesz:
+
+```javascript
+{
+  "errors": {
+    "Name": [
+      "Pruduct name is required."
+    ]
+  },
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "traceId": "0HLMC1KB0ODP6:00000004"
+}
+```
+
+### 404 Not Found - kontroller szinten
+
+Konvenció szerint 404-es hibát kellene adnunk, ha a keresett azonosítóval nem található erőforrás - esetünkben termék. Jelenleg a `ProductService` `EntityNotFoundException`-t dob, és amennyiben Development módban futtatjuk az alkalmazást, a cifra hibaoldal jelenik meg, amit a *DeveloperExceptionPage* middleware generál. Ha kivesszük a middleware-t (vagy nem Development módban indítjuk, de ekkor gondoskodnunk kell connection string-ről, ami eddig csak a Development konfigurációban volt beállítva), akkor 500-as hibát kapunk vissza.
+
+W> A kezeletlen kivételek általában 500-as hibakód formájában kerülnek vissza a kliensre, mindenfajta egyéb információ nélkül. Ez a jobbik eset, ahhoz képest, ha a teljes kivételszöveg és stack trace is visszakerülne. Az átlagos felhasználók nem tudják értelmezni, viszont a támadó szándékúaknak értékes információt jelenthet, így ajánlott elkerülni, hogy a kivétel ilyen módon kijusson. Ez az elkerülés az úgynevezett *Exception Shielding* technika, és az ASP.NET Core alapértelmezetten alkalmazza.
+
+Legegyszerűbb módszer a kontroller műveletben érvényesíteni a konvenciót:
+
+```csharp
+[HttpGet("{id}", Name = "Get")]
+public ActionResult<Product> Get(int id)
+{
+    //leanpub-start-insert
+    try
+    {
+    //leanpub-end-insert
+        return _mapper.Map<Product>(_productService.GetProduct(id));
+    }
+    //leanpub-start-insert
+    catch (EntityNotFoundException)
+    {
+        return NotFound();
+    }
+    //leanpub-start-insert
+}
+```
+
+T> Alternatív megoldás, hogy a `ProductService` egy `null` értékkel jelezné, hogy nincs találat. Ezesetben a fenti kódban a `null` értékre kellene szűrni.
+
+Próbáljuk ki, hogy 404-es státuszkódot kapunk-e, ha egy nem létező termékazonosítóval hívjuk a fenti műveletet.
+
+Ha ProblemDetails-t is szeretnénk a 404-es kód mellé, akkor kézzel összerakhatjuk és visszaküldhetjük.
+
+```csharp
+catch (EntityNotFoundException)
+{
+    //leanpub-start-insert
+    ProblemDetails details= new ProblemDetails
+    {
+        Title = "Invalid ID",
+        Status = StatusCodes.Status404NotFound
+    };
+    return NotFound(details);
+    //leanpub-end-insert
+}
+```
+
+Így is próbáljuk ki.
+
+### 404 Not Found - globális kivétel leképezéssel
+
+A rendhagyó válaszok előállításánál előnyös lehet, ha az alacsonyabb rétegekből specifikus kivételeket dobunk, mert ezeket egy központi helyen szisztematikusan átalakíthatjuk konvenciónak megfelelő HTTP válaszokká. Ez a képesség egyelőre még nem érhető el beépítetten, egy közösségi fejlesztésű NuGet csomagot használunk fel.
+
+Telepítsük fel a *Hellang.Middleware.ProblemDetails* csomagot az API projektbe.
+
+```powershell
+Install-Package Hellang.Middleware.ProblemDetails
+```
+
+Szokás szerint konfiguráljuk a `Startup.ConfigureServices`-ben:
+
+```csharp
+services.AddProblemDetails(options =>
+{
+    options.IncludeExceptionDetails = ctx =>false;
+    options.Map<EntityNotFoundException>(ex =>
+        new ProblemDetails{
+            Title = "Invalid ID",
+            Status = StatusCodes.Status404NotFound
+    });
+});
+```
+
+Illesszük a pipeline-ba a `Startup.Configure`-ban az MVC MW elé. Az eddigi hibakezelő MW-re már nincs szükség, kommentezzük ki :
+
+```csharp
+public void Configure(/*...*/)
+{
+    //leanpub-start-insert
+    /*if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }*/
+    //leanpub-end-insert
+
+    app.UseSwagger();
+    app.UseSwaggerUi3();
+
+    //leanpub-start-insert
+    app.UseProblemDetails();
+    //leanpub-end-insert
+    app.UseMvc();
+}
+```
+
+Térjünk vissza a korábbi, nem kivétel-elkapós változatra:
+
+```csharp
+[HttpGet("{id}", Name = "Get")]
+public ActionResult<Product> Get(int id)
+{
+    return _mapper.Map<Product>(_productService.GetProduct(id));
+}
+```
+
+Próbáljuk ki: hasonlóan kell működjön, mint a kontroller szintű változat, de ez általánosabb, bármely műveletből `EntityNotFoundException` érkezik, azt kezeli, nem kell minden műveletben megírni a kezelő logikát.
+
+### 500 Internal Server Error
+
+A következő kiegészítéssel szimuláljunk egy nem várt hibát.
+
+```csharp
+[HttpGet("{id}", Name = "Get")]
+public ActionResult<Product> Get(int id)
+{
+    //leanpub-start-insert
+    if(id==0) throw new ArgumentException();
+    //leanpub-end-insert
+    return _mapper.Map<Product>(_productService.GetProduct(id));
+}
+```
+
+Próbáljuk ki: az újonnan beállított MW a nem kezelt kivétel esetén is egy alapszintű Problem Details választ állít elő 500-as kóddal.
+
+### 409 Conflict - konkurenciakezelés
+
+Konfiguráljuk fel a `Product` entitást úgy, hogy az esetleges konkurenciahelyzeteket is felismerje a frissítés során. Jelöljünk ki egy kitüntetett mezőt (`RowVersion`), amit minden update műveletkor frissítünk, így ez az egész rekordra vonatkozó konkurenciatokenként is felfogható.
+
+Ehhez vegyünk fel egy `byte[]`-t a `Product` entitás osztályba `RowVersion` néven.
+
+```csharp
+public class Product
+{
+    //...
+    //leanpub-start-insert
+    public byte[] RowVersion { get; set; }
+    //leanpub-end-insert
+}
+```
+
+Állítsuk be, hogy az EF kontextben (`OnModelCreating`), hogy minden update-nél frissítse ezt a mezőt és ez legyen a konkurencia token:
+
+```csharp
+modelBuilder.Entity<Product>()
+    .Property(p => p.RowVersion)
+    .ValueGeneratedOnAddOrUpdate()
+    .IsConcurrencyToken();
+```
+
+A háttérben az EF az update során egy plusz feltételt csempész az SQL utasításba a SaveChanges során, mégpedig, hogy az adatbázisban lévő `RowVersion` mező adatbázisbeli értéke az ugyanaz-e mint, amit ő ismert (a kliens által). Ha ez a feltétel sérül, akkor konkurenciahelyzet áll fent, mivel valaki már megváltoztatta a DB-ben lévő értéket.
+
+Migrálnunk kell mert megjelent egy új mező a `Product` táblánkban. Ne felejtsük el a szokásos módon beállítani az indítandó és a kontextet tartalmazó projekteket!
+
+```powershell
+Add-Migration ProductRowVersion -StartupProject WebApiLabor.Api
+Update-Database -StartupProject WebApiLabor.Api
+```
+
+Még a Product DTO osztályba is fel kell vegyük a `RowVersion` tulajdonságot és legyen ez is kötelező.
+
+```csharp
+public class Product
+{
+    //...
+    //leanpub-start-insert
+    [Required(ErrorMessage = "RowVersion is required")]
+    public byte[] RowVersion { get; set; }
+    //leanpub-end-insert
+}
+```
+
+Konkurenciahelyzet esetén a 409-es hibakóddal szokás visszatérni, illetve PUT művelet során a válasz azt is tartalmazhatja, hogy melyek voltak az ütköző mezők. Az ütközés feloldása tipikusan nem feladatunk ilyenkor. Készítsünk egy saját ProblemDetails leszármazottat. Hozzunk létre egy új osztály `ConcurrencyProblemDetails` néven, az alábbi implementációval:
+
+```csharp
+/*Kóddarabka!*/
+public class Conflict
+{
+    public object CurrentValue { get; set; }
+    public object SentValue { get; set; }
+}
+
+public class ConcurrencyProblemDetails : StatusCodeProblemDetails
+{
+    public Dictionary<string, Conflict> Conflicts { get; }
+
+    public ConcurrencyProblemDetails(DbUpdateConcurrencyException ex) :
+        base(StatusCodes.Status409Conflict)
+    {
+        Conflicts = new Dictionary<string, Conflict>();
+        var entry = ex.Entries[0];
+        var props = entry.Properties
+            .Where(p => !p.Metadata.IsConcurrencyToken).ToArray();
+        var currentValues = props.ToDictionary(
+            p => p.Metadata.Name, p => p.CurrentValue);
+
+        //with DB values
+        entry.Reload();
+
+        foreach (var property in props)
+        {
+            if (!currentValues[property.Metadata.Name].
+                Equals(property.CurrentValue))
+            {
+                Conflicts[property.Metadata.Name] = new Conflict
+                {
+                    CurrentValue = property.CurrentValue,
+                    SentValue = currentValues[property.Metadata.Name]
+                };
+            }
+        }
+    }
+}
+```
+
+A fenti megvalósítás összeszedi az egyes property-khez (a `Dictionary` kulcsa) a jelenlegi (`CurrentValue`) és a kliens által küldött (`SentValue`) értéket.
+
+```csharp
+services.AddProblemDetails(options =>
+{
+    //..
+    //leanpub-start-insert
+    options.Map<DbUpdateConcurrencyException>(
+        ex => new ConcurrencyProblemDetails(ex));
+    //leanpub-end-insert
+});
+```
+
+Próbáljuk ki!
+
+- Indítsunk el a swagger oldalt két példányban.
+- Hajtsunk végre egy *GET api/Product/1* kérést.
+- A kapott eredményt használjuk fel a PUT művelet elkészítéséhez **mindkét oldalpéldányon**.
+- Az egyik oldalon írjuk át a `name` tulajdonságot, de még ne indítsuk el a kérést!
+- A másik oldalon
+  - írjuk át az árat egy új értékre, de ügyeljünk arra, hogy a nevet a régi értéken hagyjuk.
+  - indítsuk is el a kérést! Figyeljük meg, hogy a válasz sikeres (204), ár és a `rowVersion` megváltozott.
+- Az előző swagger oldalon indítsuk el a név frissítését. (Emlékezzünk, hogy már más az adatbázisban lévő entitás rowVersion értéke, így konfliktusra fogunk futni.)
+  - Az eredmény 409-es státuszkód és a Problem Details-ben láthatjuk a konfliktust okozó értékeket
+
+| ![Konkurencia - oldal 1](images/aspnetcorerest-conflictleft.png)| ![Konkurencia - oldal 2](images/aspnetcorerest-conflictright.png) |
+
+![Konkurencia - válasz](images/aspnetcorerest-conflictresult.png)
