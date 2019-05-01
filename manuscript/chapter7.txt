@@ -857,7 +857,7 @@ public class ConcurrencyProblemDetails : StatusCodeProblemDetails
 }
 ```
 
-A fenti megvalósítás összeszedi az egyes property-khez (a `Dictionary` kulcsa) a jelenlegi (`CurrentValue`) és a kliens által küldött (`SentValue`) értéket.
+A fenti megvalósítás összeszedi az egyes property-khez (a `Dictionary` kulcsa) a jelenlegi (`CurrentValue`) és a kliens által küldött (`SentValue`) értéket. Adjunk egy újabb leképezést a hibakezelő MW-hez a `Startup.ConfigureServices`-ben:
 
 ```csharp
 services.AddProblemDetails(options =>
