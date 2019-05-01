@@ -604,6 +604,8 @@ Próbáljuk ki, hogy megjelenik-e a kért termék neve.
 
 T> Ez csak egy minimálpélda volt, az NSwag nagyon sok beállítással [rendelkezik](https://github.com/RicoSuter/NSwag/wiki).
 
+A kliensre innentől nem lesz szükség, beállíthatjuk, hogy csak a szerver induljon.
+
 ## Hibakezelés
 
 Eddig főleg csak a hibamentes ágakat (happy path) néztük. A REST konvenciók rendelkeznek arról is, hogy bizonyos hibahelyezetekben milyen HTTP választ illik adni, például ha a kérésben hivatkozott azonosító nem létezik - 404-es hiba a bevett eljárás. Státuszkódok szempontjából a korábban idézett oldal ad segítséget, a válasz törzsében a hibaüzenet szerkezete tekintetében az [RFC 7807](https://tools.ietf.org/html/rfc7807) ad iránymutatást az ún. *Problem Details* típusú válaszok bevezetésével. Az ASP.NET Core 2.1-es verzió óta támogatja a Problem Details válaszokat, és általában automatikusan ilyen válaszokat küld.
@@ -800,6 +802,8 @@ Migrálnunk kell mert megjelent egy új mező a `Product` táblánkban. Ne felej
 Add-Migration ProductRowVersion -StartupProject WebApiLabor.Api
 Update-Database -StartupProject WebApiLabor.Api
 ```
+
+T> A `StartupProject` kapcsolóra csak akkor van szükség, ha több indítandó projekt van beállítva.
 
 Még a Product DTO osztályba is fel kell vegyük a `RowVersion` tulajdonságot és legyen ez is kötelező.
 
