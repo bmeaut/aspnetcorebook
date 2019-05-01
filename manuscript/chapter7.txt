@@ -817,7 +817,7 @@ public class Product
 Konkurenciahelyzet esetén a 409-es hibakóddal szokás visszatérni, illetve PUT művelet során a válasz azt is tartalmazhatja, hogy melyek voltak az ütköző mezők. Az ütközés feloldása tipikusan nem feladatunk ilyenkor. Készítsünk egy saját ProblemDetails leszármazottat. Hozzunk létre egy új osztály `ConcurrencyProblemDetails` néven, az alábbi implementációval:
 
 ```csharp
-/*Kóddarabka!*/
+/*kóddarabka*/
 public class Conflict
 {
     public object CurrentValue { get; set; }
@@ -882,6 +882,6 @@ Próbáljuk ki!
 - Az előző swagger oldalon indítsuk el a név frissítését. (Emlékezzünk, hogy már más az adatbázisban lévő entitás rowVersion értéke, így konfliktusra fogunk futni.)
   - Az eredmény 409-es státuszkód és a Problem Details-ben láthatjuk a konfliktust okozó értékeket
 
-| ![Konkurencia - oldal 1](images/aspnetcorerest-conflictleft.png)| ![Konkurencia - oldal 2](images/aspnetcorerest-conflictright.png) |
+![Konkurencia - oldal 1](images/aspnetcorerest-conflictinputs.png)
 
 ![Konkurencia - válasz](images/aspnetcorerest-conflictresult.png)
