@@ -1,4 +1,4 @@
-# ASP.NET Core webszolgáltatások I.
+# ASP.NET Core webszolgáltatások I.-II.
 
 ## Kiegészítő anyagok, segédeszközök
 
