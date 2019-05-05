@@ -1,0 +1,202 @@
+# Felhasználókezelés Azure B2C használatával
+
+## Kiegészítő anyagok, segédeszközök, előfeltételek
+
+- kóddarabka fájl: azureb2c.md
+- Azure előfizetés szükséges (ingyenes is megfelelő)
+- Vastagkliens [mintaprojekt](https://github.com/bmeaut/active-directory-b2c-dotnet-desktop/tree/msalv3)
+
+## Bevezetés
+
+A felhasználókezelés az utóbbi években igen összetetté vált. Egy modern megoldásnak ma már része sz alábbiak közül számos képesség:
+
+- email ellenőrzés regisztrációkor, email megerősítés bizonyos műveleteknél
+- többfaktoros beléptetés (pl. mobil eszközzel)
+- elfelejtett jelszó kezelése
+- felhasználók letiltása
+- botok kiszűrése (CAPTCHA)
+- single sign-on
+  - egy szervezeten belül vagy
+  - külső identitások támogatása (Google, Facebook, Microsoft fiók)
+- profil megtekintése, szerkesztése, törlése
+  - külső identitások kapcsolása, leválasztása
+  - GDPR funkciók: személyhez kapcsolódó adatok megtekintése, törlése
+- adminisztrációs felület
+  - felhasználók megtekintése, letiltása, új jelszó generálási folyamat indítása
+
+Ez a bonyolódás maga után vonta a kapcsolódó technológiák bonyolódását is. Megjelentek  különböző típusú alkalmazáskörnyezetekre (webes, mobil) különböző szabványos authorizációs folyamatok ([OAuth flow-k](https://medium.com/@darutk/diagrams-and-movies-of-all-the-oauth-2-0-flows-194f3c3ade85)) és ezekre épülő kiterjesztések, például az [OpenID](https://openid.net/developers/specs/).
+
+.NET környezetben elérhetőek ezen szabványok implementációi, azonban a magasabb szintű támogatás (pl. Visual Studio projektsablonok, generátorok, varázslók) többnyire az egyszerűbb esetekre, a webes alkalmazásokra, azon belül is a szerver oldali rendereléssel dolgozókra (ASP.NET Core MVC) korlátozódott. Az MVC-s Identity template süti alapú authentikációt használ. Szélesebb körben (pl. mobilkliensek) használhatóak a token alapú (pl. JWT token), OAuth/OpenID megoldások.
+
+Tipikus az ilyen rendszerekben, hogy egy kitüntetett entitás az ún. „identity provider/authorization server” tokeneket állít elő, amelyeket az alkalmazás, ahová a kliensalkalmazás előtt ülő felhasználó be akar lépni (relying party, resource server) ellenőriz. A felhasználó a kliensprogramján keresztül az azonosítás alatt az identity provider-rel is kommunikál, neki adja meg a jelszavát például. Így tehát alapvetően három szereplő van: a kliensprogram (egy böngésző is lehet), a relying party (RP/RS) és az identity provider (IDP/AS). Egy IDP több RP-t is kiszolgálhat, így sokszor az IDP telepítési szempontból is egy külön komponens.
+
+Ezen szabványokat implementálták a fejlettebb platformokra, így ASP.NET Core-ra is. A Microsoft alapvetően csak a tokenek ellenőrzésére (RP feladat) biztosít API-t ASP.NET Core-ban, tokenek előállítására nem (IDP feladat). Az IdentityServer4 egy nyílt forráskódú OpenID/OAuth keretrendszer, mely lefedi ezen protokollokkal kapcsolatos (nem UI) szinte minden feladatot, tehát a tokenelőállítást is. A kliensek képességei alapján többféle authorizációs folyamatot is támogatnak az OAuth/OpenID szabványok, illetve az IdentityServer.
+
+ASP.NET Core-ban tipikusan az alábbi technológiákat/komponenseket alkalmazhatjuk:
+
+- Identity Core - adatelérési és üzleti logikai réteg a felhasználói adatok kezelésére
+- Identity UI - az Identity Core-hoz tartozó felület (ASP.NET Core Razor alapú)
+- IdentityServer4 - széleskörű támogatás tokenkezelési, IDP, RP feladatokhoz
+- IdentityServer4 QuickStart UI - felület az IdentityServer4 funkciókhoz
+- IdentityServer4 Admin UI - felület az IdentityServer4 funkciókhoz
+- JWT Bearer token middleware, ASP.NET Core authorizációs rendszer - RP feladatokhoz
+
+Ezen felül alternatívák is [elérhetők](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/community?view=aspnetcore-2.2).
+
+Az IDP feladatok elég jól leválaszthatók, így megjelentek azok a szolgáltatások, melyek segítségével gyakorlatilag minden IDP feladatot kiszervezhetünk, beleértve a fentebb felsorolt képességeket is. Ezek az ún. *IDentity as a Service (IDaaS)* vagy *Authentication as a Service* szolgáltatások. Néhány példa: *Okta*, *Auth0*, *Azure AD B2C*. Ezek alapvetően nem ingyenes szolgáltatások, bár többnyire bizonyos méret/felhasználószám/tokenmennyiség alatt ingyenesen használhatóak. Ezen gyakorlat során az Azure AD B2C szolgáltatást fogjuk használni, amivel az utolsó kivételével ***minden fenti komponenst kiváltunk**.
+
+A megvalósítandó rendszerben:
+
+- az Azure B2C lesz az IDP/Authorization Server
+- egy általunk írt ASP.NET Core alkalmazás lesz a RP/Resource Server
+  - az alkalmazásból publikált webes API-t csak authentikált felhasználók érhetik el
+- egy minta WPF klienst fogunk használni kliensként, mely
+  - felelős az IDP felületek megjelenítéséért
+  - az ASP.NET Core alkalmazásunk API-ját hívja
+- az OAuth **Authorization Code Flow** folyamatot fogjuk követni
+
+Az Azure B2C-ben az első 50000 token kiállítása [ingyenes](https://azure.microsoft.com/en-us/pricing/details/active-directory-b2c/) minden hónapban.
+
+## Előkészítés: Azure B2C Tenant létrehozása
+
+Hozzunk létre új Azure AD B2C fiókot a hivatalos [útmutató](https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/tutorial-create-tenant) alapján.
+
+## A RP regisztrálása Azure B2C-be
+
+Bár még nincs meg az RP alkalmazásunkból semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos [útmutatót](https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/tutorial-register-applications) ebben is. A Reply URL legyen: [https://jwt.ms](https://jwt.ms)
+
+T> A jwt.ms oldalon dekódolhatjuk a JWT tokenjeinket.
+
+## User flow / policy létrehozása, kipróbálása
+
+Hozzunk létre egy kombinált regisztrációs-belépési folyamatot (*Sign up and sign in v2*) a hivatalos [útmutató](https://docs.microsoft.com/en-us/azure/active-directory-b2c/tutorial-create-user-flows#create-a-sign-up-and-sign-in-user-flow) alapján.
+
+Ezeket az extra adatokat gyűjtsük be a felhasználókról (Collect attribute):
+
+- keresztnév (Given name)
+- vezetéknév (Surname)
+
+Ezeket az extra adatokat kódoljuk a tokenbe (Return claim):
+
+- keresztnév (Given name)
+- vezetéknév (Surname)
+- email címek (Email addresses)
+
+Vegyünk fel egy új scope-ot az alkalmazás **Published Scopes** nevű blade-jén: a scope legyen `demo.read`, leírása `demoing a read scenario`. Ezzel lényegében egy jogosultságot definiáltunk, amit kioszthatunk majd az egyes kliensalkalmazásoknak.
+
+Próbáljuk ki az új folyamatot ugyanezen útmutató alapján (*Test the user flow* alcím), regisztráljunk és lépjünk be. Ellenőrizzük a JWT dekóder oldalon a tokenbe kerülő claim-eket.
+
+## A kliensalkalmazás regisztrálása Azure B2C-be
+
+Bár még nincs meg a kliensalkalmazásunkból sem semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos [útmutatót](https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/add-native-application) ebben is. Saját *Redirect URI*-t ne adjunk meg, elég a generált.
+
+Osszuk ki az engedélyt az alkalmazás **API Access** nevű blade-jén. Az *Add* művelet beállításainál válasszuk ki az RP alkalmazást és az ő `demo.read` scope-ját.
+
+## WPF alkalmazás beüzemelése
+
+Nyissuk meg a vastagkliens mintaprojektet. Ez egy WPF alkalmazás, hozzáférést tud adni a B2C folyamat felületeihez, kezeli a tokeneket és képes egy egyszerű GET kérést küldeni megadott címre, a tokent mellékelve.
+
+Az *App.xaml.cs*-ben adjuk meg az alábbi beállításokat az osztályváltozók felülírásával:
+
+```csharp
+/*Tenant teljes neve*/
+private static string Tenant = "bmedotnet.onmicrosoft.com";
+
+/*Kliensalkalmazás Application ID-je*/
+private static string ClientId = "3dcd6ad2-38c6-4387-a80d-85ed1043b7f0";
+
+/*Regisztrációs-belépési folyamat neve*/
+public static string PolicySignUpSignIn = "B2C_1_il207";
+
+/*Kért engedélyek a webapp Published Scopes oldaláról - Full Scope Value*/
+public static string[] ApiScopes =
+    { "https://bmedotnet.onmicrosoft.com/labapp/demo.read" };
+
+/*A hívandó API végpont címe - legyen az alábbi érték*/
+public static string ApiEndpoint = "https://localhost:5001/api/values";
+
+/*Az elejét írjuk csak át tenantrövidnév.b2clogin.com-ra,
+a microsoftonline.com már elavult*/
+private static string BaseAuthority =
+    "https://bmedotnet.b2clogin.com/tfp/{tenant}/{policy}/oauth2/v2.0/authorize";
+```
+
+Egyelőre így már működnie kell a loginnak, a **Sign In** gombra kattintva regisztrálhatunk, beléphetünk, kiléphetünk. Próbáljuk ki! Az API hívás és a profilszerkesztés gombok nem működnek még.
+
+## RP létrehozása és beüzemelése
+
+Hozzunk létre egy új API projektet (ASP.NET Core Web Application) - kattintsuk be a HTTPS támogatást és az authentikációs opciók közül válasszuk az *Individual User Accounts*-t, azon belül a *Connect to an existing user store in the cloud* opciót.
+
+Töltsük ki az opcióhoz tartozó beállításokat:
+
+- **Domain**: tenant teljes neve
+- **Application ID**: a webalkalmazás Application ID-je
+- **Sign-up or Sign-in policy**: a regisztrációs-belépési folyamat neve
+
+A generált projektben figyeljük meg az alábbiakat:
+
+- bekerült egy *Microsoft.AspNetCore.Authentication.AzureADB2C.UI* nevű NuGet csomag - ez tartalmazza függőségként többek között az Azure B2C specifikus authentikációs middleware kiegészítéseket.
+- az *appsettings.json*-ba a MW-hez kapcsolódó beállítások (*AzureAdB2C* szekció) kerültek
+- a `Startup.ConfigureServices` függvényben történik az authentikációs szolgáltatás felkonfigurálása (`AddAuthentication`) a fenti beállítások alapján. Két fontos beállításfázis van: megadjuk, hogy egy token-t várunk a HTTP kérésben (ún. *bearer tokent*), a tokennel kapcsolatos elvárásokat adja meg a fenti *AzureAdB2C* szekció.
+- az authentikációs MW beillesztése szokás szerint a `Configure` függvényben történik (`UseAuthentication`)
+- a `ValuesController` egy `Authorize` attribútumot kapott. Ezzel jelezzük, hogy a kontroller műveleteihez csak az előbb megadott konfigurációnak megfelelő, érvényes token birtokában lehet hozzáférni
+
+T> Az ASP.NET Core authentikációs MW-e elég általános ahhoz, hogy gyakorlatilag bármilyen bearer token alapú OAuth/OpenID folyamatban részt tudjon venni RP-ként. A fenti NuGet csomag csak egyszerűsíti az Azure B2C-re történő testreszabást.
+
+Állítsuk be, hogy parancssorból induljon a projekt (a projekt nevét viselő indítási konfiguráció), majd figyeljük meg, hogy indítás után a 401 (Forbidden) státuszkódú választ kapunk, hiszen tokent nem küldtünk a kéréshez.
+
+Kipróbálhatjuk úgy is, hogy **egy próba erejéig** az `Authorize` attribútumot kikommentezzük. Ilyenkor a kérés sikeres, a műveletekhez authentikáció nélkül hozzá lehet férni.
+
+## Teljes OAuth folyamat összeállítása
+
+A kliensalkalmazás beállításainál ellenőrizzük, hogy az `ApiEndpoint` beállítás megfelelő-e. Ugyanaz az URL legyen, mint amivel az előbb teszteltünk. A szerveroldalon ellenőrizzük, hogy az `Authorize` attribútum a kontrolleren van-e.
+
+Az ASP.NET Core webszerver ma már igencsak szigorú a HTTPS kommunikáció paramétereivel kapcsolatban, ezért az `App` konstruktorban csak az újabb protokollverziókat engedélyezzük:
+
+```csharp
+static App()
+{
+    //..
+    /*kóddarabka*/
+    System.Net.ServicePointManager.SecurityProtocol =
+                SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+}
+```
+
+Próbáljuk ki. Lépjünk be és nyomjuk meg az API hívást indító gombot (*Call API*). A művelet által visszaadott eredményt kell kapjuk.
+
+## Kliensalkalmazás szintű hozzáférés-szabályozás
+
+Ha egy kliensalkalmazás hozzáférését szeretnénk szabályozni, akkor a korábban beállított és elkért scope-okat használhatjuk. Jelenleg a WPF alkalmazás elkéri a `demo.read` scope-ot (jogosultságot), és az Azure B2C-ben engedélyeztük is, hogy megkapja (API Access beállítás), tehát a tokenbe belekerül.
+
+Az ASP.NET Core alkalmazást szigorítsuk, hogy csak `demo.read` jogosultsággal bíró alkalmazások tudják hívni a kontrollert. A `Startup.ConfigureServices`-ben konfiguráljuk az authorizációs szolgáltatást, adjunk meg egy új házirendet (policy). A házirendet akkor teljesíti a kliens, ha a `demo.read` scope-pal rendelkezik.
+
+```csharp
+services.AddAuthorization(options =>
+{
+    options.AddPolicy("DemoRead", policy =>
+        policy.RequireClaim("http://schemas.microsoft.com/identity/claims/scope","demo.read"));
+});
+```
+
+A kontroller-en állítsuk be, hogy csak a `DemoRead` nevű házirendet teljesítők hívhatják a műveleteit.
+
+```csharp
+//leanpub-start-insert
+[Authorize(Policy = "DemoRead")]
+//leanpub-end-insert
+//..
+public class ValuesController : ControllerBase
+```
+
+Próbáljuk ki! Mivel demo.read engedélyt mindenhol átvezettük, így változást nem tapasztalunk. Csináljunk ellenpróbát! Az Azure B2C felületen a kliensalkalmazás **API Access** blade-jén állítsuk be, hogy a webalkalmazásunkhoz kapcsolódó `demo.read` scope-ot ne szolgáltassa a WPF kliensnek. A WPF kliensben lépjünk ki, majd újra be, végül hívjuk az API-t.Ekkor már nem kapjuk meg az eddigi választ - az eredményt megjelenítő szövegdoboz üres lesz.
+
+W> Fontos, hogy ha megkapjuk a kívánt választ (átjutottunk az ellenőrzésen), mindig teszteljünk ellenpróbával is, azaz valamilyen szükséges feltételt, házirendet sértsünk meg és nézzük meg, hogy úgy hibát (például 401-es választ) kapunk-e. Ha nem, akkor az ellenőrzői oldalon (RP) hiba van.
+
+T> Másik lehetőség ellenpróbára, hogy egy másik scope-ot szolgáltatunk a `demo.read` helyett, pl. `demo.dummy`-t. Ilyenkor is vissza kell utasítania a kérést a kliensalkalmazásnak.
+
+## Felhasználó szintű hozzáférés-szabályozás
+
+## Social login
+
+## Profil szerkesztési folyamat

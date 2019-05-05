@@ -49,6 +49,8 @@ services.AddDbContext<NorthwindContext>(o =>
         c => c.Throw(RelationalEventId.QueryClientEvaluationWarning)));
 ```
 
+%% Configuration.GetConnectionStrings()
+
 Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit az alapértelmezett `WebHost` már inicializál, így ezzel kapcsolatban nincs teendőnk. Kommentezzük ki a szükségtelenné vált `GetLoggerFactory`, `OnConfiguring` függvényeket a `NorthwindContext` osztályban. Cserébe egy új konstruktorra lesz szükségünk, ami `DbContextOptions<NorthwindContext>`-et vár.
 
 ```csharp
@@ -424,7 +426,7 @@ public static async Task GetProductAsync(int id)
 {
     using (var client = new HttpClient())
     {
-        /*Port-ot írjuk át a szervernek megfelelően*/
+        /*A portot írjuk át a szervernek megfelelően*/
         var response = await client.
             GetAsync(new Uri($"http://localhost:5000/api/Products/{id}"));
         if (response.IsSuccessStatusCode)
