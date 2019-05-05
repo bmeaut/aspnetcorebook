@@ -86,6 +86,8 @@ Vegyünk fel egy új scope-ot az alkalmazás **Published Scopes** nevű blade-j�
 
 Próbáljuk ki az új folyamatot ugyanezen útmutató alapján (*Test the user flow* alcím), regisztráljunk és lépjünk be. Ellenőrizzük a JWT dekóder oldalon a tokenbe kerülő claim-eket.
 
+Derítsük fel a B2C *Users* oldalát. Ez egy adminisztratív felület, a regisztrált felhasználók adatait látjuk, módosíthatjuk, valamint a jelszavukat is visszaállíthatjuk.
+
 ## A kliensalkalmazás regisztrálása Azure B2C-be
 
 Bár még nincs meg a kliensalkalmazásunkból sem semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos [útmutatót](https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/add-native-application) ebben is. Saját *Redirect URI*-t ne adjunk meg, elég a generált.
@@ -103,7 +105,7 @@ Az *App.xaml.cs*-ben adjuk meg az alábbi beállításokat az osztályváltozók
 private static string Tenant = "bmedotnet.onmicrosoft.com";
 
 /*Kliensalkalmazás Application ID-je*/
-private static string ClientId = "3dcd6ad2-38c6-4387-a80d-85ed1043b7f0";
+private static string ClientId = "00000000-0000-0000-0000-000000000000";
 
 /*Regisztrációs-belépési folyamat neve*/
 public static string PolicySignUpSignIn = "B2C_1_il207";
@@ -169,13 +171,19 @@ Próbáljuk ki. Lépjünk be és nyomjuk meg az API hívást indító gombot (*C
 
 Ha egy kliensalkalmazás hozzáférését szeretnénk szabályozni, akkor a korábban beállított és elkért scope-okat használhatjuk. Jelenleg a WPF alkalmazás elkéri a `demo.read` scope-ot (jogosultságot), és az Azure B2C-ben engedélyeztük is, hogy megkapja (API Access beállítás), tehát a tokenbe belekerül.
 
+W> Az authentikációs rendszer szempontjából az alkalmazást az *Application ID* azonosítja. Ha két különböző alkalmazás ugyanazt az *Application ID*-t használja, akkor az ugyanazon alkalmazásnak számít.
+
 Az ASP.NET Core alkalmazást szigorítsuk, hogy csak `demo.read` jogosultsággal bíró alkalmazások tudják hívni a kontrollert. A `Startup.ConfigureServices`-ben konfiguráljuk az authorizációs szolgáltatást, adjunk meg egy új házirendet (policy). A házirendet akkor teljesíti a kliens, ha a `demo.read` scope-pal rendelkezik.
 
 ```csharp
 services.AddAuthorization(options =>
 {
     options.AddPolicy("DemoRead", policy =>
-        policy.RequireClaim("http://schemas.microsoft.com/identity/claims/scope","demo.read"));
+        policy.RequireClaim(
+            "http://schemas.microsoft.com/identity/claims/scope",
+            "demo.read"
+        )
+    );
 });
 ```
 
@@ -195,8 +203,53 @@ W> Fontos, hogy ha megkapjuk a kívánt választ (átjutottunk az ellenőrzésen
 
 T> Másik lehetőség ellenpróbára, hogy egy másik scope-ot szolgáltatunk a `demo.read` helyett, pl. `demo.dummy`-t. Ilyenkor is vissza kell utasítania a kérést a kliensalkalmazásnak.
 
-## Felhasználó szintű hozzáférés-szabályozás
+## Felhasználó/csoport szintű hozzáférés-szabályozás
 
-## Social login
+A felhasználókat tipikusan csoportokba soroljuk és az egyes csoportokra nézve osztjuk ki a hozzáférést. Az Azure AD B2C rendelkezik csoportadminisztrációs képességgel, fel lehet venni csoportokat, a felhasználók csoportba rendezhetők, kivehetők stb. Sajnos jelenleg a felhasználóval kapcsolatos csoportinformációk nem kerülnek be a tokenbe. Az ajánlott megkerülő megoldás, hogy az Azure AD B2C API-ját használva a RP kérdezze le a bejelentkezett felhasználó csoporttagságát. Ez a megoldás a gyakorlat keretében túl sok adminisztrációval járna, így egyszerűbb modellt alkalmazunk.
 
-## Profil szerkesztési folyamat
+Küldjük le a tokenben a felhasználó B2C-beli azonosítóját. A regisztrációs-belépési folyamat beállításai között az *Application claims* blade-en jelöljük ki az **User's Object ID** claim-et.
+
+Vegyünk fel egy új házirendet a `Startup.ConfigureServices`-ben. Ez a házirend bizonyos B2C-beli azonosítóval rendelkező felhasználók teljesítik. A már regisztrált felhasználók adatait, többek között az Object ID-ját is megnézhetjük a B2C *Users* nevű oldalán, a kívánt felhasználót kiválasztva. Válogassunk össze pár olyan Object ID-t, aminek a felhasználójának ismerjük a belépési adatait.
+
+```csharp
+options.AddPolicy("Admin", policy =>
+    policy.RequireClaim(
+        "http://schemas.microsoft.com/identity/claims/objectidentifier"
+    //Vegyünk fel egy-két Object ID-t a regisztrált felhasználók közül
+        , "00000000-0000-0000-0000-000000000000"
+        , "00000000-0000-0000-0000-000000000000"));
+```
+
+A fenti házirend szerint az teljesíti az `Admin` házirendet, akinek az Object ID-ja a felsoroltak közt van - azaz a megadott értékek közül elég legalább egynek megfelelni a házirend teljesítéséhez.
+
+Követeljük meg az új házirendet a kontrolleren.
+
+```csharp
+[Authorize(Policy = "DemoRead")]
+//leanpub-start-insert
+[Authorize(Policy = "Admin")]
+//leanpub-end-insert
+//...
+public class ValuesController : ControllerBase
+```
+
+T> Műveleteken is elhelyezhetünk `Authorize` attribútumot. Minden elemre (kontroller, művelet) nézve a lefutásának feltétele, hogy az összes szülőelemen megkövetelt minden házirend teljesüljön.
+
+A WPF alkalmazásban lépjünk ki, majd be, végül próbáljuk ki az API hívást előbb egy az új házirendben elvárt Object ID-val rendelkező felhasználóval, majd egy egyéb felhasználóval (például egy újonnan regisztrálttal). Utóbbi esetben nem szabad eredményt kapnunk.
+
+## Egyéb Azure B2C funkciók
+
+Az alábbi funkciók nem kapcsolódnak közvetlenül az ASP.NET Core fejlesztéshez, csak a teljesség kedvéért szerepelnek.
+
+### Social login
+
+A B2C számos külső identitásszolgáltatóval (IDP) képes együttműködni, például Google, Twitter, GitHub, Facebook, stb. És persze a Microsoft.
+
+Az integrációhoz szükségünk lesz egy felhasználói/fejlesztői fiókra a kiválasztott identitásszolgáltatónál. Az integrációhoz kövessük a hivatalos útmutatót, például a [Microsoft Account-ra vonatkozót](https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/active-directory-b2c-setup-msa-app).
+
+Az integrációt követően a folyamatainkban felhasználhatjuk a külső IDP-t, ehhez a folyamat beállításainál az *Identity providers* blade-en válasszuk ki az adott folyamatban engedélyezni kívánt IDP-ket. Ezután a regisztrációs, belépés felületeken megjelennek az engedélyezett IDP-khez tartozó felület(elem)ek.
+
+A kliensalkalmazás és a RP módosítására nincs szükség.
+
+### Profil szerkesztési folyamat
+
