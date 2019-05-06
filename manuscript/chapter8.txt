@@ -257,3 +257,4 @@ A kliensalkalmazás és a RP módosítására nincs szükség.
 
 ### Profil szerkesztési és jelszó visszaállítási folyamat
 
+TODO
