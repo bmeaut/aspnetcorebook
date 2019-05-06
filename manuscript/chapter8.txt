@@ -176,6 +176,7 @@ W> Az authentikációs rendszer szempontjából az alkalmazást az *Application 
 Az ASP.NET Core alkalmazást szigorítsuk, hogy csak `demo.read` jogosultsággal bíró alkalmazások tudják hívni a kontrollert. A `Startup.ConfigureServices`-ben konfiguráljuk az authorizációs szolgáltatást, adjunk meg egy új házirendet (policy). A házirendet akkor teljesíti a kliens, ha a `demo.read` scope-pal rendelkezik.
 
 ```csharp
+/*kóddarabka*/
 services.AddAuthorization(options =>
 {
     options.AddPolicy("DemoRead", policy =>
@@ -212,6 +213,7 @@ Küldjük le a tokenben a felhasználó B2C-beli azonosítóját. A regisztráci
 Vegyünk fel egy új házirendet a `Startup.ConfigureServices`-ben. Ez a házirend bizonyos B2C-beli azonosítóval rendelkező felhasználók teljesítik. A már regisztrált felhasználók adatait, többek között az Object ID-ját is megnézhetjük a B2C *Users* nevű oldalán, a kívánt felhasználót kiválasztva. Válogassunk össze pár olyan Object ID-t, aminek a felhasználójának ismerjük a belépési adatait.
 
 ```csharp
+/*kóddarabka*/
 options.AddPolicy("Admin", policy =>
     policy.RequireClaim(
         "http://schemas.microsoft.com/identity/claims/objectidentifier"
@@ -219,6 +221,8 @@ options.AddPolicy("Admin", policy =>
         , "00000000-0000-0000-0000-000000000000"
         , "00000000-0000-0000-0000-000000000000"));
 ```
+
+T> Egyértelműen elegánsabb lenne, ha ez a csoporttagság konfigurációból vagy az Azure B2C csoportkezelő funkciójából származna.
 
 A fenti házirend szerint az teljesíti az `Admin` házirendet, akinek az Object ID-ja a felsoroltak közt van - azaz a megadott értékek közül elég legalább egynek megfelelni a házirend teljesítéséhez.
 
@@ -251,5 +255,5 @@ Az integrációt követően a folyamatainkban felhasználhatjuk a külső IDP-t,
 
 A kliensalkalmazás és a RP módosítására nincs szükség.
 
-### Profil szerkesztési folyamat
+### Profil szerkesztési és jelszó visszaállítási folyamat
 
