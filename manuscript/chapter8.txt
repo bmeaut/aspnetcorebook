@@ -267,4 +267,4 @@ public static string PolicyEditProfile = "B2C_1_PE";
 public static string PolicyResetPassword = "B2C_1_PR";
 ```
 
-Próbáljuk ki az új folyamatokat a kliensalkalmazásban - a profilszerkesztéshez van külön gomb a felületen, illetve kezdeményezzünk jelszóvisszaállítást a belépési oldal *Elfelejtettem a jelszavam* funckiójával.
+Próbáljuk ki az új folyamatokat a kliensalkalmazásban - a profilszerkesztéshez van külön gomb a felületen, illetve kezdeményezzünk jelszóvisszaállítást a belépési oldal *Elfelejtettem a jelszavam* funkciójával.
