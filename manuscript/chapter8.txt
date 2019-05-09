@@ -263,6 +263,7 @@ Folytassuk a folyamatok létrehozását a [hivatalos útmutatónak](https://docs
 Végül egy profil szerkesztő és egy jelszó visszaállítási folyamattal leszünk gazdagabbak. Regisztráljuk ezeket a WPF alkalmazásba:
 
 ```csharp
+//Az értékeket cseréljük le a saját folyamatneveinkre.
 public static string PolicyEditProfile = "B2C_1_PE";
 public static string PolicyResetPassword = "B2C_1_PR";
 ```
