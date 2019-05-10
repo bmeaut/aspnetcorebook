@@ -43,7 +43,7 @@ ASP.NET Core-ban tipikusan az alábbi technológiákat/komponenseket alkalmazhat
 
 Ezen felül alternatívák is [elérhetők](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/community?view=aspnetcore-2.2).
 
-Az IDP feladatok elég jól leválaszthatók, így megjelentek azok a szolgáltatások, melyek segítségével gyakorlatilag minden IDP feladatot kiszervezhetünk, beleértve a fentebb felsorolt képességeket is. Ezek az ún. *IDentity as a Service (IDaaS)* vagy *Authentication as a Service* szolgáltatások. Néhány példa: *Okta*, *Auth0*, *Azure AD B2C*. Ezek alapvetően nem ingyenes szolgáltatások, bár többnyire bizonyos méret/felhasználószám/tokenmennyiség alatt ingyenesen használhatóak. Ezen gyakorlat során az Azure AD B2C szolgáltatást fogjuk használni, amivel az utolsó kivételével ***minden fenti komponenst kiváltunk**.
+Az IDP feladatok elég jól leválaszthatók, így megjelentek azok a szolgáltatások, melyek segítségével gyakorlatilag minden IDP feladatot kiszervezhetünk, beleértve a fentebb felsorolt képességeket is. Ezek az ún. *IDentity as a Service (IDaaS)* vagy *Authentication as a Service* szolgáltatások. Néhány példa: *Okta*, *Auth0*, *Azure AD B2C*. Ezek alapvetően nem ingyenes szolgáltatások, bár többnyire bizonyos méret/felhasználószám/tokenmennyiség alatt ingyenesen használhatóak. Ezen gyakorlat során az Azure AD B2C szolgáltatást fogjuk használni, amivel az utolsó kivételével **minden fenti komponenst kiváltunk**.
 
 A megvalósítandó rendszerben:
 
