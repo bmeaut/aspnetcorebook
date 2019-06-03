@@ -518,6 +518,8 @@ T> A swagger leíró linkje megtalálható a dokumentációs felület címsora a
 
 A dokumentációs felületen fedezzük fel a `ProductsController` műveleteit, a visszatérési értékek leírását (példa, illetve modell-leíró), ill. a modell-leírókat a műveletlista alatt. Hívjuk is meg a **/api/Products/{id}** változatot, kitöltve a szükséges paramétert.
 
+### Testreszabás - XML kommentek
+
 Az NSwag képes a kódunk XML kommentjeit hasznosítani a dokumentációs felületen. Írjuk meg egy művelet XML kommentjét.
 
 ```csharp
@@ -535,6 +537,8 @@ public ActionResult<Product> Get(int id)
 A swagger komponensünk az XML kommenteket nem a forráskódból, hanem egy generált állományból képes kiolvasni. Állítsuk be ennek a generálását a projekt build beállításai között ( Build → XML documentation file). A checkbox bekattintásakor felajánlott értéket el is fogadhatjuk.
 
 ![.NET projektbeállítások - XML dokumentációs fájl generálása](images/aspnetcorerest-xmlcomment.png)
+
+### Testreszabás - Felsorolt típusok sorosítása szövegként
 
 Másik kis testreszabási lehetőség, amit kipróbálunk, a felsorolt típusok szövegként való generálása (az egész számos kódolás helyett). A `ConfigureServices`-ben a JSON sorosítást konfiguráljuk:
 
@@ -554,6 +558,37 @@ services.AddMvc()
 W> Figyeljünk rá, hogy a `StringEnumConverter` a Json.NET-es legyen, ne az EF-es.
 
 Próbáljuk ki, hogy az XML kommentünk megjelenik-e a megfelelő műveletnél, illetve a modell-leírókban a `Product.ShipmentRegion` szöveges értékeket vesz-e fel.
+
+### Testreszabás - HTTP státuszkódok dokumentálása
+
+Gyakori testreszabási feladat, hogy az egyes műveletek esetén a válasz pontos HTTP státuszkódját is dokumentálni szeretnénk, illetve ha több különböző kódú válasz is lehetséges, akkor mindegyiket.
+
+Ehhez elég egy (vagy több) `ProducesResponseType` attribútumot felrakni a műveletre.
+
+```csharp
+[HttpPost]
+//leanpub-start-insert
+[ProducesResponseType(StatusCodes.Status201Created)]
+//leanpub-end-insert
+public ActionResult<Product> Post([FromBody] Product product)
+{/*...*/}
+
+[HttpPut("{id}")]
+//leanpub-start-insert
+[ProducesResponseType(StatusCodes.Status204NoContent)]
+//leanpub-end-insert
+public async Task<IActionResult> Put(int id,
+   [FromBody] Product product)
+{/*...*/}
+
+[HttpDelete("{id}")]
+//leanpub-start-insert
+[ProducesResponseType(StatusCodes.Status204NoContent)]
+//leanpub-end-insert
+public IActionResult Delete(int id)
+```
+
+Ellenőrizzük, hogy a swagger dokumentációs felületen a fentieknek megfelelő státuszkódok jelennek-e meg.
 
 ## OpenAPI/Swagger kliensoldal
 
@@ -607,6 +642,8 @@ Próbáljuk ki, hogy megjelenik-e a kért termék neve.
 T> Ez csak egy minimálpélda volt, az NSwag nagyon sok beállítással [rendelkezik](https://github.com/RicoSuter/NSwag/wiki).
 
 A kliensre innentől nem lesz szükség, beállíthatjuk, hogy csak a szerver induljon.
+
+W> A generált kliens helyes működéséhez a műveletek minden nem hibát jelző státuszkódjait (2xx) dokumentáljunk swagger-ben a `ProducesResponseType` attribútummal, különben helyes szerver oldali lefutás után is kliensoldalon *nem várt státuszkód* hibát kaphatunk.
 
 ## Hibakezelés
 
@@ -891,3 +928,7 @@ Próbáljuk ki!
 ![Konkurencia - bemenetek](images/aspnetcorerest-conflictinputs.png)
 
 ![Konkurencia - válasz](images/aspnetcorerest-conflictresult.png)
+
+W> Ha igazi klienst írunk figyeljünk arra, hogy a konkurencia tokent mindig küldjük le a kliensre, a kliens változatlanul küldje vissza a szerverre, a szerver pedig a módosítás során a klienstől kapott tokent szerepeltesse a módosítandó entitásban. A legtöbb hibás implementáció ezen okokra vezethető vissza.
+
+T> Az NSwag hajlamos kötelezően kitöltendővé tenni a konkurencia token mezőt, ami beszúrásnál kellemetlen, hiszen kliensoldalon még nem tudható a token kezdeti értéke. Használhatunk bármilyen értéket, amit a generált kliens elfogad (akár `byte[0]` is lehet), az adatbázis fogja a kezdeti token értéket beállítani.
