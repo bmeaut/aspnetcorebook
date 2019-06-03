@@ -643,7 +643,7 @@ T> Ez csak egy minimálpélda volt, az NSwag nagyon sok beállítással [rendelk
 
 A kliensre innentől nem lesz szükség, beállíthatjuk, hogy csak a szerver induljon.
 
-W> A generált kliens helyes működéséhez a műveletek minden nem hibát jelző státuszkódjait (2xx) dokumentáljunk swagger-ben a `ProducesResponseType` attribútummal, különben helyes szerver oldali lefutás után is kliensoldalon *nem várt státuszkód* hibát kaphatunk.
+W> A generált kliens helyes működéséhez a műveletek minden nem hibát jelző státuszkódjait (2xx) dokumentáljuk swagger-ben a `ProducesResponseType` attribútummal, különben helyes szerver oldali lefutás után is kliensoldalon *nem várt státuszkód* hibát kaphatunk.
 
 ## Hibakezelés
 
