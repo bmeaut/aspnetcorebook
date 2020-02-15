@@ -20,13 +20,13 @@ A feltételezett előismeretek:
   - operációs rendszer kapcsolatok, folyamatok, szálak, parancssor, parancssori argumentumok, környezeti változók
 - SQL nyelvi alapok (SELECT, UPDATE, INSERT, DELETE utasítások), valamint alapvető relációs adatmodell ismeretek (táblák, elsődleges- és idegen kulcsok)
 
-A fentiek elsajátításához segítséget nyújthat Reiter István ingyenesen letölthető könyvei a [https://reiteristvan.wordpress.com](https://reiteristvan.wordpress.com) címen.
+A fentiek elsajátításához segítséget nyújthatnak Reiter István ingyenesen [letölthető könyvei](https://reiteristvan.wordpress.com).
 
 A szövegben megtalálhatók a gyakorlatvezetőknek szóló kitételek („Röviden mondjuk el...”, „Mutassuk meg...”, stb.). Ezeket mezei olvasóként érdemes figyelmen kívül hagyni, illetve szükség esetén a kapcsolódó elméleti ismereteket az előadásanyagból átismételni.
 
 ## A jegyzet naprakészsége
 
-Az anyag gerincét adó .NET Core platform jelenleg igen gyors ütemben fejlődik. Az 1.0-ás verzió óta a készítők törekednek a visszafelé kompatibilitásra, azonban az eszközkészlet és a korszerűnek és ajánlottnak tekinthető módszerek folyamatosan változnak, finomodnak.
+Az anyag gerincét adó .NET Core platform jelenleg igen gyors ütemben fejlődik. Az 1.0-s verzió óta a készítők törekednek a visszafelé kompatibilitásra, azonban az eszközkészlet és a korszerűnek és ajánlottnak tekinthető módszerek folyamatosan változnak, finomodnak.
 
 A jegyzet az alábbi technológiai verziókhoz készült:
 
