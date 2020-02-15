@@ -1,0 +1,62 @@
+= Előszó
+
+== A jegyzet célja és célközönsége
+
+Ezen jegyzet elsődlegesen a BME Villamosmérnöki és Informatikai Karán oktatott *Szoftverfejlesztés .NET platformra* című tárgyhoz készült, célja, hogy segítséget nyújtson egyrészt a gyakorlatvezetőnek a gyakorlat megtartásában, másrészt a kurzus hallgatóinak a gyakorlat otthoni utólagos megismétléséhez, a tanult ismeretek átismétléséhez.
+
+Ebből kifolyólag nem tekinthető egy teljesen kezdő szintű bevezető C# tankönyvnek, hiszen erőteljesen épít más kari tárgyak (pl. Szoftvertechnikák, Adatbázisok) által lefedett ismeretekre, de még inkább a Szoftverfejlesztés .NET platformra című tárgy előadásaira.
+
+A feltételezett előismeretek:
+
+* C# és objektumorientált nyelvi alapok
+ ** operátorok, változók, tömbök, struktúrák, függvények fogalma
+ ** operátor felüldefiniálás és függvényváltozatok
+ ** alapvető memóriakezelés (heap, stack), mutatók fogalma, érték és referencia típusok
+ ** alapvető vezérlési szerkezetek (ciklus, elágazás, stb.), érték- és referencia szerinti paraméterátadás
+ ** osztály, osztálypéldány fogalma, static, `new` operátor, osztály szintű változók, generikus típusok
+ ** leszármazás, virtuális tagfüggvények
+ ** C# esemény, delegate típusok és delegate példányok
+ ** Visual Studio használatának alapjai
+ ** operációs rendszer kapcsolatok, folyamatok, szálak, parancssor, parancssori argumentumok, környezeti változók
+* SQL nyelvi alapok (SELECT, UPDATE, INSERT, DELETE utasítások), valamint alapvető relációs adatmodell ismeretek (táblák, elsődleges- és idegen kulcsok)
+
+A fentiek elsajátításához segítséget nyújthatnak Reiter István ingyenesen https://reiteristvan.wordpress.com[letölthető könyvei].
+
+A szövegben megtalálhatók a gyakorlatvezetőknek szóló kitételek („Röviden mondjuk el...`", „Mutassuk meg...`", stb.). Ezeket mezei olvasóként érdemes figyelmen kívül hagyni, illetve szükség esetén a kapcsolódó elméleti ismereteket az előadásanyagból átismételni.
+
+== A jegyzet naprakészsége
+
+Az anyag gerincét adó .NET Core platform jelenleg igen gyors ütemben fejlődik. Az 1.0-s verzió óta a készítők törekednek a visszafelé kompatibilitásra, azonban az eszközkészlet és a korszerűnek és ajánlottnak tekinthető módszerek folyamatosan változnak, finomodnak.
+
+A jegyzet az alábbi technológiai verziókhoz készült:
+
+* C# *8.0*
+* .NET Core *3.1*
+* Visual Studio *2019*
+
+Ahogyan a fenti verziók változnak, úgy avulhatnak el a jegyzetben mutatott eljárások.
+
+== Szoftverkörnyezet
+
+A gyakorlatok az alábbi szoftverekből álló környezethez készültek:
+
+* Windows 10 operációs rendszer
+* https://visualstudio.microsoft.com/downloads/[Visual Studio 2019] (az ingyenes Community edition is elég) az alábbi _Workload_-okat telepítve:
+ ** .NET desktop development
+ ** Data storage and processing
+ ** .NET Core cross-platform development
+ ** ASP.NET and web development
+ ** Azure Development
+* https://www.telerik.com/fiddler[Telerik Fiddler]
+
+A .NET Core széleskörű platformtámogatása miatt bizonyos nem Windows platformokon is elvégezhetők a gyakorlatok Visual Studio helyett https://code.visualstudio.com/[Visual Studio Code] használatával - azonban a gyakorlatok szövege a Visual Studio használatát feltételezi.
+
+== Kóddarabkák (snippet-ek)
+
+A gyakorlatanyagokat könnyen bemásolható kóddarabkák egészítik ki. A kóddarabkáknak a gyakorlat idejében van jelentőségük, mert könnyen és gyorsan bemásolhatók, egyéb esetben nyugodtan figyelmen kívül hagyhatjuk a rájuk történő hivatkozásokat.
+
+A kóddarabkák lelőhelye: https://github.com/bmeaut/dotnet
+
+== Kódrészletek kimásolása
+
+A kódrészletek sorszámozással vannak ellátva, ez pedig kimásoláskor gondot okozhat. Ilyenkor alkalmazhatjuk a blokk jellegű kijelölést, amit a legtöbb olvasóalkalmazás támogat, leggyakrabban az _[ALT]_ billentyű kijelölés alatti folyamatos nyomvatartásával. Blokk alapú kijelöléssel kijelölhetjük csak a kódrészletet a sorszámok nélkül.

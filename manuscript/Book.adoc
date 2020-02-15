@@ -1,0 +1,19 @@
+= ASP.NET Core 3 gyakorlatok
+Simon Gábor <simon.gabor@aut.bme.hu>; Szabó Gábor <szabo.gabor@aut.bme.hu>; Tóth Tibor <toth.tibor@aut.bme.hu>
+v0.1, 2020-02
+:source-highlighter: rouge
+:icons: font
+
+:leveloffset: +1
+
+include::preface.adoc[]
+
+include::chapter1.adoc[]
+
+include::chapter2.adoc[]
+
+include::chapter3.adoc[]
+
+include::chapter4.adoc[]
+
+:leveloffset: -1
