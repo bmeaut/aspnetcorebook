@@ -57,6 +57,17 @@ A gyakorlatanyagokat könnyen bemásolható kóddarabkák egészítik ki. A kód
 
 A kóddarabkák lelőhelye: https://github.com/bmeaut/dotnet
 
-== Kódrészletek kimásolása
+== Kódrészletek változáskövetése
 
-A kódrészletek sorszámozással vannak ellátva, ez pedig kimásoláskor gondot okozhat. Ilyenkor alkalmazhatjuk a blokk jellegű kijelölést, amit a legtöbb olvasóalkalmazás támogat, leggyakrabban az _[ALT]_ billentyű kijelölés alatti folyamatos nyomvatartásával. Blokk alapú kijelöléssel kijelölhetjük csak a kódrészletet a sorszámok nélkül.
+Az egyes gyakorlatok során gyakori eset, hogy a C# kód egy részét továbbfejlesztjük, megváltoztatjuk. Ilyen esetben a nem változó sorokat üres kommenttel (`/**/`) kezdődnek, míg az előző verzióhoz képest kikerülő kódrészletek kommentként jelennek meg. Ha egyik előbbi jelölés sincs, akkor az új kódrészletnek számít.
+
+[source,csharp]
+----
+
+/**/using System; //ez egy korábban meglévő kódsor, változatlan
+    using static System.Console; //ez új kódsor
+
+/**/foreach (var dog in dogs)    //ez egy korábban meglévő kódsor, változatlan
+    /* Console.*/WriteLine(dog); //ez a sor megváltozott, az elejéről kód törlődött
+    /* Console.*/ReadLine();     //ez a sor megváltozott, az elejéről kód törlődött
+----

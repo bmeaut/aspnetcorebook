@@ -262,7 +262,7 @@ Szűrjünk le egy szám-szám szótárat csak azokra az elemekre, amik megfeleln
 
 [source,csharp]
 ----
-var numbers = new Dictionary<int, inTIP: 
+var numbers = new Dictionary<int, int> 
 {
     [1] = 5,
     [2] = 4,
@@ -291,7 +291,7 @@ Ez megoldja a problémát, sikerül eltávolítani az elemeket a kollekcióból.
 
 === Azonnali és késleltetett kiértékelés
 
-Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<TIP: ` visszatérési értékű), az egyes elemeken történő iteráció a generátorok egymásba ágyazását jelenti, azaz az egyes generátorokban a `yield return` által visszaadott értéket fogja az enumerátor `MoveNext` metódusa visszaadni. Amíg az `IEnumerable`-re van referenciánk, és nem járjuk azt közvetlenül be, addig _késleltetett kiértékelésről_ beszélünk.
+Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<T>` visszatérési értékű), az egyes elemeken történő iteráció a generátorok egymásba ágyazását jelenti, azaz az egyes generátorokban a `yield return` által visszaadott értéket fogja az enumerátor `MoveNext` metódusa visszaadni. Amíg az `IEnumerable`-re van referenciánk, és nem járjuk azt közvetlenül be, addig _késleltetett kiértékelésről_ beszélünk.
 
 [source,csharp]
 ----
@@ -325,20 +325,20 @@ Készítsünk egy olyan enumerátort, ami véletlen sorrendben adja vissza az el
 
 [source,csharp]
 ----
-public class RandomOrderedList<TIP:  : IEnumerable<TIP: 
+public class RandomOrderedList<T>  : IEnumerable<T>
 {
-    public RandomOrderedList(IList<TIP:  source) => Source = source;
-    private IList<TIP:  Source { get; }
-    public IEnumerator<TIP:  GetEnumerator() => new RandomEnumerator<TIP: (Source);
+    public RandomOrderedList(IList<T>  source) => Source = source;
+    private IList<T>  Source { get; }
+    public IEnumerator<T> GetEnumerator() => new RandomEnumerator<T>(Source);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
-public class RandomEnumerator<TIP:  : IEnumerator<TIP: 
+public class RandomEnumerator<T>  : IEnumerator<T> 
 {
-    private IList<TIP:  Source { get; }
+    private IList<T> Source { get; }
     private int[] indexes;
     private int currentIndex;
-    public RandomEnumerator(IList<TIP:  source)
+    public RandomEnumerator(IList<T>  source)
     {
         Source = source;
         Reset();
@@ -357,6 +357,6 @@ public class RandomEnumerator<TIP:  : IEnumerator<TIP:
 
 [source,csharp]
 ----
-foreach (var elem in new RandomOrderedList<inTIP: (Enumerable.Range(0, 100).ToList()))
+foreach (var elem in new RandomOrderedList<int> (Enumerable.Range(0, 100).ToList()))
     Console.WriteLine(elem);
 ----

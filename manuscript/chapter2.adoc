@@ -4,6 +4,13 @@
 
 Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: File → New → Project... → Installed → Templates → Visual C# → .NET Core → Console Application (.NET Core). A neve legyen _HelloCSharp2_, itt ismét említsük meg a .NET konvenciókat az elnevezésre: PascalCasing típusneveknél/névtereknél/metódusoknál, camelCasing lokális és privát változók esetén. A betűszavakat is 3 betű felett (egyre gyakoribb, hogy már 2 betű esetén is) nem kapitális betűkkel, hanem PascalCasinget használva írjuk. A solutiont ne tegyük külön mappába (_Create directory for solution_ elem legyen üresen hagyva).
 
+Próbáljuk ki a generált projektet mindenféle változtatás nélkül. Nézzünk bele a kimeneti könyvtárba: látható, hogy az alkalmazásunkból a fordítás során egy cross-platform bináris (.dll) és .NET Core v3 óta egy platform specifikus futtatható állomány (Windows esetén .exe) is generálódik. Kipróbálhatjuk, hogy az exe a szokott módon indítható (pl. duplaklikkel), míg a dll a dotnet paranccsal.
+
+[source]
+----
+dotnet <projektnév.dll>
+----
+
 TIP:  A laborhoz tartozó snippet fájl: cs2.md
 
 Adjunk a létrejövő projekthez egy `Dog` osztályt _Dog.cs_ néven, ez lesz az adatmodellünk:
@@ -53,47 +60,35 @@ Láthatjuk, hogy csak az aktuális kontextusban egyébként is látható és be�
 
 [source,csharp]
 ----
-//..
- Dog banan = new Dog()
-    {
-            Name = "Banán",
-            DateOfBirth = new DateTime(2014, 06, 10)
-    };
-//..
+/**/Dog banan = new Dog() {/*..*/}
 
-var watson = new Dog { Name = "Watson" };
+    var watson = new Dog { Name = "Watson" };
 
-//..
-Console.WriteLine(banan);
-Console.ReadLine();
-//..
+/**/Console.WriteLine(banan);
+/**/Console.ReadLine();
 ----
 
 A `var` kulcsszó jelentősége: ha a fordító ki tudja találni a kontextusból az értékadás jobb oldalán álló érték típusát, nem szükséges a típus nevét explicit megadnunk, az implicit következik a kódból. Ebben az esetben a típus egyértelműen `Dog`. Ha csak deklarálni szeretnénk egy változót (nem adunk értékül a változónak semmit), akkor nem használhatjuk a `var` kulcsszót, ugyanis nem következik a kódból a változó típusa. Ekkor explicit meg kell adnunk a típust.
 
 [source,csharp]
 ----
-//..
-var watson = new Dog { Name = "Watson" };
-//..
+/**/var watson = new Dog { Name = "Watson" };
 
-var unnamed = new Dog { DateOfBirth = new DateTime(2017, 02, 10) };
-var unknown = new Dog { };
-//var error; <= compiler error!
+    var unnamed = new Dog { DateOfBirth = new DateTime(2017, 02, 10) };
+    var unknown = new Dog { };
+    //var error; <= compiler error!
 
-var dogs = new List<Dog>();
-dogs.Add(banan);
-dogs.Add(watson);
-dogs.Add(unnamed);
-dogs.Add(unknown);
+    var dogs = new List<Dog>();
+    dogs.Add(banan);
+    dogs.Add(watson);
+    dogs.Add(unnamed);
+    dogs.Add(unknown);
 
-foreach (var dog in dogs)
-    Console.WriteLine(dog);
+    foreach (var dog in dogs)
+        Console.WriteLine(dog);
 
-//..
-//Console.WriteLine(banan);
-Console.ReadLine();
-//..
+/**/ //Console.WriteLine(banan);
+/**/Console.ReadLine();
 ----
 
 Az object initializer valóban csak az egyes tulajdonságokat állítja be, tehát csak szintaktikailag különbözik az első definíció az alábbitól:
@@ -106,7 +101,7 @@ _banan.DateOfBirth = new DateTime(2014, 06, 10);
 var banan = _banan;
 ----
 
-TIP:  Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
+NOTE:  Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
 
 A háttérben tényleg egy (számunkra nem látható) temporális változóban fog történni az inicializáció, ugyanis, ha az object initializer kivételt dob (az egyik setter által), az objektumunk nem veszi fel a kívánt értéket.
 
@@ -118,14 +113,11 @@ Ha egy osztály statikus tagjait vagy egy statikus osztályt szeretnénk haszná
 
 [source,csharp]
 ----
-//..
-using System;
-//..
-using static System.Console;
 
-//..
-    foreach (var dog in dogs)
-//..    
+/**/using System;
+    using static System.Console;
+
+/**/foreach (var dog in dogs)    
     /* Console.*/WriteLine(dog);
     /* Console.*/ReadLine();
 ----
@@ -138,7 +130,7 @@ Természetesen a referenciatípusok mind olyan típusok, melyek vehetnek fel nul
 
 Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz 2018 Watson életkora! A `Console.WriteLine` parancshoz vegyünk fel egy töréspontot (F9), ezután vegyük fel a `dog.Name` és `dog.AgeInDays` kifejezést a _Watch_ ablakba! Ha _F5_-tel lépkedünk, láthatjuk, hogy Watson 2018 évesnek vélt. Amíg a program futása fel van függesztve a törésponton, vegyünk fel egy másikat az `AgeInDays` tulajdonság kiértékelésébe a `Dog` osztályban! Láthatjuk, hogy a turpisság abból fakad, hogy a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéke `0001. 01. 01. 00:00:00`.
 
-Ennek a javításához az `Age` tulajdonság típusát változtassuk `int?`-re! Az `int?` szintaktikai édesítőszere a `Nullable<inTIP: `-nek, egy olyan struktúrának, ami egy `int` értéket tárol, és tárolja, hogy az be van-e állítva vagy sem. A `Nullable<TIP: ` szignatúráit megmutathatjuk, hogyha a kurzort a típusra helyezve _F12_-t nyomunk.
+Ennek a javításához az `Age` tulajdonság típusát változtassuk `int?`-re! Az `int?` szintaktikai édesítőszere a `Nullable<int>`-nek, egy olyan struktúrának, ami egy `int` értéket tárol, és tárolja, hogy az be van-e állítva vagy sem. A `Nullable<int>` szignatúráit megmutathatjuk, hogyha a kurzort a típusra helyezve _F12_-t nyomunk.
 
 Módosítsuk a `Dog` `Age` és `DateOfBirth` tulajdonságait, hogy tudjuk, be vannak-e állítva az értékeik:
 
@@ -146,16 +138,16 @@ Módosítsuk a `Dog` `Age` és `DateOfBirth` tulajdonságait, hogy tudjuk, be va
 ----
 public DateTime? DateOfBirth { get; set; }
 
-private int? AgeInDays => (int?) (-DateOfBirth?.Subtract(DateTime.Now))?.Days;
+private int? AgeInDays => (-DateOfBirth?.Subtract(DateTime.Now))?.Days;
 
 public int? Age => AgeInDays / 365;
 
 public int? AgeInDogYears => AgeInDays * 7 / 365;
 ----
 
-Az `AgeInDays` akkor ad vissza `null` értéket, ha a `DateOfBirth` maga is `null` volt. Tehát ha nincs megadva születési dátumunk, nem tudunk életkort sem számítani. Ehhez magyarázzuk el a `?.` („Elvis`", magyarban „Kozsó`" - `null` conditional operator) operátor jelentését: a kiértékelendő érték jobb oldalát adja vissza, ha a bal oldal nem `null`, különben ``null``t. A kifejezést meg kellett változtatnunk, hogy a `DateOfBirth`-ből vonjuk ki a jelenlegi dátumot és ezt negáljuk, ugyanis a `null` vizsgálandó érték a bináris operátor bal oldalán kell, hogy elhelyezkedjen.
+Az `AgeInDays` akkor ad vissza `null` értéket, ha a `DateOfBirth` maga is `null` volt. Tehát ha nincs megadva születési dátumunk, nem tudunk életkort sem számítani. Ehhez magyarázzuk el a `?.` (Elvis, magyarban Kozsó - `null` conditional operator) operátor jelentését: a kiértékelendő érték jobb oldalát adja vissza, ha a bal oldal nem `null`, különben `null`-t. A kifejezést meg kellett változtatnunk, hogy a `DateOfBirth`-ből vonjuk ki a jelenlegi dátumot és ezt negáljuk, ugyanis a `null` vizsgálandó érték a bináris operátor bal oldalán kell, hogy elhelyezkedjen.
 
-TIP:  Az Elvis operátor nevének erdetére több magyarázatot is lehet találni, a források annyiban nagyrészt megegyeznek, hogy a kérdőjel tekeredő része az énekes jellegzetes bodorodó hajviseletére emlékeztet, a pontok pedig a szemeket jelölik, így végülis a ?. egy Elvis emotikonként fogható fel. Ezen logika mentén adódik a magyar megfelelő, a Kozsó operátor, hiszen a szem körül tekergőző legikonikusabb hajtincs a magyar zenei kultúrában Kozsó nevéhez köthető.
+NOTE:  Az Elvis operátor nevének erdetére több magyarázatot is lehet találni, a források annyiban nagyrészt megegyeznek, hogy a kérdőjel tekeredő része az énekes jellegzetes bodorodó hajviseletére emlékeztet, a pontok pedig a szemeket jelölik, így végülis a ?. egy Elvis emotikonként fogható fel. Ezen logika mentén adódik a magyar megfelelő, a Kozsó operátor, hiszen a szem körül tekergőző legikonikusabb hajtincs a magyar zenei kultúrában Kozsó nevéhez köthető.
 
 Ha most futtatjuk az alkalmazást, az `AgeInDays` és a származtatott tulajdonságok értéke null lesz, ha a születési dátum nincs megadva.
 
@@ -198,7 +190,7 @@ _dogs.Add(unknown);
 var dogs = _dogs;
 ----
 
-TIP:  Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
+NOTE:  Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
 
 TIP:  Kivétel esetén sikertelen lesz értékadás.
 
@@ -223,9 +215,9 @@ public static class StringExtensions
 }
 ----
 
-A `??` operátor (null coalescing operátor) a kifejezés bal oldalán álló értéket adja vissza, ha az nem `null`, különben a jobb oldalán álló értéket (tehát kiolvashatjuk „különben, ha `null``"-ként is).
+A `??` operátor (null coalescing operátor) a kifejezés bal oldalán álló értéket adja vissza, ha az nem `null`, különben a jobb oldalán álló értéket (tehát kiolvashatjuk „különben, ha `null``”-ként is).
 
-Érdekességképp megvizsgálhatjuk az „egysoros`" megoldást, kitérve ennek egyértelmű hátrányaira és előnyére:
+Érdekességképp megvizsgálhatjuk az „egysoros” megoldást, kitérve ennek egyértelmű hátrányaira és előnyére:
 
 [source,csharp]
 ----
@@ -289,7 +281,7 @@ Még egy kicsit szépíthetünk a helyzeten, ha a metódus típusparamétert is 
 
 [source,csharp]
 ----
-public static string TrimPad<TIP: (this T obj, int length)
+public static string TrimPad<T> (this T obj, int length)
             => TrimPad(obj.ToString(), length);
 ----
 
@@ -364,8 +356,8 @@ Tegyük fel, hogy egy kutyához bármilyen a domain modellünkbe nem illeszkedő
 public class Dog
 {
     //...
-    public Dictionary<string, objecTIP:  Metadata { get; }
-                    = new Dictionary<string, objecTIP: ();
+    public Dictionary<string, object>  Metadata { get; }
+                    = new Dictionary<string, object>();
 
     public object this[string key]
     {

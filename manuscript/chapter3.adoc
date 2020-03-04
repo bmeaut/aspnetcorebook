@@ -2,12 +2,12 @@
 
 == Előkészítés
 
-A labor kezdetén töltsük le a kapcsolódó anyagok közül a _HelloLinq-kiindulo.zip_ fájlt, és ezt tömörítsük ki egy olyan mappába, ahol a hallgatóknak is van írási joga. Miután kitömörítettük a fájlokat, töltsük be a _HelloLinq.sln_ solution fájlt -- ezt megtehetjük duplaklikkeléssel is, ha a megfelelő Visual Studio verzió van társítva hozzá, vagy a Visual Studio indítása után a File → Open → Project/Solution menüpontból.
+A labor kezdetén töltsük le a kóddarabkák lelőhelyéül szolgáló git repository-t. Miután kitömörítettük a fájlokat, töltsük be Visual Studio-ba a _HelloLinq_ mappából a _HelloLinq.sln_ solution fájlt.
 
 Megnyitás után tekintsük át a kiinduló projektben levő fájlokat:
 
 * *Program.cs*: a programunk belépési pontját tartalmazó osztály. Található benne egy `Dogs` csak lekérdezhető tulajdonság, ami a `Dog` osztály statikus `Repository` tulajdonságába hív át.
-* *Dog.cs*: a korábbi gyakorlatokon használt adatmodell (apróbb módosításokkal). Bekerült egy `Siblings` tulajdonság, a `ToString` pedig kiírja a kutyához tartozó testvérek számát is (ehhez a `TrimPad` bővítő metódust használja). A statikus `Repository` tulajdonság mögött egy lustán inicializált `Lazy<TIP:  RepositoryHolder` található, ami egy megfelelően formázott bemeneti CSV fájlból elkészíti számunkra az adatmodellt, amivel a későbbiekben dolgozunk. Ennek implementációját a labor végén nézzük meg, amennyiben marad idő. Az `Import` és `Export` függvények a kutyák sorosítását végzik el mindkét irányban.
+* *Dog.cs*: a korábbi gyakorlatokon használt adatmodell (apróbb módosításokkal). Bekerült egy `Siblings` tulajdonság, a `ToString` pedig kiírja a kutyához tartozó testvérek számát is (ehhez a `TrimPad` bővítő metódust használja). A statikus `Repository` tulajdonság mögött egy lustán inicializált `Lazy<T>  RepositoryHolder` található, ami egy megfelelően formázott bemeneti CSV fájlból elkészíti számunkra az adatmodellt, amivel a későbbiekben dolgozunk. Ennek implementációját a labor végén nézzük meg, amennyiben marad idő. Az `Import` és `Export` függvények a kutyák sorosítását végzik el mindkét irányban.
 * *Extensions/StringExtensions.cs*: ez az osztály tartalmazza a korábban írt bővítő metódusunkat, a `TrimPad`-et, kicsit átalakítva.
 * *dogs.csv*: egy pontosvesszővel tagolt „adatbázis`", amelyben 100 darab előre felvett kutya adata található.
 
@@ -15,7 +15,7 @@ Megnyitás után tekintsük át a kiinduló projektben levő fájlokat:
 
 Gyakori feladat, hogy objektumok kollekciójával kell dolgoznunk. Képesek vagyunk olyan jellegű segédfüggvényeket készíteni, amik például egy kollekcióban kikeresik az összes olyan elemet, amely egy megadott feltételnek eleget tesz.
 
-A *Program.cs* fájlban dolgozzunk:
+A *Program.cs* fájlban látható ennek a kezdeti naív változata, szemrevételezzük:
 
 [source,csharp]
 ----
@@ -74,18 +74,16 @@ A `Main` metódusban így hívhatjuk meg (felhasználhatjuk az eredeti ciklust):
 
 [source,csharp]
 ----
-/*leanpub-start-insert*/
-foreach(var dog in ListDogsByPredicate(Dogs,
-    delegate (Dog d) {
-        return d.Name.StartsWith(searchText,
-                                 StringComparison.OrdinalIgnoreCase);
-                     })
-        )
-/*leanpub-end-insert*/
-    Console.WriteLine(dog);
+    foreach(var dog in ListDogsByPredicate(Dogs,
+        delegate (Dog d) {
+            return d.Name.StartsWith(searchText,
+                                    StringComparison.OrdinalIgnoreCase);
+                        })
+            )
+/**/Console.WriteLine(dog);
 ----
 
-Egy bemenő paraméterünk egy ilyen `Predicate<in TIP: ` típusú delegát (`T` típusú bemenete van, és `bool` visszatérésű), gyakorlatilag egy függvény példánya, amit anonim metódusként adunk át. Használjunk inkább lambda kifejezést, az jóval rövidebben leírható - egyelőre csak mutassuk meg, ne integráljuk a kódba:
+Egy bemenő paraméterünk egy ilyen `Predicate<int>` típusú delegát (`T` típusú bemenete van, és `bool` visszatérésű), gyakorlatilag egy függvény példánya, amit anonim metódusként adunk át. Használjunk inkább lambda kifejezést, az jóval rövidebben leírható - egyelőre csak mutassuk meg, ne integráljuk a kódba:
 
 [source,csharp]
 ----
@@ -100,28 +98,24 @@ Próbáljuk meg a delegátunkat kivenni egy implicit típusú változóba a cikl
 
 [source,csharp]
 ----
-/*leanpub-start-insert*/
-var predicate = d => d.Name
-    .StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
-foreach (var dog in ListDogsByPredicate(Dogs, predicate))
-/*leanpub-end-insert*/
-    Console.WriteLine(dog);
+    var predicate = d => d.Name
+        .StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
+/**/foreach (var dog in ListDogsByPredicate(Dogs, predicate))
+/**/    Console.WriteLine(dog);
 ----
 
 Fordítási hibát kapunk, lambda kifejezés típusa nem lehet implicit eldönthető: sem a bemenő paraméter pontos típusát nem tudjuk (`Dog`? `Puppy`?), sem a visszatérési értéket (`bool`? `object`? `void`?). Tehát explicit meg kell adnunk a típust:
 
 [source,csharp]
 ----
-/*leanpub-start-insert*/
 Predicate<Dog>
-/*leanpub-end-insert*/
-predicate =
-    d => d.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
+/**/predicate =
+/**/    d => d.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
 ----
 
 Ezután fordul és fut is az alkalmazásunk.
 
-TIP:  Ehhez tudnunk kellett, hogy a `Predicate<TIP: ` megfelelő szignatúrájú. Mutassuk meg ezen típus dokumentációját.
+TIP:  Ehhez tudnunk kellett, hogy a `Predicate<T>` megfelelő szignatúrájú. Mutassuk meg ezen típus dokumentációját.
 
 == Func<>, Action<>
 
@@ -147,16 +141,16 @@ Hozzunk létre egy _EnumerableExtensions_ (I betű nélkül, az ugyanis interfé
 ----
 public static class EnumerableExtensions
 {
-    public static int Sum<TIP: (this IEnumerable<TIP:  source,
-                                  Func<T, inTIP:  sumSelector)
+    public static int Sum<T> (this IEnumerable<T>  source,
+                                  Func<T>  sumSelector)
     {
         var result = 0;
         foreach (var elem in source)
             result += sumSelector(elem);
         return result;
     }
-    public static double Average<TIP: (this IEnumerable<TIP:  source,
-                                         Func<T, inTIP:  sumSelector)
+    public static double Average<T> (this IEnumerable<T>  source,
+                                         Func<T, int>  sumSelector)
     {
         var result = 0.0; // Az osztás művelet miatt double
         var elements = 0;
@@ -167,8 +161,8 @@ public static class EnumerableExtensions
         }
         return result/elements;
     }
-    public static int Min<TIP: (this IEnumerable<TIP:  source,
-                                  Func<T, inTIP:  valueSelector)
+    public static int Min<T> (this IEnumerable<T>  source,
+                                  Func<T, int>  valueSelector)
     {
         int value = 0;
         foreach (var elem in source)
@@ -179,8 +173,8 @@ public static class EnumerableExtensions
         }
         return value;
     }
-    public static int Max<TIP: (this IEnumerable<TIP:  source,
-                                  Func<T, inTIP:  valueSelector)
+    public static int Max<T> (this IEnumerable<T>  source,
+                                  Func<T, int>  valueSelector)
         => -source.Min(e => -valueSelector(e));
 }
 ----
@@ -211,8 +205,8 @@ Gyakran előfordul, hogy egy listát szűrni vagy projektálni szeretnénk. Írj
 
 [source,csharp]
 ----
-public static IEnumerable<TIP:  Where<TIP: (this IEnumerable<TIP:  source,
-                                           Predicate<TIP:  predicate)
+public static IEnumerable<T>  Where<T> (this IEnumerable<T>  source,
+                                           Predicate<T>  predicate)
 {
     foreach (var elem in source)
     {
@@ -220,7 +214,7 @@ public static IEnumerable<TIP:  Where<TIP: (this IEnumerable<TIP:  source,
             yield return elem;
     }
 }
-public static IEnumerable<TValue> Select<T, TValue>(this IEnumerable<TIP:  source,
+public static IEnumerable<TValue> Select<T, TValue>(this IEnumerable<T>  source,
                                                          Func<T, TValue> selector)
 {
     foreach (var elem in source)
@@ -229,6 +223,8 @@ public static IEnumerable<TValue> Select<T, TValue>(this IEnumerable<TIP:  sourc
     }
 }
 ----
+
+TIP: a `yield return` egy hasznos eszköz, ha IEnumerable-t kell produkálnunk visszatérési értékként. Segítségével mindig csak akkor állítjuk elő a következő elemet, amikor a hívó kéri. A működését debuggerrel is figyeljük meg: az egymást követő hívások között az állapot megmarad.
 
 Próbáljuk ki a `Main` metódus elején, válasszuk ki az 5 évesnél fiatalabb kutyák nevét és korát egy stringbe:
 
@@ -242,7 +238,7 @@ foreach (var text in Dogs
 }
 ----
 
-Nem nagy meglepetés, hogy az általunk megírt `Sum`, `Average` (melyek egyedi visszatérésűek), `Select` és `Where` (amik szekvenciális visszatérésűek, generátorok) metódusok mind a .NET keretrendszer részét képezik (a `System.Linq.Enumerable` statikus osztályban definiált bővítő metódusok). A *LINQ* -- **L**anguage **IN**tegrated **Q**uery -- ezeket a műveleteket teszi lehetővé `IEnumerable` és `IQueryable` interfészt megvalósító objektumokon. A LINQ a .NET Standard része, így out-of-the box „jár`" bármely .NET keretrendszerhez. A LINQ koncepciója pontosan ez, azaz bővítő metódusok hozzáadása meglevő a funkcionalitáshoz (kollekciókhoz, lekérdezésekhez), sőt, külső library-k is adnak saját LINQ bővítő metódusokat. Cseréljük le a *Program.cs*-ben a `using HelloLinq.Extensions` hivatkozást `using System.Linq`-re: az általunk megírt kód továbbra is ugyanazt az eredményt produkálja!
+Nem nagy meglepetés, hogy az általunk megírt `Sum`, `Average` (melyek egyedi visszatérésűek), `Select` és `Where` (amik szekvenciális visszatérésűek, generátorok) metódusok mind a .NET keretrendszer részét képezik (a `System.Linq.Enumerable` statikus osztályban definiált bővítő metódusok). A *LINQ* -- **L**anguage **IN**tegrated **Q**uery -- ezeket a műveleteket teszi lehetővé `IEnumerable` és `IQueryable` interfészt megvalósító objektumokon. A LINQ a .NET Standard része, így out-of-the box „jár” bármely .NET keretrendszerhez. A LINQ koncepciója pontosan ez, azaz bővítő metódusok hozzáadása meglevő a funkcionalitáshoz (kollekciókhoz, lekérdezésekhez), sőt, külső library-k is adnak saját LINQ bővítő metódusokat. Cseréljük le a *Program.cs*-ben a `using HelloLinq.Extensions` hivatkozást `using System.Linq`-re: az általunk megírt kód továbbra is ugyanazt az eredményt produkálja!
 
 == Anonim típusok
 
@@ -309,11 +305,11 @@ Vegyük az alábbi nagyon egyszerű delegate-et és ennek `Expression<>`-s párj
 
 [source,csharp]
 ----
-Func<int, inTIP:  f = x => x + 1;
-Expression<Func<int, inTIP: > e = x => x + 1;
+Func<int, int>  f = x => x + 1;
+Expression<Func<int, int> e = x => x + 1;
 ----
 
-Magyarázzuk el a különbséget a két sor között. Az f egy delegate, lefordított __kód__ra mutató referencia, az Expression a jobb oldali kifejezésből épített (fa struktúrájú) _adat_. A fát kóddá fordíthatjuk a `Compile` metódus segítségével:
+Magyarázzuk el a különbséget a két sor között. Az `f` egy delegate, lefordított __kód__ra mutató referencia, az `Expression` a jobb oldali kifejezésből épített (fa struktúrájú) _adat_. A fát kóddá fordíthatjuk a `Compile` metódus segítségével:
 
 [source,csharp]
 ----
