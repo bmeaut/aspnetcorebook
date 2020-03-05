@@ -1,3 +1,4 @@
+[#preface]
 = Előszó
 
 == A jegyzet célja és célközönsége

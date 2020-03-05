@@ -1,3 +1,4 @@
+[#csharp4]
 = C# alapok III.
 
 == Tuple nyelvi szinten, lokális függvények
@@ -22,123 +23,6 @@ public static long Fibonacci(long x)
     return x < 0
         ? throw new ArgumentException("Less negativity please!", nameof(x))
         : Fib(x).Current;
-}
-----
-
-== Dispose minta
-
-A Dispose minta az erőforrás-felszabadítás megfelelő megvalósításához készült. Hasonló elv mentén üzemel, mint a destruktor, viszont a minta nem feltétlenül kötött az objektum életciklusának elejéhez és végéhez. Amennyiben egy objektum megvalósítja az `IDisposable` interfészt, van `Dispose` metódusa. A metódus meghívásával az objektum által használt, nem a keretrendszer által menedzselt erőforrásokat szabadítjuk fel. Nem csak memóriafoglalásra kell gondolni, hanem lehetnek nyitott fájlrendszeri handle-ök, adatkapcsolatok, stream-ek, vagy üzleti erőforrások, tranzakciók.
-
-Mérjük meg az első 50 Fibonacci szám kiszámítását (a mesterséges késleltetéssel):
-
-[source,csharp]
-----
-static void Main(string[] args)
-{
-    var sw = Stopwatch.StartNew();
-    foreach (var n in Enumerable.Range(1, 50))
-    {
-        Console.WriteLine($"{n}: {Fibonacci(n)}");
-    }
-    sw.Stop();
-    Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
-    Console.ReadKey();
-}
-----
-
-Ez így jó, működik, viszont nem újrahasznosítható ez az időmérési mechanizmus.
-
-Készítsünk egy saját időmérő osztályt `StopwatchWrapper` néven, ami a `Stopwatch` használatát egyszerűsíti a Dispose mintán keresztül.
-
-[source,csharp]
-----
-public class StopwatchWrapper : IDisposable
-{
-    public Stopwatch Stopwatch { get; } // using System.Diagnostics
-
-    public string Title { get; }
-
-    public StopwatchWrapper(string title = null)
-    {
-        Title = title ?? Guid.NewGuid().ToString();
-        Console.WriteLine($"Task {title} starting at {DateTime.Now}.");
-        Stopwatch = Stopwatch.StartNew();
-    }
-}
-----
-
-Ha kérjük a villanykörte segítségét az `IDisposable`-ön, akkor 2x2 lehetőségünk van: megvalósítjuk az interfészt implicit vagy explicit, illetve megvalósítjuk-e az interfészt a Dispose mintát alkalmazva. Valósítsuk meg implicit a Dispose mintát!
-
-image::images/csharp4-dispose.png[Dispose minta implementálása IntelliSense segítségével]
-
-Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy nem menedzselt kód esetén az erőforrásokat szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén adott helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizmust!
-
-[source,csharp]
-----
-protected virtual void Dispose(bool disposing)
-{
-    if (!disposedValue)
-    {
-        if (disposing)
-        {
-            /*leanpub-start-insert*/
-            Stopwatch.Stop();
-            Console.WriteLine(
-                $"Task {Title} completed in { Stopwatch.ElapsedMilliseconds} ms "+
-                $"at { DateTime.Now}");
-            /*leanpub-end-insert*/
-        }
-        disposedValue = true;
-    }
-}
-----
-
-Az `IDisposable` interfészt megvalósító elemekkel használhatjuk a `using` konstrukciót:
-
-[source,csharp]
-----
-static void Main(string[] args)
-{
-    /*leanpub-start-insert*/
-    using (new StopwatchWrapper("Fib 1-50"))
-    {
-        foreach (var n in Enumerable.Range(1, 50))
-        {
-            Console.WriteLine($"{n}: {Fibonacci(n)}");
-        }
-    }
-    /*leanpub-end-insert*/
-    Console.ReadKey();
-}
-----
-
-Tehát a `using` használatával a blokk elejét és végét tudjuk kezelni. Gyakorlatilag egy `try-finally`-val ekvivalens a minta, a `finally`-ben meghívódik a `Dispose` metódus.
-
-Vegyíthetjük ezt a változó kiemelésével is, de előbb készítsünk egy segédfüggvényt a `StopwatchWrapper`-be:
-
-[source,csharp]
-----
-public void Snapshot(string text) =>
-    Console.WriteLine(
-        $"Task {Title} snapshot {text}: {Stopwatch.ElapsedMilliseconds} ms"
-    );
-----
-
-[source,csharp]
-----
-using (
-     /*leanpub-start-insert*/
-    var sw =
-     /*leanpub-end-insert*/
-        new StopwatchWrapper("Fib 0-50"))
-{
-    foreach (var n in Enumerable.Range(1, 50))
-    {
-        /*leanpub-start-insert*/
-        sw.Snapshot(n.ToString());
-        /*leanpub-end-insert*/
-        Console.WriteLine($"{n}: {Fibonacci(n)}");
-    }
 }
 ----
 
@@ -199,9 +83,9 @@ Módosítsuk a `LoadWebPageAsync` fejlécét, hogy taszkot adjon vissza:
 public static async Task LoadWebPageAsync()
 ----
 
-Várjuk be az szinkron művelet végét a `Main` függvényben. Ehhez viszont a `Main` függvénynek is async-nak kell lennie. Ez csak a C# 7.1 óta támogatott. Ehhez állítsuk át a fordító verzióját: Project Properties → Build → Advanced → Language version → C# 7.1 (minimum).
+Várjuk be az szinkron művelet végét a `Main` függvényben. Ehhez viszont a `Main` függvénynek is async-nak kell lennie. Ez csak a C# 7.1 óta támogatott.
 
-Így már lehet aszinkron a Main metódus is, így lehet benne `await`-elni:
+TIP: A Visual Studio 2019-ben a nyelv alapértelmezett verzióját a projekt futtatókörnyzete határozza meg. Ha ez az alapértelmezett verzió nem megfelelő, akkor például a projektfájlban tudjuk átírni - bizonyos korlátok között. Bővebben https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/configure-language-version[itt].
 
 [source,csharp]
 ----
@@ -224,33 +108,43 @@ Alakítsuk át, hogy a weboldal tartalmának kiíratása a `Main`-ben történje
 
 [source,csharp]
 ----
-static async Task Main(string[] args)
-{
-    /*leanpub-start-insert*/
-    var content = await LoadWebPageAsync();
-    Console.WriteLine(content);
-    /*leanpub-end-insert*/
+/**/static async Task Main(string[] args)
+/**/{
+        var content = await LoadWebPageAsync();
+        Console.WriteLine(content);
 
-    Console.WriteLine("Ez a vége");
-    Console.ReadKey();
-}
+/**/    Console.WriteLine("Ez a vége");
+/**/    Console.ReadKey();
+/**/}
 
-public static async Task<string> LoadWebPageAsync()
-{
-    using (var client = new HttpClient())
-    {
-        var response = await client.GetAsync(new Uri("http://www.bing.com"));
-        Console.WriteLine(response.StatusCode.ToString());
-
-        var content = await response.Content.ReadAsStringAsync();
-        /*leanpub-start-insert*/
-        return new string(content.Take(1000).ToArray());
-        /*leanpub-start-insert*/
-    }
-}
+/**/public static async Task<string> LoadWebPageAsync()
+/**/{
+/**/    using (var client = new HttpClient())
+/**/    {
+/**/        var response = await client.GetAsync(new Uri("http://www.bing.com"));
+/**/        Console.WriteLine(response.StatusCode.ToString());
+/**/
+/**/        var content = await response.Content.ReadAsStringAsync();
+            return new string(content.Take(1000).ToArray());
+/**/    }
+/**/}
 ----
 
 A `return` valójában ezen `Task` eredményét állítja be `async` metódusok esetében, és nem egy nemgenerikus `Task` objektummal kell visszatérjünk.
+
+== Nem nullozható referencia típusok
+
+Korábban láttuk, hogy hogyan lehet egy érték típusnak null értéket adni (`Nullable<T>`). Az érem másik oldala a C# 8-ban megjelent nem nullozható referencia típusok. Mivel itt nem egy új típust vezettek be, hanem az eddig megszokott típusneveket értelmezi máshogyan a fordító, így ez a képesség alapból nincs bekapcsolva.
+
+A bekapcsoláshoz a projektfájlban kell egy új beállítást felvenni a ProprtyGroup címkén belül.
+
+[source,xml]
+----
+<Nullable>enable</Nullable>
+----
+
+TIP: Ezen kívül még annotációkkal is szabályozhatjuk a működést.
+
 
 == Bejárási problémák
 
@@ -318,6 +212,115 @@ foreach (var n in numbers
 A `ToList` hívásunk először bejárja az iterátort és visszaad egy listát, amelybe összegyűjti az `IEnumerable` elemeit. Ezért az `i` változónk a második esetben nem együtt inkrementálódik a bejárással, mert az kétszer történik meg. Az első bejáráskor (a `ToList` hívásakor) inkrementálódik az `i` értéke, másodjára pedig már csak bejárjuk a kapott listát. Eddigre az `i` értéke már meg van növelve.
 
 Ezzel a megközelítéssel futásidőben is állíthatunk össze egy időben változó lekérdezést, amit majd egyszer, a későbbiekben fogunk bejárni (pl. sorosításkor).
+
+== Dispose minta
+
+A Dispose minta az erőforrás-felszabadítás megfelelő megvalósításához készült. Hasonló elv mentén üzemel, mint a destruktor, viszont a minta nem feltétlenül kötött az objektum életciklusának elejéhez és végéhez. Amennyiben egy objektum megvalósítja az `IDisposable` interfészt, van `Dispose` metódusa. A metódus meghívásával az objektum által használt, nem a keretrendszer által menedzselt erőforrásokat szabadítjuk fel. Nem csak memóriafoglalásra kell gondolni, hanem lehetnek nyitott fájlrendszeri handle-ök, adatkapcsolatok, stream-ek, vagy üzleti erőforrások, tranzakciók.
+
+Mérjük meg az első 50 Fibonacci szám kiszámítását (a mesterséges késleltetéssel):
+
+[source,csharp]
+----
+static void Main(string[] args)
+{
+    var sw = Stopwatch.StartNew();
+    foreach (var n in Enumerable.Range(1, 50))
+    {
+        Console.WriteLine($"{n}: {Fibonacci(n)}");
+    }
+    sw.Stop();
+    Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
+    Console.ReadKey();
+}
+----
+
+Ez így jó, működik, viszont nem újrahasznosítható ez az időmérési mechanizmus.
+
+Készítsünk egy saját időmérő osztályt `StopwatchWrapper` néven, ami a `Stopwatch` használatát egyszerűsíti a Dispose mintán keresztül.
+
+[source,csharp]
+----
+public class StopwatchWrapper : IDisposable
+{
+    public Stopwatch Stopwatch { get; } // using System.Diagnostics
+
+    public string Title { get; }
+
+    public StopwatchWrapper(string title = null)
+    {
+        Title = title ?? Guid.NewGuid().ToString();
+        Console.WriteLine($"Task {title} starting at {DateTime.Now}.");
+        Stopwatch = Stopwatch.StartNew();
+    }
+}
+----
+
+Ha kérjük a villanykörte segítségét az `IDisposable`-ön, akkor 2x2 lehetőségünk van: megvalósítjuk az interfészt implicit vagy explicit, illetve megvalósítjuk-e az interfészt a Dispose mintát alkalmazva. Valósítsuk meg implicit a Dispose mintát!
+
+image::images/csharp4-dispose.png[Dispose minta implementálása IntelliSense segítségével]
+
+Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy nem menedzselt kód esetén az erőforrásokat szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén adott helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizmust!
+
+[source,csharp]
+----
+/**/protected virtual void Dispose(bool disposing)
+/**/{
+/**/    if (!disposedValue)
+/**/    {
+/**/        if (disposing)
+/**/        {
+                Stopwatch.Stop();
+                Console.WriteLine(
+                    $"Task {Title} completed in { Stopwatch.ElapsedMilliseconds} ms "+
+                    $"at { DateTime.Now}");
+/**/        }
+/**/        disposedValue = true;
+/**/    }
+/**/}
+----
+
+Az `IDisposable` interfészt megvalósító elemekkel használhatjuk a `using` konstrukciót:
+
+[source,csharp]
+----
+/**/static void Main(string[] args)
+/**/{
+        using (new StopwatchWrapper("Fib 1-50"))
+        {
+            foreach (var n in Enumerable.Range(1, 50))
+            {
+                Console.WriteLine($"{n}: {Fibonacci(n)}");
+            }
+        }    
+/**/Console.ReadKey();
+/**/}
+----
+
+Tehát a `using` használatával a blokk elejét és végét tudjuk kezelni. Gyakorlatilag egy `try-finally`-val ekvivalens a minta, a `finally`-ben meghívódik a `Dispose` metódus.
+
+Vegyíthetjük ezt a változó kiemelésével is, de előbb készítsünk egy segédfüggvényt a `StopwatchWrapper`-be:
+
+[source,csharp]
+----
+public void Snapshot(string text) =>
+    Console.WriteLine(
+        $"Task {Title} snapshot {text}: {Stopwatch.ElapsedMilliseconds} ms"
+    );
+----
+
+[source,csharp]
+----
+/**/using (
+    var sw =
+/**/      new StopwatchWrapper("Fib 0-50"))
+/**/{
+/**/    foreach (var n in Enumerable.Range(1, 50))
+/**/    {
+            sw.Snapshot(n.ToString());
+/**/        Console.WriteLine($"{n}: {Fibonacci(n)}");
+/**/    }
+/**/}
+----
 
 == Enumerátorok
 

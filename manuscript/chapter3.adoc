@@ -1,3 +1,4 @@
+[#csharp3]
 = LINQ
 
 == Előkészítés
@@ -142,7 +143,7 @@ Hozzunk létre egy _EnumerableExtensions_ (I betű nélkül, az ugyanis interfé
 public static class EnumerableExtensions
 {
     public static int Sum<T> (this IEnumerable<T>  source,
-                                  Func<T>  sumSelector)
+                                  Func<T, int>  sumSelector)
     {
         var result = 0;
         foreach (var elem in source)
