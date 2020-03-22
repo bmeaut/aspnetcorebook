@@ -12,6 +12,8 @@ Megnyitás után tekintsük át a kiinduló projektben levő fájlokat:
 * *Extensions/StringExtensions.cs*: ez az osztály tartalmazza a korábban írt bővítő metódusunkat, a `TrimPad`-et, kicsit átalakítva.
 * *dogs.csv*: egy pontosvesszővel tagolt „adatbázis`", amelyben 100 darab előre felvett kutya adata található.
 
+TIP:  A laborhoz tartozó snippet fájl: cs3.md
+
 == Lambda kifejezések, delegátok
 
 Gyakori feladat, hogy objektumok kollekciójával kell dolgoznunk. Képesek vagyunk olyan jellegű segédfüggvényeket készíteni, amik például egy kollekcióban kikeresik az összes olyan elemet, amely egy megadott feltételnek eleget tesz.

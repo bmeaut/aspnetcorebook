@@ -60,7 +60,7 @@ A kóddarabkák lelőhelye: https://github.com/bmeaut/dotnet
 
 == Kódrészletek változáskövetése
 
-Az egyes gyakorlatok során gyakori eset, hogy a C# kód egy részét továbbfejlesztjük, megváltoztatjuk. Ilyen esetben a nem változó sorokat üres kommenttel (`/**/`) kezdődnek, míg az előző verzióhoz képest kikerülő kódrészletek kommentként jelennek meg. Ha egyik előbbi jelölés sincs, akkor az új kódrészletnek számít.
+Az egyes gyakorlatok során gyakori eset, hogy a C# kód egy részét továbbfejlesztjük, megváltoztatjuk. Ilyen esetben a nem változó sorokat üres kommenttel (`/**/`) kezdődnek, míg az előző verzióhoz képest kikerülő kódrészletek kommentként jelennek meg. Ha egyik előbbi jelölés sincs, és egyéb komment sem jelzi másként, akkor az új kódrészletnek számít.
 
 [source,csharp]
 ----
@@ -72,3 +72,5 @@ Az egyes gyakorlatok során gyakori eset, hogy a C# kód egy részét továbbfej
     /* Console.*/WriteLine(dog); //ez a sor megváltozott, az elejéről kód törlődött
     /* Console.*/ReadLine();     //ez a sor megváltozott, az elejéről kód törlődött
 ----
+
+WARNING: A JSON formátum alapértelmezésben nem támogatja a kommenteket, így ha JSON kódrészletet másolunk, győződjünk meg arról, hogy nem maradt-e a beillesztett kódban komment.

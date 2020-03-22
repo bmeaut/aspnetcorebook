@@ -17,4 +17,6 @@ include::chapter3.adoc[]
 
 include::chapter4.adoc[]
 
+include::chapter5.adoc[]
+
 ifndef::ebook-format[:leveloffset: -1]

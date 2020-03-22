@@ -1,6 +1,10 @@
 [#csharp4]
 = C# alapok III.
 
+Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesvágott jelleggel.
+
+TIP:  A laborhoz tartozó snippet fájl: cs4.md
+
 == Tuple nyelvi szinten, lokális függvények
 
 Készítsünk Fibonacci számsor kiszámolására alkalmas függvényt, ahol használjunk ki az alábbi két új nyelvi elemet. Természetesen nagyon sok féleképpen meg lehetne valósítani ezt a metódust, de most kifejezetten a _tuple_-ök nyelvi támogatását és lokális függvényeket szeretnénk demonstrálni.
@@ -85,7 +89,7 @@ public static async Task LoadWebPageAsync()
 
 Várjuk be az szinkron művelet végét a `Main` függvényben. Ehhez viszont a `Main` függvénynek is async-nak kell lennie. Ez csak a C# 7.1 óta támogatott.
 
-TIP: A Visual Studio 2019-ben a nyelv alapértelmezett verzióját a projekt futtatókörnyzete határozza meg. Ha ez az alapértelmezett verzió nem megfelelő, akkor például a projektfájlban tudjuk átírni - bizonyos korlátok között. Bővebben https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/configure-language-version[itt].
+TIP: A Visual Studio 2019-ben a nyelv alapértelmezett verzióját a projekt futtatókörnyezete határozza meg. Ha ez az alapértelmezett verzió nem megfelelő, akkor például a projektfájlban tudjuk átírni - bizonyos korlátok között. Bővebben https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/configure-language-version[itt].
 
 [source,csharp]
 ----
@@ -98,7 +102,7 @@ static async Task Main(string[] args)
 }
 ----
 
-Figyeljük meg, hogy így már az „Ez a vége`" felirat már a letöltés után jelenik meg.
+Figyeljük meg, hogy így már az _Ez a vége_ felirat már a letöltés után jelenik meg.
 
 TIP:  Az `async Main` háttere: a fordító egy saját (nem `async`-os) `Main`-t generál, ez lesz az igazi belépési pont. Annyit csinál, hogy áthív és bevárja a mi `Main`-ünket.
 
@@ -136,15 +140,151 @@ A `return` valójában ezen `Task` eredményét állítja be `async` metódusok 
 
 Korábban láttuk, hogy hogyan lehet egy érték típusnak null értéket adni (`Nullable<T>`). Az érem másik oldala a C# 8-ban megjelent nem nullozható referencia típusok. Mivel itt nem egy új típust vezettek be, hanem az eddig megszokott típusneveket értelmezi máshogyan a fordító, így ez a képesség alapból nincs bekapcsolva.
 
-A bekapcsoláshoz a projektfájlban kell egy új beállítást felvenni a ProprtyGroup címkén belül.
+Vegyünk fel egy másik C# konzolos projektet a solutionünkbe. A projekt szintű bekapcsoláshoz a projektfájlban kell egy új beállítást felvennünk a _ProprtyGroup_ címkén belül.
 
 [source,xml]
 ----
 <Nullable>enable</Nullable>
 ----
 
-TIP: Ezen kívül még annotációkkal is szabályozhatjuk a működést.
+TIP: Ezen kívül még https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references#nullable-contexts[preprocessor direktívákkal] is szabályozhatjuk a működést.
 
+Induljunk ki egy egyszerű személyeket nyilvántartó adatosztályból, ahol elhatározzuk, hogy a középső név kivételével a többi névdarab nem nullozható szöveg lesz. 
+
+TIP: Az egyes kódrészletek kóddarabkaként is elérhetőek.
+
+[source,csharp]
+----
+class Person
+{
+    string FirstName;   // Not null
+    string? MiddleName; // May be null
+    string LastName;    // Not null
+}
+----
+
+Ez máris számos figyelmeztetést generál. A nem nullozható referencia típusok bekapcsolásával alapesetben nem hibák csak új figyelmeztetések generálódnak. A vezetéknév és keresztnév adatoknak nem szabadna `null` értékűnek lennie (a sima `string` típus nem nullozható típust jelent), viszont így az alapérték nem egyértelmű, explicit inicializálnunk kellene.
+
+Fontos megértenünk, hogy a string típus fizikailag továbbra is lehet null értékű, mindössze a fordító számára jelezzük, hogy szándékunk szerint sohasem szabadna `null` értéket felvennie. A fordító cserébe figyelmeztet, ha ezt megsértő kódot detektál.
+
+Az egyik legkézenfekvőbb megoldás (az inline inicializáció mellett), ha konstruktorban inicializálunk konstruktorparaméter alapján. Adjunk konstruktort a típusnak:
+
+[source,csharp]
+----
+public Person(string fname, string lname, string? mname)
+{
+    FirstName = fname;
+    LastName = lname;
+    MiddleName = mname;
+}
+----
+
+Ezzel meg is oldottunk minden figyelmeztetést.
+
+WARNING: Ha biztosan látni akarjuk az összes figyelmeztetést, akkor sima Build művelet helyett használjuk a Rebuild-et.
+
+WARNING: Sajnos a kötelezően konstruktoron keresztüli inicializáció nem mindig működik, például a sorosítók általában nem szeretik, ha nincs alapértelmezett konstruktor.
+
+Mennyire okos a fordító a `null` érték detektálásában? Nézzünk pár példát! Az alábbi statikus függvényt tegyük bele a Person osztályunkba.
+
+[source,csharp]
+----
+static void M(string? ns)
+{
+    WriteLine(ns.Length);        //<1>
+    if (ns != null)
+    {
+        WriteLine(ns.Length);    //<2>
+    }
+    if (ns == null)
+    {
+        return;
+    }
+    WriteLine(ns.Length);        //<3>
+    ns = null;
+    WriteLine(ns.Length);        //<4>
+    string s = default(string);  //<5>
+    string[] a = new string[10]; //<6>
+}
+----
+<1> Figyelmeztetés lehetséges `null` értékre, mert a típusa szerint nullozható.
+<2> Ha egy egyszerű `if`-fel levizsgáljuk, akkor máris ok. Pedig pl. többszálú környezetben az `if` kiértékelése és ezen sor végrehajtása között a változó akár `null` értékre is beíródhat.
+<3> Az előtte lévő rövidzár is megnyugtatja a fordítót, így itt sincs figyelmeztetés.
+<4> Ezt az előző sor alapján figyelmeztetéssel jutalmazza.
+<5> Ez is figyelmeztetés, a `default` által adott értékkel nem inicializálhatunk.
+<6> Ez viszont nem figyelmeztetés, pedig egy csomó `null` jön létre. Ha ez figyelmeztetés lenne, az aránytalanul megnehezítené a tömbök kezelését.
+
+Látható, hogy az egyszerűbb eseteket jól kezeli a fordító, de korántsem mindenható, illetve nem mindig szól akkor sem, amikor egyébként szólhatna.
+
+A további példákhoz vegyünk fel pár segédfüggvényt a `Person` osztályba:
+
+[source,csharp]
+----
+private Person GetAnotherPerson()
+{
+    return new Person(LastName, FirstName, MiddleName ?? string.Empty);
+}
+
+private void ResetFields()
+{
+    FirstName = default!;
+    LastName = null!;
+    MiddleName = null;
+}
+----
+
+Látható, hogy vannak megkerülő megoldások arra, hogy ráerőszakoljuk a fordítóra az akaratunkat, a felkiáltójel használatával beírhatunk `null` értékeket nem nullozható változókba. Illetve `string` esetén null helyett használhatjuk az üres `string` értéket - ami nem biztos, hogy sokkal jobb a `null` értéknél. Mindenesetre ezek a függvények nem okoznak újabb figyelmeztetéseket.
+
+Nézzük meg, hogy mennyire tudja lekövetni a fenti függvények működését a fordító. Vegyünk fel ennek tesztelésére egy újabb függvényt a `Person` osztályba:
+
+[source,csharp]
+----
+void M(Person p)
+{
+    if (p.MiddleName != null)
+    {
+        p.ResetFields();
+        WriteLine(p.MiddleName.Length); //<1>
+
+        p = GetAnotherPerson();
+        WriteLine(p.MiddleName.Length); //<2>
+    }
+    p.FirstName = null;          //<3>
+    p.LastName = p.MiddleName;   //<4>
+}
+----
+<1> A fordító nem követi le, hogy a `ResetFields` veszélyes módon változtatja az állapotot, csak azt nézi, hogy az `if` már kivédte a veszélyt.
+<2> Ez egy fals pozitívnak tűnő eset, az előző sorban lévő függvény alapján a `p.MiddleName` nem lehetne `null`, de a fordító csak azt figyeli, hogy a beburkoló `if` ellenőrzése a `p` megváltozása miatt már nem érvényes.
+<3> Egyértelmű figyelmeztetés.
+<4> Jár a figyelmeztetés, mert nem kezeljük a `p.MiddleName == null` esetet.
+
+Struktúratagok esetén is a fals negatív eset jön elő. Próbáljuk ki, akár a `Person` osztályba írva:
+
+[source,csharp]
+----
+struct PersonHandle
+{
+    public Person person;
+}
+----
+
+Nem kapunk figyelmeztetést.
+
+A felkiáltójeles ráerőszakolást a `ResetFields`-ben látható ámokfutás helyett inkább a fals pozitív esetek kezelésére használjuk. Javítsuk ki a `GetAnotherPerson` hívás miatti fals pozitív esetet az `M(Person)` függvényben:
+
+[source,csharp]
+----
+/**/p = GetAnotherPerson();
+    WriteLine(p.MiddleName!.Length); //bekerült egy '!'
+----
+
+Figyeljük meg, ahogy a figyelmeztetés eltűnik.
+
+Ha igazán elkötelezettek vagyunk a `null` kiirtása mellett, akkor bekapcsolhatjuk, hogy minden, a `null` kezelés miatti, fordító által detektált figyelmeztetés legyen hiba. A projekt beállítási között (a projekten jobbklikk → Properties), a _Build_ lapon kapcsoljuk be a _Treat warnings as errors_ részen a _Specific warnings_ opciót, majd az opciónak adjuk meg a `nullable` értéket.
+
+Ellenőrizzük, hogy tényleg hibaként jelennek-e meg az eddigi `null` kezelés miatti figyelmeztetések.
+
+Mivel ez csak egy példakód, ne javítsuk ki a hibákat, csak távolítsuk el a projektet a solutionből (a projekten jobbklikk → Remove).
 
 == Bejárási problémák
 
@@ -322,44 +462,3 @@ public void Snapshot(string text) =>
 /**/}
 ----
 
-== Enumerátorok
-
-Készítsünk egy olyan enumerátort, ami véletlen sorrendben adja vissza az elemeket a bejárás során!
-
-[source,csharp]
-----
-public class RandomOrderedList<T>  : IEnumerable<T>
-{
-    public RandomOrderedList(IList<T>  source) => Source = source;
-    private IList<T>  Source { get; }
-    public IEnumerator<T> GetEnumerator() => new RandomEnumerator<T>(Source);
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}
-
-public class RandomEnumerator<T>  : IEnumerator<T> 
-{
-    private IList<T> Source { get; }
-    private int[] indexes;
-    private int currentIndex;
-    public RandomEnumerator(IList<T>  source)
-    {
-        Source = source;
-        Reset();
-    }
-    public T Current => Source[indexes[currentIndex]];
-    object IEnumerator.Current => Current;
-    public void Dispose() { }
-    public bool MoveNext() => ++currentIndex < Source.Count;
-    public void Reset() => indexes =
-                        Enumerable.Range(currentIndex = 0, Source.Count)
-                        .OrderBy(i => Guid.NewGuid()).ToArray();
-}
-----
-
-Így használhatjuk:
-
-[source,csharp]
-----
-foreach (var elem in new RandomOrderedList<int> (Enumerable.Range(0, 100).ToList()))
-    Console.WriteLine(elem);
-----
