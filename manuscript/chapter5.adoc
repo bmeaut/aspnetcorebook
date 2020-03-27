@@ -78,7 +78,7 @@ A másik lehetőség, ha közvetlenül a konzolos alkalmazást szeretnénk futta
 
 Két dolog is történik: az alkalmazásunk konzolos alkalmazásként kezd futni, illetve az előző esethez hasonlóan a böngésző is elindul. Figyeljük meg a konzolban megjelenő naplóüzeneteket.
 
-TIP: Bár ezek a hosztolási opciók fejlesztői környezetben nagyon kényelmesek, érdemes áttekinteni az éles hosztolási opciókat https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/?view=aspnetcore-3.1 [itt]. A Kestrel ugyan jelenleg már alkalmas arra, hogy kipublikáljuk közvetlenül a világhálóra, de mivel nem rendelkezik túl bő konfigurációs és biztonsági beállításokkal, így érdemes lehet egy fejlettebb webszervert a Kestrel elé rakni proxy gyanánt, például az IIS-t vagy nginx-et.
+TIP: Bár ezek a hosztolási opciók fejlesztői környezetben nagyon kényelmesek, érdemes áttekinteni az éles hosztolási opciókat https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/?view=aspnetcore-3.1[itt]. A Kestrel ugyan jelenleg már alkalmas arra, hogy kipublikáljuk közvetlenül a világhálóra, de mivel nem rendelkezik túl bő konfigurációs és biztonsági beállításokkal, így érdemes lehet egy fejlettebb webszervert a Kestrel elé rakni proxy gyanánt, például az IIS-t vagy nginx-et.
 
 Rakjunk most az utolsó middleware-ünkbe egy kivétel dobást a kiírás helyett, hogy kipróbáljuk a hibakezelő MW-t.
 

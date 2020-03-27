@@ -1,4 +1,4 @@
 #!/bin/bash
-asciidoctor Book.adoc
-asciidoctor-pdf Book.adoc
-asciidoctor-epub3 -a ebook-format=kf8 Book.adoc
+asciidoctor AspNetCoreHun.adoc
+asciidoctor-pdf AspNetCoreHun.adoc
+asciidoctor-epub3 -a ebook-format=kf8 AspNetCoreHun.adoc

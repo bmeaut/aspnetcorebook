@@ -296,20 +296,12 @@ Szűrjünk le egy szám-szám szótárat csak azokra az elemekre, amik megfeleln
 
 [source,csharp]
 ----
-var numbers = new Dictionary<int, int> 
-{
-    [1] = 5,
-    [2] = 4,
-    [3] = 3,
-    [4] = 2,
-    [5] = 1
-};
-
+var numbers = Enumerable.Range(1, 8).ToList();
 foreach (var p in numbers)
 {
-    if (p.Value % 2 == 0)
+    if (p % 2 == 0)
     {
-        numbers.Remove(p.Key);
+        numbers.Remove(p);
     }
 }
 ----
@@ -318,10 +310,12 @@ Kivételt kapunk, mi a probléma? A kollekciót bejárás közben szerettük vol
 
 [source,csharp]
 ----
-foreach (var p in numbers.ToList())
+foreach (var p in numbers.ToList()) // a ToList bekerült
 ----
 
-Ez megoldja a problémát, sikerül eltávolítani az elemeket a kollekcióból. De miért? A `ToList` `IEnumerable` bővítő, tehát bejárhatja a kollekciót, ezután pedig egy másik `List<>` objektumban tárolja az elemeket.
+Ez megoldja a problémát, sikerül eltávolítani az elemeket a kollekcióból. De miért? A `ToList` `IEnumerable` bővítő, tehát bejárhatja a kollekciót, ezután pedig egy **másik ** `List<>` objektumban tárolja az elemeket. Így tehát két listánk lesz (a `numbers` és a `numbers.ToList` visszatérési értéke), amik kezdetben egymás klónjai, menet közben az egyikből veszünk ki, a másikon pedig iterálunk.
+
+TIP: bár a fenti az általános szabály, bizonyos kollekciók bizonyos módosító műveletei mégsem dobnak kivételt, ilyen például .NET Core 3.0 óta a `Dictionary<,>` `Remove` és `Clear` műveletei.
 
 === Azonnali és késleltetett kiértékelés
 
@@ -331,7 +325,7 @@ Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<T>` visszat�
 ----
 var i = 0;
 foreach (var n in numbers
-                    .Where(p => p.Value > 2)
+                    .Where(p => p > 2)
                     .Select(p => new { p, x = ++i }))
 {
     Console.WriteLine($"{n} - {i}");
@@ -341,7 +335,7 @@ Console.WriteLine();
 
 i = 0;
 foreach (var n in numbers
-                    .Where(p => p.Value > 2)
+                    .Where(p => p > 2)
                     .Select(p => new { p, x = ++i })
                     .ToList())
 {
