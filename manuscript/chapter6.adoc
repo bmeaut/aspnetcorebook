@@ -125,7 +125,7 @@ Fordítás után adjuk ki az `Update-Database` parancsot, amivel egy adott migr�
 Update-Database Init
 ----
 
-WARNING: bizonyos LocalDB verzióknál hibára futhat az adatbázislétrehozás (_CREATE FILE encountered operating system error 5(Access is denied.)_), mert rossz helyen próbálja létrehozni az adatbázisfájlt. Ilyenkor az SQL Server Object Explorer ablakban bontsuk ki a LocalDB példányunk, alatta a _Databases_ mappán jobbklikk → _Add New Database_. A megjelenő ablakban adjuk meg névként ugyanazt az adatbázisnevet, amit korábban a connection string-ben a master helyett megadtunk.
+WARNING: Bizonyos LocalDB verzióknál hibára futhat az adatbázislétrehozás (_CREATE FILE encountered operating system error 5(Access is denied.)_), mert rossz helyen próbálja létrehozni az adatbázisfájlt. Ilyenkor az SQL Server Object Explorer ablakban bontsuk ki a LocalDB példányunk, alatta a _Databases_ mappán jobbklikk → _Add New Database_. A megjelenő ablakban adjuk meg névként ugyanazt az adatbázisnevet, amit korábban a connection string-ben a master helyett megadtunk.
 
 Ellenőrizzük le az adatbázis sémáját az _SQL Server Object Explorer_ ablakban. Mutassuk meg, hogy pusztán konvenciók alapján milyen tulajdonságokat talált ki az EF.
 
@@ -174,6 +174,8 @@ Update-Database CategoryName_ProductTableName
 ----
 
 TIP: Természetesen mivel még nincsenek adataink az adatbázisban akár el is dobhatnánk az adatbázist és újra legenerálhatnánk nulláról a sémát, de most kifejezetten a migrációt szeretnénk gyakorolni. Az `Add-Migration` kimenete figyelmeztet, hogy adatvesztés is történhet. Vannak veszélyes migrációs műveletek, ezért érdemes átnézni a generálódó migrációs kódot.
+
+WARNING: Ha valamilyen okból nem megfelelő a migrációnk, ne töröljük kézzel a generált .cs fájlokat. Használjuk helyette a `Remove-Migration` parancsot (mindenfajta paraméter nélkül), ami a legutóbbi migrációt törli.
 
 Nézzük meg milyen migrációs osztályt generáltunk, és hogy ez milyen utasításokat tartalmaz.
 
@@ -371,11 +373,11 @@ var q = from p in ctx.Products
 
 Ez működik, de a konzolon megjelenő SQL utasításon látszik, hogy a **teljes** termék táblát lekérdeztük és felolvastuk a memóriába. Az `AsEnumerable` jelentése: a lekérdezés innentől LINQ-to-Objects-ként épül tovább, a lekérdezés eddigi része memóriabeli reprezentációja lesz az adatforrás, tehát a szűrés és a projekció már memóriában fut le. Mivel a teljes lekérdezés egy része LINQ-to-Entities (adatbázis értékeli ki), a másik része LINQ-to-Objects (a .NET runtime értékeli ki), így az ilyen lekérdezéseket ún. vegyes kiértékelésűnek (_mixed evaluation_), a LINQ-to-Objects részt kliensoldali kiértékelésűnek (_client evaluation_) nevezik.
 
-TIP: érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12], vagy jobbklikk _Go To Definition_) a két változatnál. Az első esetben `IQueryable` az adatforrás és `Expression` a feltétel, a másodiknál `IEnumerable` az adatforrás és sima delegate a feltétel.
+TIP: Érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12], vagy jobbklikk _Go To Definition_) a két változatnál. Az első esetben `IQueryable` az adatforrás és `Expression` a feltétel, a másodiknál `IEnumerable` az adatforrás és sima delegate a feltétel.
 
 WARNING: Különösen fontos, hogy lehetőleg minden EF lekérdezésünket ellenőrizzük le, hogy minden része ott fut-e le (adatbázisban vagy memóriában), ahol számítunk rá.
 
-TIP: másik lehetőség, ha ilyenbe ütközünk, hogy a lekérdezést megpróbáljuk úgy átírni, hogy minél nagyobb része lefuttatható legyen adatbázisban. Ez a konkrét példában egyszerű, csak vissza kell írni az első változatot.
+TIP: Másik lehetőség, ha ilyenbe ütközünk, hogy a lekérdezést megpróbáljuk úgy átírni, hogy minél nagyobb része lefuttatható legyen adatbázisban. Ez a konkrét példában egyszerű, csak vissza kell írni az első változatot.
 
 == Lekérdezések összefűzése és címkézése
 
@@ -407,7 +409,9 @@ Próbáljuk ki, `var q =` helyett `IEnumerable<Product> q=`-val is, ilyenkor nem
 
 Próbáljuk ki, `var q` = helyett `IQueryable<Product> q=` -val is, ilyenkor megint összefűzi a lekérdezést.
 
-WARNING: Nem lehet elégszer hangsúlyozni az `IQueryable` és az `IEnumerable` közti különbségeket. Az `IQueryable` kifejezések SQL-é fordulnak (amikor letudnak), míg az IEnumerable-en végzett műveletek minden esetben memóriában hajtódnak végre.
+TIP: Itt is érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12], vagy jobbklikk _Go To Definition_) a két lekérdezésrészben.
+
+WARNING: Nem lehet elégszer hangsúlyozni az `IQueryable` és az `IEnumerable` közti különbségeket. Az `IQueryable` kifejezések SQL-é fordulnak (amikor le tudnak), míg az IEnumerable-en végzett műveletek minden esetben memóriában hajtódnak végre.
 
 TIP: Ha nem akarunk véletlenül memóriabeli kiértékelésre váltani, az implicit típus (`var`) alkalmazása jó szolgálatot tehet.
 
@@ -453,40 +457,32 @@ Figyeljük meg, hogy a fenti lekérdezésben a kategória navigációs property 
 
 [source,csharp]
 ----
-using Microsoft.EntityFrameworkCore;
-
-var products = ctx.Products
-        //leanpub-start-insert
-            .Include(p => p.Category);
-        //leanpub-end-insert
+/**/var products = ctx.Products
+                    .Include(p => p.Category);
 ----
 
 Ismét figyeljük, hogy mikor mi fut le az adatbázisszerveren: ez egy `JOIN` segítségével egy füst alatt beránt minden adatot mindkét táblából.
 
-Ha a kapcsolódó `Order` listát is szeretnénk kitöltetni, akkor ott egyrészt a `ProductOrders` listát is be kell `Include`-olni, másrészt pedig még egy szinttel lejjebb a `ProductOrder` `Order` tulajdonságát is ki be kell töltetni. Az ilyen többszintes hivatkozást az `Include` és `ThenInclude` használatával lehet elérni:
+Ha a kapcsolódó `Order` listát is szeretnénk kitöltetni, akkor ott egyrészt a `ProductOrders` listát is be kell `Include`-olni, másrészt pedig még egy kapcsolattal továbbmenve a `ProductOrder` `Order` tulajdonságát is be kell töltetni. Az ilyen többszintes hivatkozást az `Include` és `ThenInclude` használatával lehet elérni:
 
 [source,csharp]
 ----
-var products = ctx.Products
-    .Include(p => p.Category)
-    .Include(p => p.ProductOrders)
-    //leanpub-start-insert
+/**/var products = ctx.Products
+/**/    .Include(p => p.Category)
+        .Include(p => p.ProductOrders)   
         .ThenInclude(po => po.Order);
-    //leanpub-end-insert
 
-foreach (var p in products)
-{
-    Console.WriteLine($"{p.Name} ({p.Category.Name})");
-    //leanpub-start-insert
-    foreach (var po in p.ProductOrders)
-    {
-        Console.WriteLine($"\tRendelés: {po.Order.OrderDate}");
-    }
-    //leanpub-end-insert
-}
+/**/foreach (var p in products)
+/**/{
+/**/    Console.WriteLine($"{p.Name} ({p.Category.Name})");
+        foreach (var po in p.ProductOrders)
+        {
+            Console.WriteLine($"\tRendelés: {po.Order.OrderDate}");
+        }
+/**/}
 ----
 
-Ha nem akarunk minden oszlopot lekérdezni az összes érintett táblából, akkor a select részt úgy is megírhatjuk, hogy csak a szükséges adatokat kérdezze le, ez az ún. _query result shaping_.
+Ha nem akarunk minden oszlopot lekérdezni az összes érintett táblából, akkor a projekciós (`select`) részt úgy is megírhatjuk, hogy csak a szükséges adatokat kérdezze le, ez az ún. _query result shaping_.
 
 [source,csharp]
 ----
@@ -554,18 +550,17 @@ modelBuilder.Entity<Order>()
     .OnDelete(DeleteBehavior.Restrict);
 ----
 
-A törölt `Order`-t és a szükséges kapcsoló rekordokat vegyük fel migráció által beszúrt adatként.
+A törölt `Order`-t és a szükséges kapcsoló rekordokat vegyük fel migráció által beszúrt adatként. Az `OnModelCreating` végére:
 
 [source,csharp]
 ----
-//kóddarabka
 modelBuilder.Entity<Order>().HasData(
      new Order {Id = 1, OrderDate = new DateTime(2019, 02, 01)}
 );
 
 modelBuilder.Entity<ProductOrder>().HasData(
     new ProductOrder { Id = 1, OrderId = 1, ProductId = 1},
-    new ProductOrder { Id = 2, OrderId = 1, ProductId = 2 }
+    new ProductOrder { Id = 2, OrderId = 1, ProductId = 2}
 );
 ----
 
@@ -580,7 +575,7 @@ Update-Database
 
 Szúrjuk be újra a megrendelést, majd próbáljuk meg újra törölni azt. A törlés során kivételt kapunk, mivel a `ProductOrder` rekord nem törlődött kaszkád módon, így az egy már nem létező `Order`-re hivatkozik, viszont ez a külső kulcs kényszert megsérti. Emiatt az egész törlési művelet meghiúsul.
 
-T> Adatkezelő alkalmazásokban az adatbázisbeli törlés (SQL `DELETE` utasítás) helyett inkább logikai törlést alkalmaznak. A logikai törlés megvalósításával ezen gyakorlat keretében nem foglalkozunk.
+TIP: Adatkezelő alkalmazásokban az adatbázisbeli törlés (SQL `DELETE` utasítás) helyett gyakran inkább logikai törlést alkalmaznak. A logikai törlés megvalósításával ezen gyakorlat keretében nem foglalkozunk.
 
 == Egyéb funkciók
 
@@ -590,7 +585,6 @@ Az EF alapértelmezetten képes a felsorolt típusokat is leképezni. Hozzunk l�
 
 [source,csharp]
 ----
-//kóddarabka
 [Flags]
 public enum ShipmentRegion
 {
@@ -614,30 +608,25 @@ Módosítsuk és bővítsük a kezdeti `Product`-ok listáját szállítási inf
 
 [source,csharp]
 ----
-//kóddarabka
-modelBuilder.Entity<Product>().HasData(
-    new Product
-    {
-         Id =1, Name = "Sör", UnitPrice = 50, CategoryId = 1,
-        //leanpub-start-insert
-         ShipmentRegion = ShipmentRegion.Asia
-        //leanpub-end-insert
-    },
-    new Product { Id=2, Name = "Bor", UnitPrice = 550, CategoryId = 1 },
-    new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 },
-    //leanpub-start-insert
-    new Product
-    {
-        Id = 4, Name = "Whiskey", UnitPrice = 960, CategoryId = 1,
-        ShipmentRegion = ShipmentRegion.Australia
-    },
-    new Product
-    {
-        Id = 5, Name = "Whiskey", UnitPrice = 960, CategoryId = 1,
-        ShipmentRegion = ShipmentRegion.EU | ShipmentRegion.NorthAmerica
-    }
-     //leanpub-end-insert
-  );
+/**/modelBuilder.Entity<Product>().HasData(
+/**/    new Product
+/**/    {
+/**/         Id =1, Name = "Sör", UnitPrice = 50, CategoryId = 1,
+             ShipmentRegion = ShipmentRegion.Asia
+/**/    },
+/**/    new Product { Id=2, Name = "Bor", UnitPrice = 550, CategoryId = 1 },
+/**/    new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 },
+        new Product
+        {
+            Id = 4, Name = "Whiskey", UnitPrice = 960, CategoryId = 1,
+            ShipmentRegion = ShipmentRegion.Australia
+        },
+        new Product
+        {
+            Id = 5, Name = "Rum", UnitPrice = 960, CategoryId = 1,
+            ShipmentRegion = ShipmentRegion.EU | ShipmentRegion.NorthAmerica
+        }
+/**/  );
 ----
 
 Figyeljük meg a generált migrációban, hogy milyen ügyesen lekezeli az EF a korábbi migrációban beszúrt elem (1-es `Id`) változását, módosító kódot generál hozzá.
@@ -661,13 +650,13 @@ modelBuilder
     .HasConversion(converter);
 ----
 
-T> A konvertereket érdemes lehet külön létrehozni, mert nyugodtan újrahasználhatjuk őket, nem kell mindig új példány.
+TIP: A konvertereket érdemes lehet külön létrehozni, mert nyugodtan újrahasználhatjuk őket, nem kell mindig új példány.
 
 Változott a modell, frissítsük az adatbázist.
 
 [source,powershell]
 ----
-Add-Migration ProductShipmentRegion
+Add-Migration ProductShipmentRegionAsString
 Update-Database
 ----
 
@@ -680,47 +669,48 @@ var prods = ctx.Products.ToArray();
 
 Vizsgáljuk meg a tömbben lévő termékeket debuggerrel: látható, hogy a szállítási területek megfelelő értékűek.
 
-T> Saját konvertereket is írhatunk, ha a beépítettek között nem találunk megfelelőt.
+TIP: Saját https://docs.microsoft.com/en-us/ef/core/modeling/value-conversions#the-valueconverter-class[konvertereket] is írhatunk, ha a beépítettek között nem találunk megfelelőt.
 
 === Tranzakciók
 
-Az EF az egyes SaveChanges hívásokat egy tranzakcióban futtatja (ha az adatbázis provider támogatja azt). Viszont gyakran megesik az, hogy több `SaveChanges` hívást kellene egy tranzakcióban kezelnünk. Tehát ha az egyik sikertelenül fut le, akkor a többit sem szabad érvényre juttatni.
+Az EF az egyes `SaveChanges` hívásokat egy tranzakcióban futtatja (ha az adatbázis provider támogatja azt). Viszont gyakran megesik az, hogy több `SaveChanges` hívást kellene egy tranzakcióban kezelnünk. Tehát ha az egyik sikertelenül fut le, akkor a többit sem szabad érvényre juttatni.
 
 Nézzünk példát a tranzakciókezelésre. Szúrjunk be több terméket az adatbázisba több `SaveChanges` hívással.
 
 [source,csharp]
 ----
+int cid = ctx.Categories.First().Id;
 try
-{
+{    
     using (var transaction = ctx.Database.BeginTransaction())
     {
-        ctx.Products.Add(new Product()
+        ctx.Products.Add(new Product
         {
             Name = "Coca Cola",
-            CategoryId = 1,
+            CategoryId = cid,
         });
         ctx.SaveChanges();
-        ctx.Products.Add(new Product()
+        ctx.Products.Add(new Product
         {
             Name = "Pepsi",
-            CategoryId = 2,
+            CategoryId = cid,
         });
         ctx.SaveChanges();
         transaction.Commit();
     }
 }
-catch (Exception e){}
+catch (Exception){}
 ----
 
 A tranzakciók kezdete-végével kapcsolatos események csak a debug szintű naplóban jelennek meg. Állítsuk át a naplózási szintet a `NorthwindContext.GetLoggerFactory` függvényben:
 
 [source,csharp]
 ----
-IServiceCollection serviceCollection = new ServiceCollection();
-serviceCollection.AddLogging(builder => builder.AddConsole()
-    //leanpub-start-insert
-                             .AddFilter(ll => ll == LogLevel.Debug));
-    //leanpub-end-insert
+/**/public static readonly ILoggerFactory MyLoggerFactory
+/**/    = LoggerFactory.Create(builder => 
+/**/            { builder.AddConsole()
+                    .AddFilter(ll => ll == LogLevel.Debug);
+/**/            });
 ----
 
 A tranzakción `Commit`-ot hívunk, ha sikeresen lefutott mindegyik `SaveChanges`, ha valamelyik hibára futott, akkor a using blokkból való kilépésig nem fog `Commit` hívódni. Ha bármilyen ok miatt a `Commit` nem hívódik meg, legkésőbb a using blokk vége `Rollback`-el *lezárja a tranzakciót*.
@@ -731,13 +721,23 @@ Teszteljük a hibás ágat is azáltal, hogy a második terméket egy nem létez
 
 [source,csharp]
 ----
-ctx.Products.Add(new Product()
-{
-    Name = "Rum",
-    //leanpub-start-insert
-    CategoryId = 100,
-    //leanpub-end-insert
-});
+/**/using (var transaction = ctx.Database.BeginTransaction())
+/**/{
+/**/    ctx.Products.Add(new Product
+/**/    {
+            Name = "Cider", //a név megváltozott
+/**/        CategoryId = cid,
+/**/    });
+/**/    ctx.SaveChanges();
+/**/    ctx.Products.Add(new Product
+/**/    {
+            Name = "Kőműves KUBU", //a név megváltozott
+            CategoryId = 100,      //nem létező kategória azonosítóra változott
+/**/    });
+/**/    ctx.SaveChanges();
+/**/    transaction.Commit();
+/**/}
+
 ----
 
-Figyeljük meg, hogy ilyenkor nem kerül beszúrásra az első termék sem. Megint csak figyeljük meg a konzolon a tranzakciókezeléssel kapcsolatos üzeneteket.
+Figyeljük meg, hogy ilyenkor nem kerül beszúrásra az első termék sem. Úgyszintén figyeljük meg a konzolon a tranzakciókezeléssel kapcsolatos üzeneteket.

@@ -54,7 +54,7 @@ Az IntelliSense-t demonstrálhatjuk az alábbi módon:
 * Ha a `Console.ReadLine()` helyett `Console.Readline()`-t írunk, elsőként az IDE azonnal javítja a hibát. Ha ezt a javítást visszavonjuk (Ctrl+Z), lehetőségünk van a javításra a Ctrl+. használatával: a fejlesztőeszköz észreveszi, hogy hibát vétettünk, és felkínálja a gyakori megoldásokat.
 * _Overload_-ok: jelöljük ki a `WriteLine` hívás nyitó zárójelét, és írjuk be ismét a nyitó zárójelet. Így előjön az overload-ok listája, amik közül a megfelelőt a föl/le iránybillentyűkkel választhatjuk ki. Az overload listát megnyithatjuk úgy is, hogy a zárójelben bárhova írunk egy ',' karaktert. Az overload azt jelenti, hogy ugyanazzal a függvénynévvel több, különböző szignatúrájú metódust is felvehetünk, a megfelelő függvény kiválasztása a megadott paraméterek száma és típusa alapján történik.
 
-Indítsuk el az alkalmazást! Ehhez a fent található Start lehetőséget használhatjuk, de mondjuk el, hogy ez a menü Debug → Start Debugging (F5) lehetőséggel ekvivalens.
+Indítsuk el az alkalmazást! Ehhez a fent található Start lehetőséget használhatjuk, de mondjuk el, hogy ez a menü Debug → Start Debugging (kbd:[F5]) lehetőséggel ekvivalens.
 
 Mutassuk be a `for` és `foreach` vezérlési szerkezeteket! A projekt _Properties_ oldalán (_Alt+Enter_ a projekt kijelölése után) adjunk meg a _Debug_ fülön a _Start Options_ blokknál legalább öt tetszőleges parancssori argumentumot (szóközzel elválasztva), pl. kutya alma béka banán ló.
 
