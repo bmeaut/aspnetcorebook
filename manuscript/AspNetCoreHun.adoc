@@ -1,10 +1,11 @@
 = ASP.NET Core 3 gyakorlatok
 Simon Gábor <simon.gabor@aut.bme.hu>; Szabó Gábor <szabo.gabor@aut.bme.hu>; Tóth Tibor <toth.tibor@aut.bme.hu>
-v0.5, 2020. április 4.
+v0.8, 2020. május 4.
 :doctype: book
 :source-highlighter: rouge
 :icons: font
 :experimental:
+:!figure-caption:
 
 ifndef::ebook-format[:leveloffset: 1]
 
@@ -23,5 +24,7 @@ include::chapter5.adoc[]
 include::chapter6.adoc[]
 
 include::chapter7.adoc[]
+
+include::chapter8.adoc[]
 
 ifndef::ebook-format[:leveloffset: -1]

@@ -49,14 +49,9 @@ A gyakorlatok az alábbi szoftverekből álló környezethez készültek:
  ** ASP.NET and web development
  ** Azure Development
 * https://www.telerik.com/fiddler[Telerik Fiddler]
+* https://www.postman.com/[Postman]
 
 A .NET Core széleskörű platformtámogatása miatt bizonyos nem Windows platformokon is elvégezhetők a gyakorlatok Visual Studio helyett https://code.visualstudio.com/[Visual Studio Code] használatával - azonban a gyakorlatok szövege a Visual Studio használatát feltételezi.
-
-== Kóddarabkák (snippet-ek)
-
-A gyakorlatanyagokat könnyen bemásolható kóddarabkák egészítik ki. A kóddarabkáknak a gyakorlat idejében van jelentőségük, mert könnyen és gyorsan bemásolhatók, egyéb esetben nyugodtan figyelmen kívül hagyhatjuk a rájuk történő hivatkozásokat.
-
-A kóddarabkák lelőhelye: https://github.com/bmeaut/dotnet
 
 == Kódrészletek változáskövetése
 
