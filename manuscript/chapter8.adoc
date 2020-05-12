@@ -67,7 +67,7 @@ Jelenleg csak alapszintű (nem típusos) JSON sorosítást alkalmazunk. A követ
 * a DTO-kat osztálykönyvtárba szervezzük, mindkét oldal hivatkozza - csak akkor működik, ha mindkét oldal .NET-es, ráadásul könnyen kaphat az osztálykönyvtár olyan függőséget, ami igazából csak az egyik oldalnak kell csak, így meg mindkét oldal meg fogja kapni.
 * generáltatjuk valamilyen eszközzel a szerveroldal alapján - ezt próbáljuk most ki
 
-Állítsuk be, hogy csak a szerveroldal (Api projekt induljon).
+Állítsuk be, hogy csak a szerveroldal (Api projekt) induljon.
 
 == OpenAPI/Swagger szerveroldal
 

@@ -33,7 +33,7 @@ Ezen szabványokat implementálták a fejlettebb platformokra, így ASP.NET Core
 
 ASP.NET Core-ban tipikusan az alábbi technológiákat/komponenseket alkalmazhatjuk:
 
-* https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-3.1&tabs=visual-studio[ASP.NET Core Identity]
+* https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-3.1&tabs=visual-studio[ASP.NET Core Identity] (a Shared Framework része)
 ** adatelérési és üzleti logikai réteg a felhasználói adatok kezelésére
 ** JWT Bearer token middleware, ASP.NET Core authorizációs rendszer - RP feladatokhoz
 * https://www.nuget.org/packages/Microsoft.AspNetCore.Identity.UI[Identity UI] - az Identity Core-hoz tartozó felület (ASP.NET Core Razor alapú)
@@ -113,7 +113,7 @@ WARNING: A megadandó értékek eltérhetnek, attól függően, hogy az előző 
 /*Tenant teljes neve*/
 private static string Tenant = "valami.onmicrosoft.com";
 
-/*az előbbien a végét cseréljük le b2clogin.com-ra*/
+/*az előbbinek a végét cseréljük le b2clogin.com-ra*/
 private static readonly string AzureAdB2CHostname = "valami.b2clogin.com";
 
 /*Kliensalkalmazás Application ID-je*/
@@ -128,7 +128,6 @@ public static string[] ApiScopes =
 
 /*A hívandó API végpont címe - legyen az alábbi érték*/
 public static string ApiEndpoint = "https://localhost:5001/weatherforecast";
-
 ----
 
 Egyelőre így már működnie kell a loginnak, a *Sign In* gombra kattintva regisztrálhatunk, beléphetünk, kiléphetünk. Próbáljuk ki! Az API hívás és a profilszerkesztés gombok nem működnek még.
@@ -176,7 +175,7 @@ Kipróbálhatjuk úgy is, hogy *egy próba erejéig* az `Authorize` attribútumo
 
 A kliensalkalmazás beállításainál ellenőrizzük, hogy az `ApiEndpoint` beállítás megfelelő-e. Ugyanaz az URL legyen, mint amivel az előbb teszteltünk. A szerveroldalon ellenőrizzük, hogy az `Authorize` attribútum a kontrolleren van-e.
 
-Az ASP.NET Core webszerver ma már igencsak szigorú a HTTPS kommunikáció paramétereivel kapcsolatban, ezért az `App` konstruktorban csak az újabb protokollverziókat engedélyezzük:
+Az ASP.NET Core webszerver ma már igencsak szigorú a HTTPS kommunikáció paramétereivel kapcsolatban, ezért a WPF kliens `App` konstruktorban csak az újabb protokollverziókat engedélyezzük:
 
 [source,csharp]
 ----
@@ -223,7 +222,7 @@ A kontroller-en állítsuk be, hogy csak a `DemoRead` nevű házirendet teljesí
 /**/{/**/}
 ----
 
-Próbáljuk ki! Mivel `demo.read` engedélyt mindenhol átvezettük, így változást nem tapasztalunk. Csináljunk ellenpróbát! Az Azure B2C felületen a kliensalkalmazás *API Access* menüpontjában állítsuk be, hogy a webalkalmazásunkhoz kapcsolódó `demo.read` scope-ot ne szolgáltassa a WPF kliensnek. A WPF kliensben lépjünk ki, majd újra be, végül hívjuk az API-t.Ekkor már nem kapjuk meg az eddigi választ - az eredményt megjelenítő szövegdoboz üres lesz.
+Próbáljuk ki! Mivel `demo.read` engedélyt mindenhol átvezettük, így változást nem tapasztalunk. Csináljunk ellenpróbát! Az Azure B2C felületen a kliensalkalmazás *API Access* menüpontjában állítsuk be, hogy a webalkalmazásunkhoz kapcsolódó `demo.read` scope-ot ne szolgáltassa a WPF kliensnek. A WPF kliensben lépjünk ki, majd újra be, végül hívjuk az API-t.Ekkor már nem kapjuk meg az eddigi választ - az eredményt megjelenítő szövegdoboz üres lesz. A szerveralkalmazás konzolján ellenőrizhetjük, hogy a kérés elutasításra került.
 
 WARNING: Fontos, hogy ha megkapjuk a kívánt választ (átjutottunk az ellenőrzésen), mindig teszteljünk ellenpróbával is, azaz valamilyen szükséges feltételt, házirendet sértsünk meg és nézzük meg, hogy úgy hibát (például 401-es választ) kapunk-e. Ha nem, akkor az ellenőrzői oldalon (RP) hiba van.
 
