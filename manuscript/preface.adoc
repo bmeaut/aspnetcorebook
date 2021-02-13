@@ -27,12 +27,13 @@ A szövegben megtalálhatók a gyakorlatvezetőknek szóló kitételek („Rövi
 
 == A jegyzet naprakészsége
 
-Az anyag gerincét adó .NET Core platform jelenleg igen gyors ütemben fejlődik. Az 1.0-s verzió óta a készítők törekednek a visszafelé kompatibilitásra, azonban az eszközkészlet és a korszerűnek és ajánlottnak tekinthető módszerek folyamatosan változnak, finomodnak.
+Az anyag gerincét adó .NET Core / .NET 5 platform jelenleg igen gyors ütemben fejlődik. A .NET Core 1.0-s verzió óta a készítők törekednek a visszafelé kompatibilitásra, azonban az eszközkészlet és a korszerűnek és ajánlottnak tekinthető módszerek folyamatosan változnak, finomodnak.
 
-A jegyzet az alábbi technológiai verziókhoz készült:
+A jegyzet elsődlegesen az alábbi technológiai verziókhoz készült:
 
-* C# *8.0*
-* .NET Core *3.1*
+* C# *9.0*
+* .NET *5*
+* ASP.NET Core *5*
 * Visual Studio *2019*
 
 Ahogyan a fenti verziók változnak, úgy avulhatnak el a jegyzetben mutatott eljárások.
@@ -42,7 +43,7 @@ Ahogyan a fenti verziók változnak, úgy avulhatnak el a jegyzetben mutatott el
 A gyakorlatok az alábbi szoftverekből álló környezethez készültek:
 
 * Windows 10 operációs rendszer
-* https://visualstudio.microsoft.com/downloads/[Visual Studio 2019] (az ingyenes Community edition is elég) az alábbi _Workload_-okat telepítve:
+* https://visualstudio.microsoft.com/downloads/[Visual Studio 2019 v16.8+] (az ingyenes Community edition is elég) az alábbi _Workload_-okat telepítve:
  ** .NET desktop development
  ** Data storage and processing
  ** .NET Core cross-platform development

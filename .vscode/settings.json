@@ -8,5 +8,14 @@
         "latex",
         "plaintext",
         "asciidoc"
-    ]
+    ],
+    "insert-unicode.favorites": {
+        "directories": {},
+        "items": [
+            [
+                8222,
+                8221
+            ]
+        ]
+    }
 }

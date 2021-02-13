@@ -1,0 +1,6 @@
+[colophon]
+= Colophon
+
+BME-AUT
+
+(C) 2021 BME-AUT
