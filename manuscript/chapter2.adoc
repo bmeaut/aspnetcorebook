@@ -3,20 +3,18 @@
 
 == Előkészítés
 
-Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: File → New → Project... → Installed → Templates → Visual C# → .NET Core → Console Application (.NET Core). A neve legyen _HelloCSharp2_, itt ismét említsük meg a .NET konvenciókat az elnevezésre: PascalCasing típusneveknél/névtereknél/metódusoknál, camelCasing lokális és privát változók esetén. A betűszavakat is 3 betű felett (egyre gyakoribb, hogy már 2 betű esetén is) nem kapitális betűkkel, hanem PascalCasinget használva írjuk. A solutiont ne tegyük külön mappába (_Create directory for solution_ elem legyen üresen hagyva).
+Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: a projektsablon szűrőben válasszuk a C# nyelv - Windows platform - _Console_ projekttípust. A szűrt listában válasszuk _Console App_ sablont (most már *ne* a .NET Framework-ös legyen). A neve legyen _HelloCSharp2_. A solutiont ne tegyük külön mappába (_Place solution and project in the same directory_ legyen bekapcsolva). A megcélzott framework verzió legyen .NET 5.
 
-Próbáljuk ki a generált projektet mindenféle változtatás nélkül. Nézzünk bele a kimeneti könyvtárba: látható, hogy az alkalmazásunkból a fordítás során egy cross-platform bináris (.dll) és .NET Core v3 óta egy platform specifikus futtatható állomány (Windows esetén .exe) is generálódik. Kipróbálhatjuk, hogy az exe a szokott módon indítható (pl. duplaklikkel), míg a dll a dotnet paranccsal.
+Próbáljuk ki a generált projektet mindenféle változtatás nélkül, fordítás (menu:projekten jobbklikk[Build]) után. Nézzünk bele a kimeneti könyvtárba (menu:projekten jobbklikk[Open Folder in File Explorer], majd menu:bin[Debug > net5.0]): látható, hogy az alkalmazásunkból a fordítás során egy cross-platform bináris (<projektnév>.dll) és .NET Core v3 óta egy platform specifikus futtatható állomány (Windows esetén <projektnév>.exe) is generálódik. Kipróbálhatjuk, hogy az exe a szokott módon indítható (pl. duplaklikkel), míg a dll a `dotnet` paranccsal. 
 
 [source]
 ----
 dotnet <projektnév.dll>
 ----
 
-TIP:  A laborhoz tartozó snippet fájl: cs2.md
+TIP:  A dotnet parancshoz a dll könyvtárában kell lennünk. Ehhez a legegyszerűbb, ha a Windows fájlkezelőben a megfelelő könyvtárban állva az elérési útvonal mezőt átírjuk a `cmd` szövegre, majd kbd:[ENTER]-t nyomunk.
 
 Adjunk a létrejövő projekthez egy `Dog` osztályt _Dog.cs_ néven, ez lesz az adatmodellünk:
-
-TIP:  A snippet fájlból is bemásolhatjuk
 
 [source,csharp]
 ----
@@ -33,64 +31,33 @@ public class Dog
 }
 ----
 
-Az adatmodell az előző órán létrehozotthoz nagyon hasonlít, ennek viszont nincsen explicit konstruktora és a `Name` és `DateOfBirth` tulajdonságok publikusan állíthatók is.
+Az adatmodell az előző órán létrehozotthoz nagyon hasonlít, ennek viszont nincsen explicit konstruktora és a `Name` és `DateOfBirth` tulajdonságok publikusan is állíthatók.
 
 == Objektum inicializálók
 
-Az _object initializer_ segítségével egy éppen létrehozott objektum beállítható tulajdonságait állítjuk be (a meghatározott sorrendben). Az objektum inicializáló csak konstruktorhívás esetén használható, így pl. factory metódus által gyártott objektumpéldány esetén nem. Elsődleges célja, hogy elkülönüljön az objektumon végzett művelet az inicializáló, adatfeltöltő logikától.
+Az _object initializer_ segítségével az objektum létrehozását (konstruktor hívás) és a property setterek meghívásával történő inicializálását intézhetjük egy füst alatt. Az objektum inicializáló csak konstruktorhívás esetén használható, így pl. factory metódus által gyártott objektumpéldány esetén nem. 
 
-A Main metódusban írhatjuk az alábbi példát:
+A `Main` metódusban írhatjuk az alábbi példát:
 
 [source,csharp]
 ----
-static void Main(string[] args)
-{
-    Dog banan = new Dog()
-    {
-            Name = "Banán",
-            DateOfBirth = new DateTime(2014, 06, 10)
-    };
-    Console.WriteLine(banan);
-    Console.ReadLine();
-}
+/**/static void Main(string[] args)
+/**/{
+        Dog banan = new Dog
+        {
+                Name = "Banán",
+                DateOfBirth = new DateTime(2014, 06, 10)
+        };
+        Console.WriteLine(banan);
+        Console.ReadLine();
+/**/}
 ----
+
+TIP:  Paraméter nélküli konstruktor esetén a `()` is elhagyható.
 
 TIP:  Általában 1-2 tulajdonság esetén lehet egy sorba is írni az inicializációt, több esetén viszont általában több sorba érdemes tördelni az olvashatóság érdekében.
 
-Láthatjuk, hogy csak az aktuális kontextusban egyébként is látható és beállítható tulajdonságokat állíthatjuk be, egyik így beállított tulajdonság sem kötelező jellegű. Ha az alapértelmezett konstruktort használjuk (szintén csak ha látható számunkra), akkor nem szükséges kitenni a [.light]#zárójeleket#.
-
-[source,csharp]
-----
-/**/Dog banan = new Dog() {/*..*/}
-
-    var watson = new Dog { Name = "Watson" };
-
-/**/Console.WriteLine(banan);
-/**/Console.ReadLine();
-----
-
-A `var` kulcsszó jelentősége: ha a fordító ki tudja találni a kontextusból az értékadás jobb oldalán álló érték típusát, nem szükséges a típus nevét explicit megadnunk, az implicit következik a kódból. Ebben az esetben a típus egyértelműen `Dog`. Ha csak deklarálni szeretnénk egy változót (nem adunk értékül a változónak semmit), akkor nem használhatjuk a `var` kulcsszót, ugyanis nem következik a kódból a változó típusa. Ekkor explicit meg kell adnunk a típust.
-
-[source,csharp]
-----
-/**/var watson = new Dog { Name = "Watson" };
-
-    var unnamed = new Dog { DateOfBirth = new DateTime(2017, 02, 10) };
-    var unknown = new Dog { };
-    //var error; <= compiler error!
-
-    var dogs = new List<Dog>();
-    dogs.Add(banan);
-    dogs.Add(watson);
-    dogs.Add(unnamed);
-    dogs.Add(unknown);
-
-    foreach (var dog in dogs)
-        Console.WriteLine(dog);
-
-/**/ //Console.WriteLine(banan);
-/**/Console.ReadLine();
-----
+Láthatjuk, hogy csak az aktuális kontextusban egyébként is látható és beállítható tulajdonságokat állíthatjuk be, egyik így beállított tulajdonság sem kötelező jellegű.
 
 Az object initializer valóban csak az egyes tulajdonságokat állítja be, tehát csak szintaktikailag különbözik az első definíció az alábbitól:
 
@@ -102,285 +69,112 @@ _banan.DateOfBirth = new DateTime(2014, 06, 10);
 var banan = _banan;
 ----
 
-NOTE:  Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
+TIP: Ebből látszik az objektum inicializáló elsődleges haszna, mégpedig, hogy nem kell állandóan kiírogatni, hogy melyik példányra gondolunk (így elrontani sem tudjuk).
+
+NOTE:  Elég, ha bemutatjuk, nem kell beírni
 
 A háttérben tényleg egy (számunkra nem látható) temporális változóban fog történni az inicializáció, ugyanis, ha az object initializer kivételt dob (az egyik setter által), az objektumunk nem veszi fel a kívánt értéket.
 
 Az object initializer hasznos lehet abban az esetben is, ha át szeretnénk adni egy paramétert egy metódusnak, de az adott objektumnak sokféle tulajdonsága lehet, így nem feltétlenül érdemes a sokparaméteres konstruktorhívásokkal pepecselni; sőt, lehetséges, hogy nem is férünk hozzá a szükséges implementációhoz.
 
-== Using static
+== Implicit típusdeklaráció
 
-Ha egy osztály statikus tagjait vagy egy statikus osztályt szeretnénk használni, lehetőségünk van a `using static` kulcsszavakkal az osztályt az aktuális kontextusunkba referálni. Ha a `Console` osztályt referáljuk ilyen módon, lehetőségünk van a rajta levő metódusok meghívására az aktuális kontextusunkban:
-
-[source,csharp]
-----
-
-/**/using System;
-    using static System.Console;
-
-/**/foreach (var dog in dogs)    
-    /* Console.*/WriteLine(dog);
-    /* Console.*/ReadLine();
-----
-
-TIP:  Ilyenkor a szimbólumütközések feloldására használatos általános szabályt használjuk: ha egyértelműen feloldható a hivatkozás, akkor nem szükséges kitenni a megkülönböztető előtagot (itt: osztály), különben igen.
-
-== Nullozható típusok
-
-Természetesen a referenciatípusok mind olyan típusok, melyek vehetnek fel null értéket, viszont esetenként jó volna, ha a `null` értéket egyébként felvenni nem képes típusok is lehetének ilyen értékűek, ezzel pl. jelezvén, hogy egy érték be van-e állítva vagy sem. Pl. egy szám esetén a 0 egy konkrét, helyes érték lehet a domain modellünkben, a `null` viszont azt jelenthetné, hogy nem vett fel értéket.
-
-Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz 2018 Watson életkora! A `Console.WriteLine` parancshoz vegyünk fel egy töréspontot (F9), ezután vegyük fel a `dog.Name` és `dog.AgeInDays` kifejezést a _Watch_ ablakba! Ha _F5_-tel lépkedünk, láthatjuk, hogy Watson 2018 évesnek vélt. Amíg a program futása fel van függesztve a törésponton, vegyünk fel egy másikat az `AgeInDays` tulajdonság kiértékelésébe a `Dog` osztályban! Láthatjuk, hogy a turpisság abból fakad, hogy a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéke `0001. 01. 01. 00:00:00`.
-
-Ennek a javításához az `Age` tulajdonság típusát változtassuk `int?`-re! Az `int?` szintaktikai édesítőszere a `Nullable<int>`-nek, egy olyan struktúrának, ami egy `int` értéket tárol, és tárolja, hogy az be van-e állítva vagy sem. A `Nullable<int>` szignatúráit megmutathatjuk, hogyha a kurzort a típusra helyezve _F12_-t nyomunk.
-
-Módosítsuk a `Dog` `Age` és `DateOfBirth` tulajdonságait, hogy tudjuk, be vannak-e állítva az értékeik:
+A `var` kulcsszó jelentősége: ha a fordító ki tudja találni a kontextusból az értékadás jobb oldalán álló érték típusát, nem szükséges a típus nevét explicit megadnunk, az implicit következik a kódból. Ebben az esetben a típus egyértelműen `Dog`. Ha csak deklarálni szeretnénk egy változót (nem adunk értékül a változónak semmit), akkor nem használhatjuk a `var` kulcsszót, ugyanis nem következik a kódból a változó típusa. Ekkor explicit meg kell adnunk a típust.
 
 [source,csharp]
 ----
-public DateTime? DateOfBirth { get; set; }
+/**/ Dog banan = new Dog
+/**/ {
+/**/    Name = "Banán",
+/**/    DateOfBirth = new DateTime(2014, 06, 10)
+/**/ };
+    var watson = new Dog { Name = "Watson" };
 
-private int? AgeInDays => (-DateOfBirth?.Subtract(DateTime.Now))?.Days;
+    var unnamed = new Dog { DateOfBirth = new DateTime(2017, 02, 10) };
+    var unknown = new Dog { };
+    //watson = 3; //<= compiler error!
+    //var error; //<= compiler error!
 
-public int? Age => AgeInDays / 365;
-
-public int? AgeInDogYears => AgeInDays * 7 / 365;
+/**/Console.WriteLine(banan);
+/**/Console.ReadLine();
 ----
 
-Az `AgeInDays` akkor ad vissza `null` értéket, ha a `DateOfBirth` maga is `null` volt. Tehát ha nincs megadva születési dátumunk, nem tudunk életkort sem számítani. Ehhez magyarázzuk el a `?.` (Elvis, magyarban Kozsó - `null` conditional operator) operátor jelentését: a kiértékelendő érték jobb oldalát adja vissza, ha a bal oldal nem `null`, különben `null`-t. A kifejezést meg kellett változtatnunk, hogy a `DateOfBirth`-ből vonjuk ki a jelenlegi dátumot és ezt negáljuk, ugyanis a `null` vizsgálandó érték a bináris operátor bal oldalán kell, hogy elhelyezkedjen.
+TIP: Próbáljuk ki a nem forduló sorokat, nézzük meg a fordító hibaüzeneteit.
 
-NOTE:  Az Elvis operátor nevének erdetére több magyarázatot is lehet találni, a források annyiban nagyrészt megegyeznek, hogy a kérdőjel tekeredő része az énekes jellegzetes bodorodó hajviseletére emlékeztet, a pontok pedig a szemeket jelölik, így végülis a ?. egy Elvis emotikonként fogható fel. Ezen logika mentén adódik a magyar megfelelő, a Kozsó operátor, hiszen a szem körül tekergőző legikonikusabb hajtincs a magyar zenei kultúrában Kozsó nevéhez köthető.
+WARNING: A `var` nem a gyenge típusosság jele a C#-ban, nem úgy, mint pl. JavaScript-ben. Az inicializációs sor után a típus egyértelműen eldől, utána már csak ennek a típusnak megfelelő műveletek végezhetők, például egy értékadással nem változtathatjuk meg a típust. A fenti nem forduló `watson=3;` értékadással nem tudjuk az implicit `Dog` típusú változó típusát `int`-re változtatni.
 
-Ha most futtatjuk az alkalmazást, az `AgeInDays` és a származtatott tulajdonságok értéke null lesz, ha a születési dátum nincs megadva.
+== Init-only setter
 
-== Kollekció inicializálók
+Az objektum inicializáció működéséhez szükséges a megfelelő láthatóságú setter. Viszont egy ilyen settert nem csak objektum inicializációkor lehet használni, hanem bármikor átállíthatjuk egy példány adatát (mutáció). 
 
-A kollekció inicializálók (collection initializer) egy szintaktikai édesítőszer arra az esetre, amikor kollekcióban levő elemeket a kollekció létrehozásával összevont műveletként szeretnénk kezelni.
+Az alábbi példa egy ilyen utólagos módosításra / mutációra.
 
 [source,csharp]
 ----
-var dogs = new List<Dog>();
-dogs.Add(banan);
-dogs.Add(watson);
-dogs.Add(unnamed);
-dogs.Add(unknown);
+/**/var watson = new Dog { Name = "Watson" };
+watson.Name = "Sherlock";
 ----
 
-A fenti kódrészletet rövidebben, átláthatóbban is tudjuk kezelni az alábbi szintaxissal:
+Ez így hiba nélkül lefordul.
+
+Kizárólag az inicializációra korlátozhatjuk a setter meghívását az init-only setterrel.
 
 [source,csharp]
 ----
-/*
-var dogs = new List<Dog>();
-dogs.Add(banan);
-dogs.Add(watson);
-dogs.Add(unnamed);
-dogs.Add(unknown);
-*/
-var dogs = new List<Dog> { banan, watson, unnamed, unknown };
+/**/public class Dog
+/**/{
+        public string Name { get; init; }
+        //...
+/**/}
 ----
 
-Ez a megoldás szintaktikailag és működésében is nagyon hasonló az objektum inicializálóhoz: kizárólag akkor kapjuk meg a `dogs` referenciát, ha a lista konstruktora lefutott, és minden elemet hozzá tudtunk adni a kollekcióhoz. Ha az alapértelmezett konstruktort használjuk, itt sem szükséges megadnunk a hívást jelző zárójeleket. A háttérben a kollekció `Add` metódusa hívódik meg az elemek hozzáadására, tehát ez alapvetően megegyezik az alábbival:
+Ezután az inicializációs sor továbbra is lefordul, de a névátírásos már nem. Ez utóbbi sort kommentezzük ki.
+
+TIP: Init-only settert az osztály konstruktorából is meg lehet hívni - hiszen az is inicializáció. 
+
+TIP: Init-only settert több okból kifolyólag is használhatunk, például a típus példányainak immutábilis kezelését akarjuk kikényszeríteni, vagy csak inicializációra akarjuk korlátozni a propertyk beállítását, de nem akarunk ehhez konstruktort írni.
+
+== Indexer operátor, nameof operátor, index inicializáló
+
+A collection initializer analógiájára jött létre az _index initializer_ nyelvi elem, ami a korábbihoz hasonlóan sorban hív meg egy operátort, hogy már inicializált objektumot kapjunk vissza. A különbség egyrészt a szintaxis, másrészt az ilyenkor meghívott metódus, ami az index operátor. 
+
+TIP: Saját típusainkban lehetőségünk van definiálni és felüldefiniálni operátorokat, mint pl. +, -, indexelés, implicit cast, explicit cast, stb.
+
+Tegyük fel, hogy egy kutyához bármilyen, üzleti logikában nem felhasznált információ kerülhet, amire általános struktúrát szeretnénk. Vegyünk fel a `Dog` osztályba egy `string-object` szótárat, amiben bármilyen további információt tárolhatunk! Ezen felül állítsuk be a `Dog` indexerét, hogy az a `Metadata` indexelését végezze:
 
 [source,csharp]
 ----
-var _dogs = new List<Dog>();
-_dogs.Add(banan);
-_dogs.Add(watson);
-_dogs.Add(unnamed);
-_dogs.Add(unknown);
-var dogs = _dogs;
+/**/public class Dog
+/**/{
+        //...
+        public Dictionary<string, object>  Metadata { get; } = new ();
+    
+        public object this[string key]
+        {
+            get { return Metadata[key]; }
+            set { Metadata[key] = value; }
+        }
+/**/}
 ----
 
-NOTE:  Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
+TIP: A .NET 5 projektsablon sokkal kevesebb névtérdeklarációt (`using`) generál alapból. Ha kell vegyük fel a szükségeseket a fel nem oldott néven állva gyorsművelet (villanykörte) eszközzel (kbd:[CTRL+.])
 
-TIP:  Kivétel esetén sikertelen lesz értékadás.
+TIP: a `new` operátor utáni konstruktorhívás sok esetben elhagyható, ha a bal oldal alapján amúgy is tudható a típus.
 
-== Bővítő metódusok
-
-A bővítő metódusok (extension method) révén bármilyen típust -- látszólag -- kiegészíthetünk tetszőleges, további metódusokkal.
-
-Tegyük fel, hogy hiányolunk egy metódust a standard `string` típusról. Szeretnénk, hogy például konzolra történő listázáskor egy paraméterezhető karakterhosszúságú szöveggé vágná le a bemenetet vagy az adott hosszúságúra töltené ki szóközökkel. Ezt a feladatot megoldhatnánk például az alábbi módon: vegyünk fel egy *Extensions* nevű mappát a projekt gyökerében, ebben pedig egy `StringExtensions` osztályt egy ugyanilyen nevű fájlba:
+Az objektum inicializáló és az index inicializáló vegyíthető, így az alábbi módon tudunk felvenni további tulajdonságokat a kutyákhoz a `Main` függvénybe:
 
 [source,csharp]
 ----
-public static class StringExtensions
-{
-    public static string TrimPad(string text, int length)
+    var pimpedli = new Dog
     {
-        if ((text?.Length ?? 0) == 0)
-            return new string(' ', length);
-        if (text.Length <= length)
-            return text + new string(' ', length - text.Length);
-        return text.Substring(0, length);
-    }
-}
+        Name = "Pimpedli",
+        DateOfBirth = new DateTime(2006, 06, 10),
+        ["Chip azonosító"] = "123125AJ"
+    };
+/**/ Console.WriteLine(banan);
 ----
 
-A `??` operátor (null coalescing operátor) a kifejezés bal oldalán álló értéket adja vissza, ha az nem `null`, különben a jobb oldalán álló értéket (tehát kiolvashatjuk „különben, ha `null``”-ként is).
-
-Érdekességképp megvizsgálhatjuk az „egysoros” megoldást, kitérve ennek egyértelmű hátrányaira és előnyére:
-
-[source,csharp]
-----
-public static string TrimPad(string text, int length) =>
-    ((text?.Length ?? 0) == 0)
-        ? new string(' ', length)
-        : (text.Length <= length)
-            ? text + new string(' ', length - text.Length)
-            : text.Substring(0, length);
-----
-
-TIP:  Elég, ha a snippet fájlból bemutatjuk, nem kell beírni
-
-Teszteljük is le, a `Main` metódusunk elején:
-
-[source,csharp]
-----
-for (var i = 0; i < 26; i++)
-    Console.WriteLine(StringExtensions.TrimPad(new string((char)('a' + i), i), 20));
-----
-
-Mivel a statikus osztályunk más névtérben van, használjuk a névteret a *Program.cs* fájl tetején:
-
-[source,csharp]
-----
-using HelloCSharp2.Extensions;
-----
-
-Szebb volna, ha magán a `string`-en tudnánk használni ezt a metódust. Tegyük ki a `this` módosítószót a `TrimPad` metódus szignatúrájába:
-
-[source,csharp]
-----
-public static string TrimPad(this string text, int length)
-----
-
-Ezután a bővítő metódust az alábbi módon is tudjuk használni:
-
-[source,csharp]
-----
-Console.WriteLine(new string((char)('a' + i), i).TrimPad(20));
-----
-
-Ez a megoldás ekvivalens a korábban használttal, szintén csak egy szintaktikai édesítőszerről van szó.
-
-TIP:  A bővítő metódusnak statikus osztályban kell szerepelnie, a metódusnak statikusnak kell lennie, és a szükséges névteret az aktuális fájlban használnunk kell a `using` kulcsszóval.
-Amikor statikus osztályban állapotmentes, statikus metódust hozunk létre, amely a bemeneti paramétereken dolgozik, érdemes lehet azokat bővítő metódusként kezelni és az első paraméter elé kitenni a `this` módosítószót, így rövidítve a megírandó kód hosszát.
-
-Ha a `Dog` osztályban átírjuk a `ToString` metódusunkat, kicsit szebbé tehetjük az outputot:
-
-[source,csharp]
-----
-public override string ToString() =>
-    $"{Name.TrimPad(10)} ({Age.ToString().TrimPad(2)} | " +
-    $"{AgeInDogYears.ToString().TrimPad(3)})" +
-    $"[ID: {Id.ToString().TrimPad(8)}]";
-----
-
-Mivel a használni kívánt bővítő metódusunk más névtérben van, ezért `using`-oljuk a névteret a fájl elején (_Ctrl+._):
-
-Még egy kicsit szépíthetünk a helyzeten, ha a metódus típusparamétert is vár. Ekkor minden objektumra használható lesz a bővítő metódus, nem szükséges `ToString()`-et hívni a nem `string` típusú elemeken:
-
-[source,csharp]
-----
-public static string TrimPad<T> (this T obj, int length)
-            => TrimPad(obj.ToString(), length);
-----
-
-Ez az új metódus az eredeti _overload_-ja: a `string`-et váró függvény fog meghívódni `string`-ek esetén, minden más esetben a másik implementáció.
-
-TIP:  Mivel minden objektumra működik, ezért fontoljuk meg, mielőtt ilyen általános függvényt írunk, különben nagyon hosszú lesz minden alkalommal az _IntelliSense_ legördülője.
-
-A `Dog` osztályban egyszerűsíthetjük a `ToString` implementációt, kivehetjük a property értékek lekérdezése utáni `ToString` hívásokat:
-
-[source,csharp]
-----
-public override string ToString() =>
-    $"{Name.TrimPad(10)} ({Age.TrimPad(2)} | " +
-    $"{AgeInDogYears.TrimPad(3)})" +
-    $"[ID: {Id.TrimPad(8)}]";
-----
-
-A bővítő metódusokat kiegészítésképpen használhatjuk _collection initializer_-ek bővítésére is. Próbáljunk meg a felsorolt `Dog` elemek közé beszúrni egy `string`-et, nézzük meg, mi történik!
-
-A fordító a nem megfelelő szignatúrájú Add metódus hiányára panaszkodik. Javítsunk ezen! Készítsünk egy olyan bővítő metódust, amely megengedi, hogy `string`-et adjunk a `Dog` kollekcióhoz!
-
-Az *Extensions/DogCollectionExtensions.cs* fájlban vegyük fel az alábbi osztályt:
-
-[source,csharp]
-----
-public static class DogCollectionExtensions
-{
-    public static void Add(this ICollection<Dog> source,
-                            string name,
-                            DateTime? dateOfBirth = null) =>
-                source.Add(new Dog
-                            {
-                                Name = name,
-                                DateOfBirth = dateOfBirth
-                            });
-}
-----
-
-TIP:  Az expression bodied method szintaxist érdemes áthívás jellegű esetekben használni (esetünkben ez például egy másik szintaxis invokációját jelenti), azaz amikor a jobb oldali kifejezést közvetlenül vissza is akarjuk adni a hívónak. Egy `void` visszatéréssel rendelkező metódus esetén a típus (hiánya) nem okoz gondot, illetve a jobb oldali visszatérési értéket elrejthetjük, ha a metódusunk `void` visszatérésű.
-
-TIP:  Az utolsó paraméter ún. opcionális paraméter alapértelmezett értékkel. Ezt a paramétert nem szükséges megadnunk a függvény hívásakor, ekkor annak a változónak az értéke a megadott alapértelmezett értéket veszi fel.
-
-Ez a hívás egyszerűen áthív a valódi `Add` metódusba, ami `Dog` típusú elemet vár. Próbáljuk ki a hívást:
-
-[source,csharp]
-----
-var dogs = new List<Dog> { banan, watson, unnamed, unknown, "Mázli" };
-----
-
-Láthatjuk, hogy nem kapunk fordítási hibát, és Mázli kutya is a kollekció része lesz. A többparaméteres hívást is szemléltethetjük, ehhez az egy Add függvényhíváshoz tartozó paramétereket kapcsoszárójelek között soroljuk fel:
-
-[source,csharp]
-----
-var dogs = new List<Dog> {
-    banan,
-    watson,
-    unnamed,
-    unknown,
-    "Mázli",
-    { "Puffancs", new DateTime(2010, 2, 1) }
-};
-----
-
-== Index inicializálók
-
-A collection initializer analógiájára jött létre az _index initializer_ nyelvi elem, ami a korábbihoz hasonlóan sorban hív meg egy operátort, hogy már inicializált objektumot kapjunk vissza. A különbség egyrészt a szintaxis, másrészt az ilyenkor meghívott metódus, ami az index operátor. Emlékeztethetjük a hallgatókat, hogy saját típusainkban lehetőségünk van definiálni és felüldefiniálni operátorokat, mint pl. +, -, indexelés, implicit cast, explicit cast, stb. Ilyenkor nem szükséges megvalósítanunk az `IEnumerable` interfészt, egyszerűen csak egy elérhető, beállítható indexer tulajdonságra van szükségünk.
-
-Tegyük fel, hogy egy kutyához bármilyen a domain modellünkbe nem illeszkedő információ kerülhet, amire általános struktúrát szeretnénk. Vegyünk fel a `Dog` osztályba egy `string-object` szótárat, amiben bármilyen további információt tárolhatunk! Ezen felül állítsuk be a `Dog` indexerét, hogy az a `Metadata` indexelését végezze:
-
-[source,csharp]
-----
-public class Dog
-{
-    //...
-    public Dictionary<string, object>  Metadata { get; }
-                    = new Dictionary<string, object>();
-
-    public object this[string key]
-    {
-        get { return Metadata[key]; }
-        set { Metadata[key] = value; }
-    }
-}
-----
-
-Az objektum inicializáló és az index inicializáló vegyíthető, így az alábbi módon tudunk felvenni további tulajdonságokat a kutyákhoz:
-
-[source,csharp]
-----
-var pimpedli = new Dog()
-{
-    Name = "Pimpedli",
-    DateOfBirth = new DateTime(2006, 06, 10),
-    ["Chip azonosító"] = "123125AJ"
-};
-----
-
-Mivel indexelni általában kollekciókat szokás (tömb, lista, szótár), ezért ezekben az esetekben igen jó eszköz lehet az index inicializáló. Cseréljük le a listánkat az alábbi szótárra:
+Mivel indexelni általában kollekciókat szokás (tömb, lista, szótár), ezért ezekben az esetekben igen jó eszköz lehet az index inicializáló. Vegyünk fel egy új kutyaszótárt a kutyák kitenyésztése után:
 
 [source,csharp]
 ----
@@ -389,12 +183,15 @@ var dogs = new Dictionary<string, Dog>
     ["banan"] = banan,
     ["watson"] = watson,
     ["unnamed"] = unnamed,
-    ["unknown"] = unknown
+    ["unknown"] = unknown,
+    ["pinmpedli"] = pimpedli
 };
 
 foreach (var dog in dogs)
-    Console.WriteLine($"{dog.Key.TrimPad(10)} - {dog.Value}");
+    Console.WriteLine($"{dog.Key} - {dog.Value}");
 ----
+
+Próbáljuk ki - minden név-kutya párt ki kell írnia a szótárból.
 
 Elsőre jó ötletnek tűnhet kiváltani a szövegliterálokat a `Name` property használatával.
 
@@ -403,9 +200,10 @@ Elsőre jó ötletnek tűnhet kiváltani a szövegliterálokat a `Name` property
 var dogs = new Dictionary<string, Dog>
 {
     [banan.Name] = banan,
-    [watson.Name = watson,
+    [watson.Name] = watson,
     [unnamed.Name] = unnamed,
-    [unknown.Name] = unknown
+    [unknown.Name] = unknown,
+    [pimpedli.Name] = pimpedli
 };
 //ArgumentNullException!
 ----
@@ -419,24 +217,281 @@ var dogs = new Dictionary<string, Dog>
     [nameof(banan)] = banan,
     [nameof(watson)] = watson,
     [nameof(unnamed)] = unnamed,
-    [nameof(unknown)] = unknown
+    [nameof(unknown)] = unknown,
+    [nameof(pimpedli)] = pimpedli
 };
 ----
 
 Ez a változat már nem fog kivételt okozni.
 
-Mivel az index- és a collection initializer nem vegyíthető, ezért a kettő közül most választanunk kell. Ilyenkor az `Add` metódus változatait nem használhatjuk.
-
-A `Dictionary<TKey, TValue>` rendelkezik egy `Add` metódussal, amelyik egy `TKey` és egy `TValue` típusú értéket vár, ezért használhatjuk a collection initializert is:
+A szótár feltöltését megírhatjuk kollekció inicializációval is. Ehhez kihasználjuk, hogy a szótár típus rendelkezik egy `Add` metódussal, amelyik egyszerűen egy kulcsot és egy hozzátartozó értéket vár:
 
 [source,csharp]
 ----
 var dogs = new Dictionary<string, Dog>
 {
-    { "banan", banan },
-    { "pimpedli", pimpedli },
-    { "unnamed", unnamed },
-    { "unknown", unknown },
-    { "unknown", unknown }
+    { nameof(banan), banan },
+    { nameof(watson), watson },
+    { nameof(unnamed), unnamed },
+    { nameof(unknown), unknown },
+    { nameof(pimpedli),pimpedli}
+
 };
 ----
+
+== Using static
+
+Ha egy osztály statikus tagjait vagy egy statikus osztályt szeretnénk használni, lehetőségünk van a `using static` kulcsszavakkal az osztályt bevonni a névfeloldási logikába. Ha a `Console` osztályt referáljuk ilyen módon, lehetőségünk van a rajta levő metódusok meghívására az aktuális kontextusunkban anélkül, hogy az osztály nevét kiírnánk:
+
+[source,csharp]
+----
+
+/**/using System;
+    using static System.Console;
+    //..
+/**/foreach (var dog in dogs)
+/**/    /*Console.*/WriteLine($"{dog.Key} - {dog.Value}");
+/**//*Console.*/WriteLine(banan);
+/**//*Console.*/ReadLine();
+----
+
+TIP:  Az általános névfeloldási szabály továbbra is él: ha egyértelműen feloldható a hivatkozás, akkor nem szükséges kitenni a megkülönböztető előtagot (itt: osztály), különben igen.
+
+== Nullozható típusok
+
+Természetesen a referenciatípusok mind olyan típusok, melyek vehetnek fel `null` értéket, viszont esetenként jó volna, ha a `null` értéket egyébként felvenni nem képes típusok is lehetének ilyen értékűek, ezzel pl. jelezvén, hogy egy érték be van-e állítva vagy sem. Pl. egy szám esetén a 0 egy konkrét, helyes érték lehet a domain modellünkben, a `null` viszont azt jelenthetné, hogy nem vett fel értéket.
+
+Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz az aktuális év Watson kutya életkora! Valamelyik `Console.WriteLine` sorhoz vegyünk fel egy töréspontot (kbd:[F9]), majd debuggolás közben a *Locals* ablakban (debuggolás közben menu:Debug[Windows > Locals]) figyeljük meg az egyes példányok adatait. Watsont kinyitva láthatjuk, hogy a turpisság abból fakad, hogy a `DateOfBirth` adat típusa, a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéket veszi fel, ami `0001. 01. 01. 00:00:00` - hiszen nem állítottunk be mást.
+
+Ismeretlen születési dátumú, korú egyedek helyes tárolásához az `Age` tulajdonság típusát változtassuk `int?`-re! Az `int?` szintaktikai édesítőszere a `Nullable<int>`-nek, egy olyan struktúrának, ami egy `int` értéket tárol, és tárolja, hogy az be van-e állítva vagy sem. A `Nullable<int>` szignatúráit megmutathatjuk, hogyha a kurzort a típusra helyezve kbd:[F12]-t nyomunk.
+
+Módosítsuk a `Dog` `Age` és `DateOfBirth` tulajdonságait is, hogy tudjuk, be vannak-e állítva az értékeik:
+
+[source,csharp]
+----
+public class Dog
+{
+    //...
+
+    public DateTime? DateOfBirth { get; set; }
+
+    private int? AgeInDays => (-DateOfBirth?.Subtract(DateTime.Now))?.Days;
+
+    public int? Age => AgeInDays / 365;
+
+    public int? AgeInDogYears => AgeInDays * 7 / 365;
+
+    //...
+}
+----
+
+TIP: Örvendezzünk, hogy az alap aritmetikai operátorok pont úgy működnek, ahogy szeretnénk (`null` bemenetre `null` eredmény), nem kellett semmilyen trükk.
+
+Az `AgeInDays` akkor ad vissza `null` értéket, ha a `DateOfBirth` maga is `null` volt. Tehát ha nincs megadva születési dátumunk, nem tudunk életkort sem számítani. Ennek kifejezésére használhatjuk a `?.` (Elvis, magyarban *Kozsó* - `null` conditional operator) operátort: a kiértékelendő érték jobb oldalát adja vissza, ha a bal oldal nem `null`, különben `null`-t. A kifejezést meg kellett változtatnunk, hogy a `DateOfBirth`-ből vonjuk ki a jelenlegi dátumot és ezt negáljuk, ugyanis a `null` vizsgálandó érték a bináris operátor bal oldalán kell, hogy elhelyezkedjen.
+
+NOTE:  Az Elvis operátor nevének eredetére több magyarázatot is lehet találni, a források annyiban nagyrészt megegyeznek, hogy a kérdőjel tekeredő része az énekes jellegzetes bodorodó hajviseletére emlékeztet, a pontok pedig a szemeket jelölik, így végülis a ?. egy Elvis emotikonként fogható fel. Ezen logika mentén adódik a magyar megfelelő, a Kozsó operátor, hiszen a szem körül tekergőző legikonikusabb hajtincs a magyar zenei kultúrában Kozsó nevéhez köthető.
+
+Ha így futtatjuk az alkalmazást, az `AgeInDays` és a származtatott tulajdonságok értéke `null` (vagy kiírva üres) lesz, ha a születési dátum nincs megadva.
+
+== Rekord típus
+
+A rekord típusok speciális referencia típusok, melyek
+
+- egyenlőségvizsgálat során érték típusokra jellemző logikát követnek, azaz két példány akkor egyenlő, ha adataik egyenlőek
+- könnyen immutábilissá tehetők, könnyen kezelhetők immutábilis típusként
+
+A `Dog` típus ezzel szemben jelenleg:
+
+- nem immutábilis, hiszen a születési dátum bármikor módosítható (sima setter)
+- egyenlőségvizsgálat során a normál referencia szerinti összehasonlítást követ
+
+Az automatikusan generálódó egyedi azonosítót iktassuk ki a `Dog` osztályból, hogy az adat alapú összehasonlítást könnyebben tesztelhessük.
+
+[source,csharp]
+----
+/**/public Guid Id { get; } = Guid/*.NewGuid()*/.Empty;
+----
+
+Vegyünk fel egy logikailag megegyező példányt.
+
+[source,csharp]
+----
+/**/var watson = new Dog { Name = "Watson" };
+    var watson2 = new Dog { Name = watson.Name };
+----
+
+Ismét álljunk meg debug során valamelyik `WriteLine` soron. A *Locals* ablakban nézzük meg, hogy a két példány minden adata megegyezik. A *Watch* ablakban (debuggolás közben menu:Debug[Windows > Watch > Watch 1]) értékeljük ki a `watson == watson2` kifejezést. Láthatjuk, hogy ez az egyenlőségvizsgálat hamist ad, ami technikailag helyes, mert két különböző memóriaterületről van szó, a referenciák nem ugyanoda mutatnak a memóriában. Sok esetben azonban nem ezt szeretnénk, hanem például a dupla rögzítés elkerülésére az adatok alapján történő összehasonlítást, ami érték típusoknál van. Referencia típusoknál klasszikusan ezt a `GetHashCode`, `Equals` függvények felüldefiniálásával értük el (vagy az `IComparable<T>`, `IComparer<T>` interfészre épülő logikákkal). Egy újabb lehetőség a rekord típus használata.
+
+=== Pozíció alapú megadás
+
+Vegyünk fel a `Dog` típus adatainak megfelelő rekord típust, mindössze egy kifejezésként.
+
+[source,csharp]
+----
+public record DogRec(
+    Guid Id,
+    string Name,
+    DateTime? DateOfBirth=null, 
+    Dictionary<string, object> Metadata=null
+);
+----
+
+Ez az ún. pozíció alapú megadási forma, ami a leginkább rövidített megadási formája a rekord típusnak. Ebből a rövid formából, mindenfajta extra kód írása nélkül a fordító számos dolgot generál:
+
+- a zárójelen belüli felsorolásból konstruktort és dekonstruktort
+- a zárójelen belüli felsorolás alapján propertyket `get` és `init` tagfüggvényekkel
+- alapértelmezett logikát az érték szerinti összehasonlításhoz
+- klónozó és másoló konstruktor logikákat
+- alapértelmezett formázott kiírást, szöveges reprezentációt (`ToString` implementációt)
+
+Így egy könnyen kezelhető, immutábilis, az összehasonlításokban érték típusként viselkedő adatosztályunk lesz.
+
+WARN: Az `Id`-nek nem tudjuk beállítani ebben a formában az alapértelmezett `Guid.Empty` értéket vagy a `Metadata`-nak az új példányt, mert az egyenlőségjeles kifejezésekből  alapértelmezett konstruktorparaméterek lesznek, amik csak statikus, fordítási időben kiértékelhető kifejezések lehetnek.
+
+Vegyünk fel a többi Watson példány mellé két újabbat, de itt már az új rekord típusunkat használjuk.
+
+[source,csharp]
+----
+var watson3 = new DogRec(Guid.Empty, "Watson");
+var watson4 = new DogRec(Guid.Empty, "Watson");
+----
+
+A fentebbi *Watch* ablakos módszerrel ellenőrizzük a `watson3 == watson4` kifejezés értékét. Ez már igaz érték lesz az adatmező alapú összehasonlítási logika miatt.
+
+Próbáljuk ki ugyanezt a kiértékelést az alábbi változattal:
+
+[source,csharp]
+----
+/**/var watson3 = new DogRec(Guid.Empty, "Watson");
+/**/var watson4 = new DogRec(Guid.Empty, "Watson" 
+                    /*új paraméter ->*/, DateTime.Now.AddYears(-1));    
+----
+
+Ez hamis értéket ad, az egyenlőségnek minden mezőre teljesülnie kell, nem csak a mindkettőben kitöltöttekre.
+
+A `DogRec` típus alapvetően immutábilis, a példányainak alapadatai inicializálás után nem módosíthatók. Próbáljuk felülírni a nevet.
+
+[source,csharp]
+----
+/**/var watson3 = new DogRec(Guid.Empty, "Watson");
+/**/var watson4 = new DogRec(Guid.Empty, "Watson" , DateTime.Now.AddYears(-1));    
+    watson4.Name = watson3.Name + "_2"; //<= nem fordul
+----
+
+Nem fog lefordulni, mert minden property init-only típusú. A sor jobboldala egyébként lefordulna, tehát a lekérdezés (getter hívás) működne.
+
+Ha immutábilis típusokkal dolgozunk, akkor mutáció helyett új példányt hozunk létre megváltoztatott adatokkal. Alapvetően ezt az OO nyelvekben másoló konstruktorral oldjuk meg. A rekord típusnál ennél is továbbmenve másoló kifejezést használhatunk.
+
+[source,csharp]
+----
+/**/var watson4 = new DogRec(Guid.Empty, "Watson", DateTime.Now.AddYears(-1));
+    var watson5 = watson4 with { Name = "Sherlock" };
+    WriteLine(watson4);
+    WriteLine(watson5);
+----
+
+Futtatáskor a konzolban gyönyörködjünk a rekord típusok alapértelmezetten is olvasható szöveges kiírására.
+
+A másoló kifejezésben a `with` operátor előtt megadjuk melyik példányt klónoznánk, majd az *inicializáció részeként* milyen értékeket állítanánk át, ehhez az objektum inicializációs szintaxist használhatjuk. Fontos eszünkbe vésni, hogy a másolás eredményeként új példány jön létre, új memóriaterület foglalódik le. Gondoljunk erre akkor, amikor egy ciklusban használjuk ezt a módszert sok egymást követő módosításra.
+
+NOTE: Mire jó a rekord típus, az immutabilitás? Az immutábilis típussokkal való hatékony és eredményes munka másfajta, az imperatív nyelvekhez szokott fejlesztők számára szokatlan módszereket kíván. Vannak területek, ahol ez a befektetés megtérül, ilyen például a többszálú környezet. A legtöbb szálkezeléssel kapcsolatos probléma ugyanis a szálak által közösen használt adatstruktúrák mutációjára vezethető vissza (ún. _race condition_, versenyhelyzet). Nincs mutáció - nincs probléma. (_No mutation - no cry_)
+
+=== Kitérő: a szótár visszavág
+
+A rekord típus által biztosított kellemes tulajdonságok csak akkor érvényesek, ha nem keverjük hagyományos referencia típusokkal.
+
+A szokásos módszerrel ellenőrizzük le, hogy a `watson5 == watson6` kifejezés igaz-e. Igen, hiszen minden kitöltött adatuk egyezik.
+
+[source,csharp]
+----
+/**/var watson4 = new DogRec(Guid.Empty, "Watson", DateTime.Now.AddYears(-1));
+/**/var watson5 = watson4 with { Name = "Sherlock" };
+    var watson6 = watson4 with { Name = "Sherlock" };
+/**/WriteLine(watson4);
+/**/WriteLine(watson5);
+    WriteLine(watson6);
+----
+
+Vigyünk be egy ártatlan inicializációt a `Metadata` propertyre.
+
+[source,csharp]
+----
+/**/var watson4 = new DogRec(Guid.Empty, "Watson", DateTime.Now.AddYears(-1));
+/**/var watson5 = watson4 with { Name = "Sherlock"
+                                , Metadata = new Dictionary<string, object>() };
+/**/var watson6 = watson4 with { Name = "Sherlock"
+                                , Metadata= new Dictionary<string, object>() };
+/**/WriteLine(watson4);
+/**/WriteLine(watson5);
+/**/WriteLine(watson6);
+----
+
+Ezzel eléggé illogikus módon hamisra változik a `watson5 == watson6` kifejezés. Az oka az, hogy a `Metadata` szótár egy klasszikus referencia típus, az összehasonlításnál a klasszikus memóriacím-összehasonlítás történik, viszont az a két új szótár példány esetében eltérő lesz. A formázott szöveges kiírásba is belerondít a szótár, mert ott is a szótár típus alapértelmezett szöveges reprezentációja jut érvényre, ami a típus neve.
+
+Klónozzunk tovább, aztán próbáljunk mutációt végrehajtani a `Metadata` szótáron.
+
+[source,csharp]
+----
+/**/var watson6 = watson4 with { Name = "Sherlock"
+/**/                               , Metadata= new Dictionary<string, object>() };
+var watson7 = watson6 with { Name = "Watson" };
+watson7.Metadata.Add("Chip azonosító", "12345QQ");
+/**/WriteLine(watson4);
+----
+
+Ez lefordul, pedig ez mutáció. A *Locals* ablakban figyeljük meg a `watson6` és `watson7` szótárait: *mindkettőbe* bekerült a chip azonosító. Ez az ún. _shallow copy_ jelenség, amikor nem a szótár memóriaterülete klónozódik, csak a rá mutató referencia, ami azt eredményezi, hogy a két példánynak közös szótára lesz.
+
+Összességében az adatstruktúránkban megjelenő klasszikus referencia típus elrontja:
+
+- az immutabilitást
+- az érték szerinti összehasonlítást
+- a formázott szöveges megjelenést
+- a klónozást
+
+TIP: Immutábilis környezetben törekedjünk arra, hogy a *teljes* adatstruktúránk támogassa az immutábilis kezelést.
+
+=== Normál megadás
+
+Ha nincs szükségünk az immutabilitásra, akkor használhatjuk a rekord normál megadását. Fogjuk az `Dog` osztályt, másoljuk le a kódját, adjunk neki más nevet és `class` helyett `record` jelölőt. A `Dog` osztály fölé:
+
+[source,csharp]
+----
+public class DogRecExt
+{
+    public string Name { get; init; }
+    public Guid Id { get; } = Guid.Empty;
+    public DateTime? DateOfBirth { get; set; }
+    public Dictionary<string, object> Metadata { get; init; }
+
+    private int? AgeInDays => (-DateOfBirth?.Subtract(DateTime.Now))?.Days;
+    public int? Age => AgeInDays / 365;
+    public int? AgeInDogYears => AgeInDays * 7 / 365;
+
+    public object this[string key]
+    {
+        get { return Metadata[key]; }
+        set { Metadata[key] = value; }
+    }
+}
+----
+
+NOTE: a `ToString` implementációját elhagytuk, valamint a szótár alapértelmezett inicializációját is az előző szakaszban említettek miatt.
+
+A `Main` függvénybe:
+
+[source,csharp]
+----
+/**/WriteLine(watson6);
+    var watson8 = new DogRecExt { Name = "Watson" };
+    watson8.DateOfBirth = DateTime.Now.AddYears(-15);
+    var watson9 = watson8 with { };            
+    WriteLine(watson8);
+    WriteLine(watson9);
+----
+
+Ellenőrizzük le a rekord tulajdonságokat:
+
+- a konzol kimeneten mutáció működését, azaz a `watson8` születési dátuma a beállított lesz. Ez nem csoda, hiszen a property deklarációban engedtük a mutációt.
+- a konzol kimeneten megfigyelt példányadatokon a klónozó kifejezés működését
+- a *Watch* ablakban `watson8 == watson9` egyenlőséget Egyezés lesz, hiszen minden alapadatuk egyezik
+- a konzol kimeneten a formázott kivitelt

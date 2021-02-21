@@ -31,7 +31,7 @@ Az anyag gerincét adó .NET Core / .NET 5 platform jelenleg igen gyors ütemben
 
 A jegyzet elsődlegesen az alábbi technológiai verziókhoz készült:
 
-* C# *9.0*
+* C# *9*
 * .NET *5*
 * ASP.NET Core *5*
 * Visual Studio *2019*

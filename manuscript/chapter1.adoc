@@ -281,3 +281,5 @@ List<Person> people = new List<Person>
 Nem kell az `Add` függvényhívást és a lista referenciát kiírni, egyértelmű, hogy melyik listához adunk hozzá.
 
 TIP: Ez a forma is ugyanolyan az `Add` függvényhívásokra fordul, mint az eredeti változatban.
+
+Próbáljuk ki az alkalmazást így is!
