@@ -346,7 +346,7 @@ Ez az ún. pozíció alapú megadási forma, ami a leginkább rövidített megad
 
 Így egy könnyen kezelhető, immutábilis, az összehasonlításokban érték típusként viselkedő adatosztályunk lesz.
 
-WARN: Az `Id`-nek nem tudjuk beállítani ebben a formában az alapértelmezett `Guid.Empty` értéket vagy a `Metadata`-nak az új példányt, mert az egyenlőségjeles kifejezésekből  alapértelmezett konstruktorparaméterek lesznek, amik csak statikus, fordítási időben kiértékelhető kifejezések lehetnek.
+WARNING: Az `Id`-nek nem tudjuk beállítani ebben a formában az alapértelmezett `Guid.Empty` értéket vagy a `Metadata`-nak az új példányt, mert az egyenlőségjeles kifejezésekből  alapértelmezett konstruktorparaméter-értékek lesznek, amik csak statikus, fordítási időben kiértékelhető kifejezések lehetnek.
 
 Vegyünk fel a többi Watson példány mellé két újabbat, de itt már az új rekord típusunkat használjuk.
 
@@ -452,11 +452,11 @@ TIP: Immutábilis környezetben törekedjünk arra, hogy a *teljes* adatstruktú
 
 === Normál megadás
 
-Ha nincs szükségünk az immutabilitásra, akkor használhatjuk a rekord normál megadását. Fogjuk az `Dog` osztályt, másoljuk le a kódját, adjunk neki más nevet és `class` helyett `record` jelölőt. A `Dog` osztály fölé:
+Ha nincs szükségünk a kikényszerített immutabilitásra, akkor használhatjuk a rekord normál megadását. Fogjuk az `Dog` osztályt, másoljuk le a kódját, adjunk neki más nevet és `class` helyett `record` jelölőt. A `Dog` osztály fölé:
 
 [source,csharp]
 ----
-public class DogRecExt
+public record DogRecExt
 {
     public string Name { get; init; }
     public Guid Id { get; } = Guid.Empty;
@@ -475,7 +475,7 @@ public class DogRecExt
 }
 ----
 
-NOTE: a `ToString` implementációját elhagytuk, valamint a szótár alapértelmezett inicializációját is az előző szakaszban említettek miatt.
+NOTE: a `ToString` implementációját elhagytuk, valamint a szótár alapértelmezett inicializációját is, az előző szakaszban említettek miatt.
 
 A `Main` függvénybe:
 
@@ -491,7 +491,7 @@ A `Main` függvénybe:
 
 Ellenőrizzük le a rekord tulajdonságokat:
 
-- a konzol kimeneten mutáció működését, azaz a `watson8` születési dátuma a beállított lesz. Ez nem csoda, hiszen a property deklarációban engedtük a mutációt.
-- a konzol kimeneten megfigyelt példányadatokon a klónozó kifejezés működését
-- a *Watch* ablakban `watson8 == watson9` egyenlőséget Egyezés lesz, hiszen minden alapadatuk egyezik
-- a konzol kimeneten a formázott kivitelt
+- A konzol kimeneten mutáció működését, azaz a `watson8` születési dátuma a beállított lesz. Ez nem csoda, hiszen a property deklarációban engedtük a mutációt.
+- A konzol kimeneten megfigyelt példányadatokon a klónozó kifejezés működését. Semmi különös, ugyanúgy működik, mint a tömör formánál.
+- A *Watch* ablakban `watson8 == watson9` egyenlőséget. Egyezés lesz, hiszen minden alapadatuk egyezik.
+- A konzol kimeneten a formázott kiírást.
