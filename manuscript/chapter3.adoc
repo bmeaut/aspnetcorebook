@@ -3,16 +3,14 @@
 
 == Előkészítés
 
-A labor kezdetén töltsük le a kóddarabkák lelőhelyéül szolgáló git repository-t. Miután kitömörítettük a fájlokat, töltsük be Visual Studio-ba a _HelloLinq_ mappából a _HelloLinq.sln_ solution fájlt.
+A labor kezdetén töltsük le a kóddarabkák lelőhelyéül szolgáló git repositoryt zip-ként. Miután kitömörítettük a fájlokat, töltsük be Visual Studio-ba a _HelloLinq_ mappából a _HelloLinq.sln_ solution fájlt.
 
 Megnyitás után tekintsük át a kiinduló projektben levő fájlokat:
 
 * *Program.cs*: a programunk belépési pontját tartalmazó osztály. Található benne egy `Dogs` csak lekérdezhető tulajdonság, ami a `Dog` osztály statikus `Repository` tulajdonságába hív át.
 * *Dog.cs*: a korábbi gyakorlatokon használt adatmodell (apróbb módosításokkal). Bekerült egy `Siblings` tulajdonság, a `ToString` pedig kiírja a kutyához tartozó testvérek számát is (ehhez a `TrimPad` bővítő metódust használja). A statikus `Repository` tulajdonság mögött egy lustán inicializált `Lazy<T>  RepositoryHolder` található, ami egy megfelelően formázott bemeneti CSV fájlból elkészíti számunkra az adatmodellt, amivel a későbbiekben dolgozunk. Ennek implementációját a labor végén nézzük meg, amennyiben marad idő. Az `Import` és `Export` függvények a kutyák sorosítását végzik el mindkét irányban.
-* *Extensions/StringExtensions.cs*: ez az osztály tartalmazza a korábban írt bővítő metódusunkat, a `TrimPad`-et, kicsit átalakítva.
-* *dogs.csv*: egy pontosvesszővel tagolt „adatbázis`", amelyben 100 darab előre felvett kutya adata található.
-
-TIP:  A laborhoz tartozó snippet fájl: cs3.md
+* *Extensions/StringExtensions.cs*: ez az osztály tartalmaz egy segédmetódust a formázott kiíráshoz. A `Dog` `ToString` metódusa használja fel. A bővítő metódusos részben lesz jelentősége.
+* *dogs.csv*: egy pontosvesszővel tagolt adathalmaz, amelyben 100 darab előre felvett kutya adata található. Innen puskázzunk, ha 
 
 == Lambda kifejezések, delegátok
 
@@ -34,29 +32,11 @@ private static List<Dog> ListDogsByNamePrefix(IEnumerable<Dog> dogs,
     }
     return result;
 }
-
-private static string GetInput()
-{
-    Console.Write("Írd be a kutya nevének elejét: ");
-    var result = Console.ReadLine();
-    Console.Clear();
-    return result;
-}
-
-private static void Main(string[] args)
-{
-    string searchText;
-    while ((searchText = GetInput()).Length > 0)
-    {
-        foreach (var dog in ListDogsByNamePrefix(Dogs, searchText))
-            Console.WriteLine(dog);
-    }
-}
 ----
 
-A kód működik, viszont nem újrahasznosítható. Ha bármi más alapján szeretnénk keresni a kutyák között (pl. a neve tartalmaz-e egy adott szövegrészt), mindig egy új segédfüggvényt kell készítenünk, ami rontja a kód újrahasznosíthatóságát.
+Próbáljuk ki! A kód működik, viszont nem újrahasznosítható. Ha bármi más alapján szeretnénk keresni a kutyák között (pl. a neve tartalmaz-e egy adott szövegrészt), mindig egy új segédfüggvényt kell készítenünk, ami rontja a kód újrahasznosíthatóságát.
 
-Oldjuk meg úgy, hogy az általános problémát is megoldjuk! Ehhez az szükséges, hogy a kollekciónk egyes elemein kiértékelhessünk vagy predikátumot. Készítsük el az általánosabb változatot, ehhez felhasználhatjuk a `ListDogsByNamePrefix` kódját.
+Oldjuk meg úgy, hogy az általános problémát is megoldjuk! Ehhez az szükséges, hogy a kollekciónk egyes elemein kiértékelhessünk egy, a hívó által megadott predikátumot. Készítsük el az általánosabb változatot, ehhez felhasználhatjuk a `ListDogsByNamePrefix` kódját.
 
 [source,csharp]
 ----
@@ -83,15 +63,17 @@ A `Main` metódusban így hívhatjuk meg (felhasználhatjuk az eredeti ciklust):
                                     StringComparison.OrdinalIgnoreCase);
                         })
             )
-/**/Console.WriteLine(dog);
+/**/    Console.WriteLine(dog);
 ----
 
-Egy bemenő paraméterünk egy ilyen `Predicate<int>` típusú delegát (`T` típusú bemenete van, és `bool` visszatérésű), gyakorlatilag egy függvény példánya, amit anonim metódusként adunk át. Használjunk inkább lambda kifejezést, az jóval rövidebben leírható - egyelőre csak mutassuk meg, ne integráljuk a kódba:
+Egy egy bemenő paraméterű és egy logikai (`bool`) értéket visszadó függvényt definiálunk helyben (_inline_) és ezt (illetve a referenciáját) adjuk át. Használjunk inkább lambda kifejezést, az jóval rövidebben leírható - egyelőre csak mutassuk meg, ne integráljuk a kódba:
 
 [source,csharp]
 ----
-d => d.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase)
+d => d.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
 ----
+
+TIP: Lambda kifejezéssel az egyetlen kifejezésből álló függvényeket adhatjuk meg nagyon kompakt módon. A `=>`-tól balra elnevezzük a bemenő paramétereket, jobbra pedig felhasznál(hat)juk. A `return`, `{}` és egyéb sallangokat elhagyhatjuk. 
 
 Vessük össze, hogy az első esetben explicit megadtuk, hogy a bemenő paraméterünk `Dog`, most viszont nem. Ezt a fordító statikus kódanalízis alapján el tudja dönteni: a `d` változónk nem lehet más, csak `Dog` (statikus) típusú, ezért csak így használhatjuk, viszont nem kell kiírnunk a típust.
 
@@ -103,11 +85,13 @@ Próbáljuk meg a delegátunkat kivenni egy implicit típusú változóba a cikl
 ----
     var predicate = d => d.Name
         .StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
-/**/foreach (var dog in ListDogsByPredicate(Dogs, predicate))
+//  fordítási hiba!
+/**/foreach (var dog in 
+/**/               ListDogsByPredicate(Dogs, predicate)) //<- predicate-ra írjuk át
 /**/    Console.WriteLine(dog);
 ----
 
-Fordítási hibát kapunk, lambda kifejezés típusa nem lehet implicit eldönthető: sem a bemenő paraméter pontos típusát nem tudjuk (`Dog`? `Puppy`?), sem a visszatérési értéket (`bool`? `object`? `void`?). Tehát explicit meg kell adnunk a típust:
+Fordítási hibát kapunk, lambda kifejezés típusa nem lehet implicit eldönthető az inicializációs sorban: sem a bemenő paraméter pontos típusát nem tudjuk (`Dog`? `Puppy`?), sem a visszatérési értéket (`bool`? `object`? `void`?). Tehát explicit meg kell adnunk a típust:
 
 [source,csharp]
 ----
@@ -118,11 +102,11 @@ Predicate<Dog>
 
 Ezután fordul és fut is az alkalmazásunk.
 
-TIP:  Ehhez tudnunk kellett, hogy a `Predicate<T>` megfelelő szignatúrájú. Mutassuk meg ezen típus dokumentációját.
+TIP:  Ehhez tudnunk kellett, hogy a `Predicate<T>` megfelelő szignatúrájú. Mutassuk meg ezen típus dokumentációját vagy tegyük a kurzort a típusra és nyomjunk kbd:[F12]-t.
 
 == Func<>, Action<>
 
-Vezessük be a `Func` és `Action` általános delegate-típusokat. Ezzel a két típussal (pontosabban a változataikkal) gyakorlatilag az összes gyakorlatban előforduló függvényszignatúrát le lehet fedni. Például a fenti szűrőlogikát is átírhatnánk erre:
+Vezessük be a `Func` és `Action` általános delegáttípusokat. Ezzel a két típussal (pontosabban a változataikkal) gyakorlatilag az összes gyakorlatban előforduló függvényszignatúrát le lehet fedni. Például a fenti szűrőlogikát is átírhatnánk erre:
 
 [source,csharp]
 ----
@@ -130,86 +114,142 @@ Func<Dog,bool> predicate =
     p => p.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
 ----
 
-A `dogfunc` és a `predicate` kompatibilisnek tűnhetnek (elvégre a jobboldaluk ugyanaz), ám ha lecserélnénk pl. a `ListDogsByPredicate(Dogs, predicate)` hívásban a `predicate`-et `dogFunc`-ra, a kód nem fordulna, ugyanis a két típus nem kompatibilis.
+A `dogfunc` és a `predicate` kompatibilisnek tűnhetnek (elvégre a jobboldaluk ugyanaz), ám ha lecserélnénk pl. a `ListDogsByPredicate(Dogs, predicate)` hívásban a `predicate`-et `dogFunc`-ra, a kód nem fordulna, ugyanis a két delegáttípus nem kompatibilis.
 
 Az `Action<>` hasonló elven működik, visszatérési érték nélküli függvényekre.
 
-== IEnumerable<> bővítő metódusok
+INFO: Ha minden esetre jók, miért vannak használatban `Action<>` és `Func<>`-on kívül más delegáttípusok? Egyrészt történelmi okok miatt. Később jelentek meg, mint a specifikusak, például a `Predicate<T>`. Másrészt a specifikusabbak a nevükkel kifejezőbbek lehetnek.
 
-Írjunk néhány bővítő metódust az kutyák életkorával történő számításainkhoz!
+== IEnumerable<T> bővítő metódusok
 
-Hozzunk létre egy _EnumerableExtensions_ (I betű nélkül, az ugyanis interfészre utal) nevű fájlt az _Extensions_ mappában! Ezután az alábbi metódusok közül legalább az első kettőt valósítsuk meg! A példák önleírók, írás közben megérthetők:
+Vigyük tovább az általánosítást. Írjunk olyan logikákat, mely nem csak kutyák listájára, hanem bármilyen felsorolható (enumerálható) kollekcióra működik. Írjunk `IEnumerable<T>` típuson működő segédfüggvényeket.
+
+Hozzunk létre egy _EnumerableExtensions_ (I betű nélkül, az ugyanis interfészre utal) nevű fájlt az _Extensions_ mappában! Elsőként valósítsuk meg az összegző logikát.
 
 [source,csharp]
 ----
-public static class EnumerableExtensions
+namespace HelloLinq.Extensions.Enumerable
 {
-    public static int Sum<T> (this IEnumerable<T>  source,
-                                  Func<T, int>  sumSelector)
+    public static class EnumerableExtensions
     {
-        var result = 0;
-        foreach (var elem in source)
-            result += sumSelector(elem);
-        return result;
-    }
-    public static double Average<T> (this IEnumerable<T>  source,
-                                         Func<T, int>  sumSelector)
-    {
-        var result = 0.0; // Az osztás művelet miatt double
-        var elements = 0;
-        foreach (var elem in source)
+        public static int Sum<T> (IEnumerable<T>  source,
+                                      Func<T, int>  sumSelector)
         {
-            elements++;
-            result += sumSelector(elem);
+            var result = 0;
+            foreach (var elem in source)
+                result += sumSelector(elem);
+            return result;
         }
-        return result/elements;
     }
-    public static int Min<T> (this IEnumerable<T>  source,
-                                  Func<T, int>  valueSelector)
-    {
-        int value = 0;
-        foreach (var elem in source)
-        {
-            var currentValue = valueSelector(elem);
-            if (currentValue < value || value == null)
-                value = currentValue;
-        }
-        return value;
-    }
-    public static int Max<T> (this IEnumerable<T>  source,
-                                  Func<T, int>  valueSelector)
-        => -source.Min(e => -valueSelector(e));
 }
 ----
 
-Ezután a `Main` metódusban próbáljuk ki az egyes megoldásokat:
+Hívjuk meg a `Main` függvényből.
 
 [source,csharp]
 ----
-using HelloLinq.Extensions;
+using HelloLinq.Extensions.Enumerable;
 //...
-private static void Main(string[] args)
-{
-   foreach (var dog in Dogs)
-        Console.WriteLine(dog);
+/**/private static void Main(string[] args)
+/**/{
+       foreach (var dog in Dogs)
+            Console.WriteLine(dog);
 
-    Console.WriteLine($"Életkorok összege: {Dogs.Sum(d => d.Age ?? 0)}");
-    Console.WriteLine($"Átlagos életkor: {Dogs.Average(d => d.Age ?? 0)}");
-    // Csak ha elkészítettük a Min/Max bővítő metódusokat
-    Console.WriteLine(
-        $"Minimum-maximum életkor: {Dogs.Min(d => d.Age ?? 0)} | {Dogs.Max(d => d.Age ?? 0)}");
-    Console.ReadLine();
-}
+        Console.WriteLine("Életkorok összege: " +
+            $"{EnumerableExtensions.Sum(Dogs, d => d.Age ?? 0)}");
+
+/**/    //...
+/**/}
 ----
 
-== Gyakori lekérdező műveletek
+A segédfüggvények hátrány, hogy ismernünk kell a segédosztály nevét. Továbbá jobb lenne, ha a kollekción közvetlenül hívhatnánk az összegző függvényt. Erre megoldás a bővítő metódus.
 
-Gyakran előfordul, hogy egy listát szűrni vagy projektálni szeretnénk. Írjunk saját generátort ezekhez a műveletekhez az `EnumerableExtensions`-be:
+A bővítő metódusok:
+
+- statikus osztályban definiálhatók
+- statikus függvények
+- első paramétere előtt `this` jelöli, hogy melyik típust bővítik
+
+Az első paraméter elé tegyük be a `this` jelölőt.
 
 [source,csharp]
 ----
-public static IEnumerable<T>  Where<T> (this IEnumerable<T>  source,
-                                           Predicate<T>  predicate)
+/**/ public static int Sum<T> (this IEnumerable<T>  source,
+/**/                           Func<T, int>  sumSelector){/*...*/}
+----
+
+A `Main` függvényben most már használhatjuk azt a szintaxist, mintha a kollekciónak eleve lenne összegző függvénye:
+
+[source,csharp]
+----
+/* Console.WriteLine("Életkorok összege: " +
+                $"{EnumerableExtensions.Sum(Dogs, d => d.Age ?? 0)}");*/
+Console.WriteLine($"Életkorok összege: {Dogs.Sum(d => d.Age ?? 0)}");
+----
+
+WARNING: A bővítő metódusok semmilyen módon nem bontják meg a típusok egységbezárási képességeit. A függvény implementációja a bővítendő típusok kívülről is elérhető függvényeit, propertyjeit használhatják, privát adattagokhoz, függvényekhez nem férnek hozzá.
+
+WARNING: A bővítő metódusok alkalmazásakor nagyon fontos, hogy bár a bővítő metódus osztályának nevét nem írjuk ki, az osztály nevének feloldhatónak kell lennie, azaz az osztály névterét `using` direktívával be kell hivatkoznunk. Egy próba erejéig kommentezzük ki a `using HelloLinq.Extensions.Enumerable;` sort és ellenőrizzük, hogy nem fordul a kódunk, a bővítő metódus nevét a fordító nem tudja feloldani.
+
+Gyakorlásképpen írhatunk további gyakori adatfeldolgozási műveletekre függvényeket, mint amilyen az átlagszámítás, szélsőérték-keresés.
+
+[source,csharp]
+----
+/**/public static class EnumerableExtensions
+/**/{
+        //...
+        public static double Average<T> (this IEnumerable<T>  source,
+                                             Func<T, int>  sumSelector)
+        {
+            var result = 0.0; // Az osztás művelet miatt double
+            var elements = 0;
+            foreach (var elem in source)
+            {
+                elements++;
+                result += sumSelector(elem);
+            }
+            return result/elements;
+        }
+        public static int Min<T> (this IEnumerable<T>  source,
+                                      Func<T, int>  valueSelector)
+        {
+            int value = int.MaxValue;
+            foreach (var elem in source)
+            {
+                var currentValue = valueSelector(elem);
+                if (currentValue < value)
+                    value = currentValue;
+            }
+            return value;
+        }
+        public static int Max<T> (this IEnumerable<T>  source,
+                                      Func<T, int>  valueSelector)
+            => -source.Min(e => -valueSelector(e));
+/**/}
+----
+
+Ezután a `Main` metódusban próbáljuk ki az új függvényeket. Mivel a `Dogs` típusa `IEnumerable<Dog>`, így a bővítő metódusok bővítendő típusa illeszkedik rá.
+
+[source,csharp]
+----
+/**/Console.WriteLine($"Életkorok összege: {Dogs.Sum(d => d.Age ?? 0)}");
+    Console.WriteLine($"Átlagos életkor: {Dogs.Average(d => d.Age ?? 0)}");
+    Console.WriteLine(
+         $"Minimum-maximum életkor: " + 
+         $"{Dogs.Min(d => d.Age ?? 0)} | {Dogs.Max(d => d.Age ?? 0)}");
+----
+
+NOTE: A `StringExtensions` osztályban egy lambdaként megvalósított bővítő metódust láthatunk, ami egy szöveget adott hosszra (szélességre) egészít ki szóközökkel. A függvényt a `Dog` `ToString` metódusa használja fel.
+
+== Gyakori lekérdező műveletek, yield return
+
+Gyakran előfordul, hogy egy listát szűrni vagy projektálni szeretnénk. Írjunk saját generátort ezekhez a műveletekhez is az `EnumerableExtensions`-be:
+
+[source,csharp]
+----
+public static IEnumerable<T>  
+            Where<T> (this IEnumerable<T>  source,
+                           Predicate<T>  predicate)
 {
     foreach (var elem in source)
     {
@@ -217,8 +257,9 @@ public static IEnumerable<T>  Where<T> (this IEnumerable<T>  source,
             yield return elem;
     }
 }
-public static IEnumerable<TValue> Select<T, TValue>(this IEnumerable<T>  source,
-                                                         Func<T, TValue> selector)
+public static IEnumerable<TValue> 
+        Select<T, TValue>(this IEnumerable<T>  source,
+                               Func<T, TValue> selector)
 {
     foreach (var elem in source)
     {
@@ -227,21 +268,23 @@ public static IEnumerable<TValue> Select<T, TValue>(this IEnumerable<T>  source,
 }
 ----
 
-TIP: a `yield return` egy hasznos eszköz, ha IEnumerable-t kell produkálnunk visszatérési értékként. Segítségével mindig csak akkor állítjuk elő a következő elemet, amikor a hívó kéri. A működését debuggerrel is figyeljük meg: az egymást követő hívások között az állapot megmarad.
-
-Próbáljuk ki a `Main` metódus elején, válasszuk ki az 5 évesnél fiatalabb kutyák nevét és korát egy stringbe:
+Próbáljuk ki a `Main` metódus elején, válasszuk ki a 2010 előtt született kutyák nevét és korát egy stringbe:
 
 [source,csharp]
 ----
 foreach (var text in Dogs
-    .Where(d => d.Age < 5)
-    .Select(d => $"{d.Name} ({d.Age})))
+    .Where(d => d.DateOfBirth?.Year < 2010)
+    .Select(d => $"{d.Name} ({d.Age}))"))
 {
     Console.WriteLine(text);
 }
 ----
 
-Nem nagy meglepetés, hogy az általunk megírt `Sum`, `Average` (melyek egyedi visszatérésűek), `Select` és `Where` (amik szekvenciális visszatérésűek, generátorok) metódusok mind a .NET keretrendszer részét képezik (a `System.Linq.Enumerable` statikus osztályban definiált bővítő metódusok). A *LINQ* -- **L**anguage **IN**tegrated **Q**uery -- ezeket a műveleteket teszi lehetővé `IEnumerable` és `IQueryable` interfészt megvalósító objektumokon. A LINQ a .NET Standard része, így out-of-the box „jár” bármely .NET keretrendszerhez. A LINQ koncepciója pontosan ez, azaz bővítő metódusok hozzáadása meglevő a funkcionalitáshoz (kollekciókhoz, lekérdezésekhez), sőt, külső library-k is adnak saját LINQ bővítő metódusokat. Cseréljük le a *Program.cs*-ben a `using HelloLinq.Extensions` hivatkozást `using System.Linq`-re: az általunk megírt kód továbbra is ugyanazt az eredményt produkálja!
+TIP: a `yield return` egy hasznos eszköz, ha IEnumerable-t kell produkálnunk visszatérési értékként. Segítségével mindig csak akkor állítjuk elő a következő elemet, amikor a hívó kéri. A működését debuggerrel is figyeljük meg: tegyünk breakpointot a két `yield return` sorra, majd kbd:[F10]-zel kövessük végig, ahogy a `foreach` elkéri a `Select`-től a következő elemet, ami emiatt elkéri a `Where`-től, majd újraindul a ciklus. A hívások állapotgépként működnek, a következő meghíváskor onnan folytatódnak, ahonnan az előző `yield return`-nél kiléptünk.
+
+Nem nagy meglepetés, hogy az általunk megírt `Sum`, `Average` (melyek egyedi visszatérésűek), `Select` és `Where` (amik szekvenciális visszatérésűek, generátorok) metódusok mind a .NET keretrendszer részét képezik (a `System.Linq.Enumerable` statikus osztályban definiált bővítő metódusok). A *LINQ* -- **L**anguage **IN**tegrated **Q**uery -- ezeket a műveleteket teszi lehetővé `IEnumerable` interfészt megvalósító objektumokon. A LINQ függvények bővítő metódusként lettek hozzáadva meglevő funkcionalitáshoz (kollekciókhoz, lekérdezésekhez), sőt, külső library-k is adnak saját LINQ bővítő metódusokat. 
+
+Cseréljük le a *Program.cs*-ben a `using HelloLinq.Extensions.Enumerable` hivatkozást `using System.Linq`-re: az általunk megírt kód továbbra is ugyanazt az eredményt produkálja! Nézzük meg, hogy hol vannak definiálva ezek a függvények a keretrendszeren belül: a kurzort tegyük a kódban oda, ahol valamelyik korábban megírt függvényünket hívnánk, majd nyomjunk kbd:[F12]-t.
 
 == Anonim típusok
 
@@ -264,7 +307,7 @@ Az anonim típusok:
 
 Ha az egeret a `var` kulcsszavak, vagy egyes tulajdonságnevek fölé visszük, láthatjuk, hogy valóban fordítási idejű típusokról van szó.
 
-TIP:  Megnézhetjük, hogy az IntelliSense is működik ezekre a típusokra:
+TIP:  Figyeljük meg, hogy az IntelliSense is működik ezekre a típusokra.
 
 A fordító újra is hasznosítja az egyes típusokat:
 
@@ -273,20 +316,29 @@ A fordító újra is hasznosítja az egyes típusokat:
 var dolgok = new { Name = "Gyümölcsök", Contents = new[] { dolog1, dolog2 } };
 ----
 
-A `Contents` tulajdonság típusa a fenti anonim objektumaink tömbje, ezért nem is adhatnánk meg másképpen (nem tudjuk a nevét, amivel hivatkozhatunk rá), szintén említsük meg az implicit statikus típusosságot. A fordító most panaszkodik, ugyanis a két dolog típusa nem implicit következtethető. Ha felvesszük a `Size = 12` értéket a `dolog2` tulajdonságai közé, máris fordul.
-
-TIP:  Ha végeztünk az anonim típusok bemutatásával, az ezekkel kapcsolatos kódsorokat kikommentezhetjük.
-
-== LINQ szintaxisok
-
-Az előző részben ismertetett jellegű lekérdezések nagyban hasonlítanak azokhoz, amiket DB lekérdezésekben alkalmazunk. A különbség itt az, hogy imperatív szintaxist használunk, szemben pl. az SQL-lel, ami deklaratívat. Ezért is van jelen a C# nyelvben az ún. _query syntax_, amely jóval hasonlatosabb az SQL szintaxisához, így az adatbázisokban jártas fejlesztők is könnyebben írhatnak lekérdezéseket. Ugyanakkor nem minden lekérdezést tudunk query syntax-szal leírni.
-
-Az előző lekérdezést megírhatjuk az alábbi módon query syntax használatával:
+A `Contents` tulajdonság típusa a fenti anonim objektumaink tömbje, ezért nem is adhatnánk meg másképpen (nem tudjuk a nevét, amivel hivatkozhatunk rá). A fordító most panaszkodik, ugyanis a két dolog típusa nem implicit következtethető. Ha felvesszük a `Size` tulajdonságot a `dolog2` definíciójába, máris fordul.
 
 [source,csharp]
 ----
+var dolog2 = new { Name = "Körte", Weight = 90, Size=12 };
+----
+
+TIP:  Ha végeztünk az anonim típusokkal való ismerkedéssel, az ezekkel kapcsolatos kódsorokat kikommentezhetjük.
+
+== LINQ szintaxisok
+
+Az előző részben ismertetett jellegű lekérdezések nagyban hasonlítanak azokhoz, amiket adatbázis-lekérdezésekben alkalmazunk. A különbség itt az, hogy imperatív szintaxist használunk, szemben pl. az SQL-lel, ami deklaratívat. Ezért is van jelen a C# nyelvben az ún. _query syntax_, amely jóval hasonlatosabb az SQL szintaxisához, így az adatbázisokban jártas fejlesztők is könnyebben írhatnak lekérdezéseket. Ugyanakkor nem minden lekérdezést tudunk query syntax-szal leírni. 
+
+NOTE: Ennek oka, hogy az operátorok bevezetése egy nyelvben elég drága - le kell péládul foglalni az operátor nevét, amit utána korlátozottan lehet csak használni másra. Ezért sem csinálták meg minden LINQ függvénynek az operátor párját, csak az SQL-ben gyakrabban használatosabbaknak.
+
+Az előzőhöz hasonló lekérdezést megírhatunk az alábbi módon query syntax használatával:
+
+[source,csharp]
+----
+using HelloLinq.Extensions.Enumerable;
+//...
 var query = from d in Dogs
-            where d.Age < 5
+            where d.DateOfBirth?.Year < 2010
             select new
             {
                 Dog = d,
@@ -300,55 +352,41 @@ foreach (var meta in query)
 }
 ----
 
-A query syntax végül a korábban is használt, ún. _fluent syntax_-szá fordul. A két szintaxist szokás ötvözni is, jellemzően akkor, ha query syntax-ban írjuk a lekérdezést, és a hiányzó funkcionalitást fluent syntax-szal pótoljuk.
+A query szintaxis végül a korábban is használt, ún. _fluent syntax_-szá fordul. Ennek igazolására nézzük meg kbd:[F12]-vel, hogy hol vannak definiálva az újonnan megismert operátorok (`select`, `where`). A két szintaxist szokás ötvözni is, jellemzően akkor, ha query szintaxisban írjuk a lekérdezést, és a hiányzó funkcionalitást fluent szintaxissal pótoljuk.
 
-== Expression<>
+NOTE: A fluent szintaxis olyan kialakítású API-knál alkalmazhatjuk, ahol a függvények a tartalmazó típust várják (egyik) bemenetként és azonos (vagy leszármazott) típust adnak vissza. A LINQ-nél ez a típus az `IEnumerable<>`.
+
+Ezen az órán memóriabeli adatforrásokkal dolgoztunk (konkrétan a `Dogs` nevű `Dictionary<,>` típusú változóval), a LINQ operátorok közül a memóriabeli listákon dolgozókat használtuk, melyeket az `IEnumerable<>` interfészre biggyesztettek rá bővítő metódusként. Ezt a LINQ API-t teljes nevén LINQ-to-Objects-nek hívják, de gyakran csak LINQ-ként hivatkozzák.
+
+== Kitekintő: Expression<>, LINQ providerek
 
 Vegyük az alábbi nagyon egyszerű delegate-et és ennek `Expression<>`-s párját.
 
 [source,csharp]
 ----
 Func<int, int>  f = x => x + 1;
-Expression<Func<int, int> e = x => x + 1;
+Expression<Func<int, int>> e = x => x + 1;
 ----
 
-Magyarázzuk el a különbséget a két sor között. Az `f` egy delegate, lefordított __kód__ra mutató referencia, az `Expression` a jobb oldali kifejezésből épített (fa struktúrájú) _adat_. A fát kóddá fordíthatjuk a `Compile` metódus segítségével:
+Nézzük meg debuggolás közben a *Watch* ablakban a fenti két változót. Az `f` egy delegate, lefordított _kód_ra mutató referencia, az `Expression` a jobb oldali kifejezésből épített (fa struktúrájú) _adat_.
+
+A fát kóddá fordíthatjuk a `Compile` metódus segítségével, mely a lefordított függvény referenciáját (delegát példány) adja vissza, amit a függvényhívás szintaxissal hívhatunk meg. Ebből áll össze az alábbi fura kinézetű kifejezés:
 
 [source,csharp]
 ----
 Console.WriteLine(e.Compile()(5));
 ----
 
-Mivel ezen az órán csak memóriabeli listákkal dolgozunk, így nem nagyon tudnánk kihasználni az `Expression`-ök erejét, így most csak `Func<>`-ot használtunk.
+Bár az `Expression<>` emiatt okosabb választásnak tűnik, ám a LINQ-to-Objects alapinterfészének (ami a lekérdezőfüggvényeket biztosítja) függvényei `Func<>` / `Action<>` delegate-eket várnak. Ami nem csoda, hiszen memóriabeli listákat általában sima programkóddal dolgozunk fel, nincs értelme felépíteni kifejezésfát csak azért, hogy utána egyből kóddá fordítsuk. Emellett más, memóriabeli adatokon dolgozó LINQ technológia is létezik, pl. LINQ-to-XML saját API-val (nem `IEnumerable<>` alaptípussal).
 
-A LINQ-to-Objects alapinterfésze (ami a lekérdezőfüggvényeket biztosítja) az `IEnumerable<>`, figyeljük meg, hogy a függvények `Func<>` / `Action<>` delegate-eket várnak.
-Emellett más, memóriabeli adatokon dolgozó LINQ technológia is létezik, pl. LINQ-to-XML saját API-val.
+A nem memóriabeli adatokon, hanem például külső adatbázisból dolgozó LINQ provider-ek viszont `IQueryable<>`-t valósítanak meg. Az `IQueryable<>` az `IEnumerable<>`-ból származik, így neki is vannak `Func<>` / `Action<>`-ös függvényei, de emellett `Expression<>`-ösek is. Ez utóbbiak teszik lehetővé, hogy ne csak .NET kódot generáljanak a lambda kifejezésekből, hanem helyette pl. SQL kifejezést - hiszen egy relációs adatbázis adatfeldolgozó nyelve nem .NET, hanem valamilyen SQL dialektus.
 
-A nem memóriabeli adatokon dolgozó LINQ provider-ek `IQueryable<>`-t valósítanak meg. Az `IQueryable<>` az `IEnumerable<>`-ból származik, így neki is vannak `Func<>` / `Action<>`-ös függvényei, de emellett `Expression<>`-ösek is. Ez teszi lehetővé, hogy ne csak IL kódot generáljanak a lambda kifejezésekből, hanem helyette pl. SQL kifejezést.
-Idő hiányában az alábbi részt kihagyhatjuk.
+=== A LINQ providerek általános működése
 
-Rakjuk össze a korábbi, névkezdetet vizsgáló szűrőkifejezést dinamikusan, futás közben, kódból. A `Compile` függvény hívása során egy valódi fordítási folyamat történik (tehát futási időben kapunk hibát a fordítás sikertelenségéről):
+Bemenetük: query függvényeknek (`IQ<>` vagy `IE<>` függvényei vagy pl. `XDocument`) paraméterül adott lambdák (`Func<>` vagy `Expression<>`) 
 
-[source,csharp]
-----
-using Expression = System.Linq.Expressions.Expression;
-using System.Reflection; // A GetTypeInfo() bővítő metódus miatt.
-//...
-var param =              Expression.Parameter(typeof(Dog), "d");
-var name =               Expression.Property(param, "Name");
-var startsWithConstant = Expression.Constant(searchText);
-var startsWithArgument = Expression.Constant(StringComparison.OrdinalIgnoreCase);
-var methodCall =         Expression.Call(name, typeof(string).GetTypeInfo().
-                                GetMethod("StartsWith",
-                                    new[] { typeof(string),
-                                    typeof(StringComparison) }),
-                            startsWithConstant, startsWithArgument);
-var expression =         Expression.Lambda(methodCall, param);
-var predicate =          new Predicate<Dog>(expression.Compile() as Func<Dog, bool>);
-----
+Kimenetük: az adatforrásnak megfelelő nyelvű, a query-t végrehajtó kód (.NET kód vagy SQL).
 
-== A LINQ providerek működése
+LINQ-to-Objects esetén nincs valódi LINQ provider (a provider az `IQueryable.Provider`-en keresztül érhető el, de a `List<>` nem `IQueryable`!), hiszen nincs feladata: kódot kap bemenetül, ugyanazt kellene kimenetül adnia. A LINQ-to-XML is hasonló elven működik.
 
-Query függvényeknek (`IQ<>` vagy `IE<>` függvényei vagy pl. `XDocument`) paraméterül adott lambdák (`Func<>` vagy `Expression<>`) \=> az adatforrásnak megfelelő nyelvű, a query-t végrehajtó kód (IL kód vagy SQL).
-
-LINQ-to-Objects esetén nincs LINQ provider (a provider az `IQueryable.Provider`-en keresztül érhető el, de a `List<>` nem `IQueryable`!), hiszen nincs feladata: kódot kap bemenetül, ugyanazt kellene kimenetül adnia. A LINQ-to-XML is hasonló elven működik.
+Valódi LINQ providert valósít meg például az _Entity Framework_,de ezt a technológiát később tárgyaljuk.
