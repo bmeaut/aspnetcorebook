@@ -106,7 +106,7 @@ TIP:  Ehhez tudnunk kellett, hogy a `Predicate<T>` megfelelő szignatúrájú. M
 
 == Func<>, Action<>
 
-Vezessük be a `Func` és `Action` általános delegáttípusokat. Ezzel a két típussal (pontosabban a változataikkal) gyakorlatilag az összes gyakorlatban előforduló függvényszignatúrát le lehet fedni. Például a fenti szűrőlogikát is átírhatnánk erre:
+Ismerkedjünk meg a `Func` és `Action` általános delegáttípusokkal. Ezzel a két generikus típussal (pontosabban a változataikkal) gyakorlatilag az összes gyakorlatban előforduló függvényszignatúrát le lehet fedni. Például a fenti szűrőlogikát is átírhatnánk erre:
 
 [source,csharp]
 ----
@@ -157,7 +157,6 @@ using HelloLinq.Extensions.Enumerable;
 
         Console.WriteLine("Életkorok összege: " +
             $"{EnumerableExtensions.Sum(Dogs, d => d.Age ?? 0)}");
-
 /**/    //...
 /**/}
 ----
@@ -352,11 +351,11 @@ foreach (var meta in query)
 }
 ----
 
-A query szintaxis végül a korábban is használt, ún. _fluent syntax_-szá fordul. Ennek igazolására nézzük meg kbd:[F12]-vel, hogy hol vannak definiálva az újonnan megismert operátorok (`select`, `where`). A két szintaxist szokás ötvözni is, jellemzően akkor, ha query szintaxisban írjuk a lekérdezést, és a hiányzó funkcionalitást fluent szintaxissal pótoljuk.
+A query szintaxis végül a korábban is használt, ún. __fluent szintaxis__sá fordul. Ennek igazolására nézzük meg kbd:[F12]-vel, hogy hol vannak definiálva az újonnan megismert operátorok (`select`, `where`). A két szintaxist szokás ötvözni is, jellemzően akkor, ha query szintaxisban írjuk a lekérdezést, és a hiányzó funkcionalitást fluent szintaxissal pótoljuk.
 
 NOTE: A fluent szintaxis olyan kialakítású API-knál alkalmazhatjuk, ahol a függvények a tartalmazó típust várják (egyik) bemenetként és azonos (vagy leszármazott) típust adnak vissza. A LINQ-nél ez a típus az `IEnumerable<>`.
 
-Ezen az órán memóriabeli adatforrásokkal dolgoztunk (konkrétan a `Dogs` nevű `Dictionary<,>` típusú változóval), a LINQ operátorok közül a memóriabeli listákon dolgozókat használtuk, melyeket az `IEnumerable<>` interfészre biggyesztettek rá bővítő metódusként. Ezt a LINQ API-t teljes nevén LINQ-to-Objects-nek hívják, de gyakran csak LINQ-ként hivatkozzák.
+Ezen az órán memóriabeli adatforrásokkal dolgoztunk (konkrétan a `Dogs` nevű `Dictionary<,>` típusú változóval), a LINQ operátorok közül a memóriabeli listákon dolgozókat használtuk, melyeket az `IEnumerable<>` interfészre biggyesztettek rá bővítő metódusként. Ezt a LINQ API-t teljes nevén __LINQ-to-Objects__nek hívják, de gyakran csak LINQ-ként hivatkozzák.
 
 == Kitekintő: Expression<>, LINQ providerek
 
@@ -368,7 +367,7 @@ Func<int, int>  f = x => x + 1;
 Expression<Func<int, int>> e = x => x + 1;
 ----
 
-Nézzük meg debuggolás közben a *Watch* ablakban a fenti két változót. Az `f` egy delegate, lefordított _kód_ra mutató referencia, az `Expression` a jobb oldali kifejezésből épített (fa struktúrájú) _adat_.
+Nézzük meg debuggolás közben a *Watch* ablakban a fenti két változót. Az `f` egy delegate, lefordított __kód__ra mutató referencia, az `Expression` a jobb oldali kifejezésből épített (fa struktúrájú) _adat_.
 
 A fát kóddá fordíthatjuk a `Compile` metódus segítségével, mely a lefordított függvény referenciáját (delegát példány) adja vissza, amit a függvényhívás szintaxissal hívhatunk meg. Ebből áll össze az alábbi fura kinézetű kifejezés:
 
@@ -377,7 +376,7 @@ A fát kóddá fordíthatjuk a `Compile` metódus segítségével, mely a leford
 Console.WriteLine(e.Compile()(5));
 ----
 
-Bár az `Expression<>` emiatt okosabb választásnak tűnik, ám a LINQ-to-Objects alapinterfészének (ami a lekérdezőfüggvényeket biztosítja) függvényei `Func<>` / `Action<>` delegate-eket várnak. Ami nem csoda, hiszen memóriabeli listákat általában sima programkóddal dolgozunk fel, nincs értelme felépíteni kifejezésfát csak azért, hogy utána egyből kóddá fordítsuk. Emellett más, memóriabeli adatokon dolgozó LINQ technológia is létezik, pl. LINQ-to-XML saját API-val (nem `IEnumerable<>` alaptípussal).
+Bár az `Expression<>` emiatt okosabb választásnak tűnik, ám a LINQ-to-Objects alapinterfészének (ami a lekérdezőfüggvényeket biztosítja) függvényei `Func<>` / `Action<>` delegátokat várnak. Ami nem csoda, hiszen memóriabeli listákat általában sima programkóddal dolgozunk fel, nincs értelme felépíteni kifejezésfát csak azért, hogy utána egyből kóddá fordítsuk. Emellett más, memóriabeli adatokon dolgozó LINQ technológia is létezik, pl. LINQ-to-XML saját API-val (nem `IEnumerable<>` alaptípussal).
 
 A nem memóriabeli adatokon, hanem például külső adatbázisból dolgozó LINQ provider-ek viszont `IQueryable<>`-t valósítanak meg. Az `IQueryable<>` az `IEnumerable<>`-ból származik, így neki is vannak `Func<>` / `Action<>`-ös függvényei, de emellett `Expression<>`-ösek is. Ez utóbbiak teszik lehetővé, hogy ne csak .NET kódot generáljanak a lambda kifejezésekből, hanem helyette pl. SQL kifejezést - hiszen egy relációs adatbázis adatfeldolgozó nyelve nem .NET, hanem valamilyen SQL dialektus.
 
@@ -387,6 +386,6 @@ Bemenetük: query függvényeknek (`IQ<>` vagy `IE<>` függvényei vagy pl. `XDo
 
 Kimenetük: az adatforrásnak megfelelő nyelvű, a query-t végrehajtó kód (.NET kód vagy SQL).
 
-LINQ-to-Objects esetén nincs valódi LINQ provider (a provider az `IQueryable.Provider`-en keresztül érhető el, de a `List<>` nem `IQueryable`!), hiszen nincs feladata: kódot kap bemenetül, ugyanazt kellene kimenetül adnia. A LINQ-to-XML is hasonló elven működik.
+LINQ-to-Objects esetén nincs valódi LINQ provider (a provider az `IQueryable.Provider`-en keresztül érhető el, de a `List<>` nem `IQueryable`!), hiszen nincs feladata: kódot kap bemenetül, ugyanazt kellene kimenetül adnia. A _LINQ-to-XML_ is hasonló elven működik.
 
-Valódi LINQ providert valósít meg például az _Entity Framework_,de ezt a technológiát később tárgyaljuk.
+Valódi LINQ providert valósít meg például az _Entity Framework_, de ezt a technológiát később tárgyaljuk.
