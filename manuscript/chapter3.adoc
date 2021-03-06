@@ -334,7 +334,7 @@ Az előzőhöz hasonló lekérdezést megírhatunk az alábbi módon query synta
 
 [source,csharp]
 ----
-using HelloLinq.Extensions.Enumerable;
+using HelloLinq.Extensions;
 //...
 var query = from d in Dogs
             where d.DateOfBirth?.Year < 2010
