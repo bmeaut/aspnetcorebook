@@ -59,7 +59,7 @@ Az ASP.NET Core alkalmazás alapszerkezete, hogy a befutó HTTP kérés (végig)
 Esetünkben most csak három middleware-ünk van:
 
 * Kivételkezelő middleware, ami az őt követő middleware-ek hibáit képes elkapni és ennek megfelelően egy hibaoldalt jelenít meg. Ez csak opcionálisan kerül beregisztrálásra attól függően, hogy most éppen _Development módban_ futtatjuk-e az alkalmazást vagy sem. (lásd később)
-* Routing middleware, aminek a feladata, hogy a bejövő kérés és az endpointok (lásd lentebb) által adott információk alapján kitalálja, hogy melyik endpoint  felé továbbítsa a bejövő kérést.
+* Routing middleware, aminek a feladata, hogy a bejövő kérés és az endpointok (lásd lentebb) által adott információk alapján kitalálja, hogy melyik endpoint felé továbbítsa a bejövő kérést.
 * endpointokat összefogó middleware, amiben jelenleg egy endpoint árválkodik, ami a gyökércímre (`/`) küldött GET kérésre reagál (ez a routing információ) és válaszba ír egy _Hello World!_ szöveget (ez a működés). Figyeljük meg, hogy ez most egy lambda kifejezéssel kerül megadásra, viszont bonyolultabb esetben érdemes a middleware logikát egy külön osztályba kiszervezni (lásd később)
 
 == Hosztolási lehetőségek

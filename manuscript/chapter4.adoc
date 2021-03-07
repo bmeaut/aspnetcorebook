@@ -1,45 +1,90 @@
 [#csharp4]
 = C# alapok III.
 
-Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesvágott jelleggel.
+Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesfelvágott jelleggel. Az egyes fő alfejezeteket külön projektként dolgozzuk ki. A projekteket hozzáadhatjuk az elsőként létrehozott projekt solutionjéhez (menu:jobbklikk a projekten[Add > New project]). Hozzáadás után ne felejtsük el átállítani a futtatandó projektet: menu:jobbklikk a projekten[Set as Startup Project]
 
-TIP:  A laborhoz tartozó snippet fájl: cs4.md
+== Bejárási problémák
 
-== Tuple nyelvi szinten, lokális függvények
+Enumerátorok használata esetén két alapvető problémába ütközünk: az egyik a mögöttes kollekció módosulása bejárás során, a másik pedig a késleltetett kiértékelésből adódó mellékhatások kezelése.
 
-Készítsünk Fibonacci számsor kiszámolására alkalmas függvényt, ahol használjunk ki az alábbi két új nyelvi elemet. Természetesen nagyon sok féleképpen meg lehetne valósítani ezt a metódust, de most kifejezetten a _tuple_-ök nyelvi támogatását és lokális függvényeket szeretnénk demonstrálni.
+=== Kollekció módosulása bejárása során, legfelső szintű utasítások
 
-* Lokális függvények: ezek a függvények csak adott metódusban láthatók. Két esetben érdemes őket használni: ha nem szeretnénk „szennyezni`" a környező osztályt különféle privát segédmetódusokkal, vagy ha egy mélyebb, komplexebb hívási láncban nem szeretnénk a paramétereket folyamatosan „továbbpasszolni`", ugyanis ezek a metódusok elérik a külső scope-on található változókat is (ebben az esetben például az x-et).
-* Tuple típus: a tuple (ennes) több elem összefogása, ami gyors, nyelvi szinten támogatott adattovábbítást tesz lehetővé (gyakorlatilag inline, nevesítetlen struktúratípust hozunk így létre). Publikus API-kon, függvényeken nem érdemes használni, viszont privát, `internal`, package-szintű használatnál sebességnövekedést és API tisztulást érhetünk vele el. Az eredeti `Tuple<>` típushoz hasonlóan működnek, ellenben az `Item1`, `Item2`... tulajdonságok opcionálisan nevesítve is elérhetők benne. A tuple-ökre a funkcionális nyelvek hatása miatt az utóbbi időben nagy hangsúlyt fektettek, így rekord-jellegűen kezelhetők, például könnyen dekonstruálhatók (lásd lentebb)
+Szűrjünk le egy szám-szám szótárat csak azokra az elemekre, amik megfelelnek egy feltételnek, és ezeket távolítsuk el a szótárból!
+
+Ehhez *mindent* töröljünk vagy kommentezzünk ki a _Program.cs_ fájlból és cseréljük az alábbira:
 
 [source,csharp]
 ----
-public static long Fibonacci(long x)
-{
-    (long Current, long Previous) Fib(long i) // Nevesített Tuple visszatérés
-    {
-        if (i == 0) return (1, 0);
-        var (curr, prev) = Fib(i - 1); // Az eredmény eltárolása egy Tuple változóban
-        Thread.Sleep(100); // Lassú művelet szimulációja
-        return (curr + prev, curr);
-    }
+using System;
+using System.Linq;
 
-    return x < 0
-        ? throw new ArgumentException("Less negativity please!", nameof(x))
-        : Fib(x).Current;
+var numbers = Enumerable.Range(1, 8).ToList();
+foreach (var p in numbers)
+{
+    if (p % 2 == 0)
+    {
+        numbers.Remove(p);
+    }
+}
+numbers.ForEach(Console.WriteLine);
+----
+
+Ez egy fura szintaxis egy objektumorientált nyelvtől, hiszen ez a kód látszólag nincs osztályon belül. A projektünkben egy fájlban, amit a program belépési pontjaként szeretnénk, elhagyhatjuk a ceremóniát, nem kell névtér- és osztálydeklaráció, valamint a `Main` függvény fejlécét sem kell megírni. Minden ilyesmi fordítás során generálódik. Általában akkor használjuk, ha egyszerűbb, nem Visual Studio környezetben kipróbálós jellegű programokat szeretnénk írni.
+
+Futtatáskor kivételt kapunk, mi a probléma? A kollekciót bejárás közben szerettük volna módosítani, viszont ez könnyen nem várt működést (túlcímzést, nemdeterminisztikus bejárást) tenne lehetővé, ezért kivételt kapunk. Oldjuk meg a problémát: nem módosíthatjuk a forrás objektumot bejárás közben, tehát ne azt a kollekciót járjuk be, másoljuk le!
+
+[source,csharp]
+----
+/**/foreach (var p in numbers.ToList()) // a ToList bekerült
+/**/{/*...*/}
+----
+
+Ez megoldja a problémát, sikerül eltávolítani az elemeket a kollekcióból. De miért? A `ToList` `IEnumerable` bővítő, tehát bejárhatja a kollekciót, ezután pedig egy **másik ** `List<>` objektumban tárolja az elemeket. Így tehát két listánk lesz (a `numbers` és a `numbers.ToList` visszatérési értéke), amik kezdetben egymás klónjai, menet közben az egyikből veszünk ki, a másikon pedig iterálunk.
+
+TIP: Bár a fenti az általános szabály, bizonyos kollekciók bizonyos módosító műveletei mégsem dobnak kivételt, ilyen például .NET Core 3.0 óta a `Dictionary<,>` `Remove` és `Clear` műveletei.
+
+=== Azonnali és késleltetett kiértékelés
+
+Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<T>` visszatérési értékű), az egyes elemeken történő iteráció a generátorok egymásba ágyazását jelenti, azaz az egyes generátorokban a `yield return` által visszaadott értéket fogja az enumerátor `MoveNext` metódusa visszaadni. Amíg az `IEnumerable`-re van referenciánk, és nem járjuk azt közvetlenül be, addig _késleltetett kiértékelésről_ beszélünk.
+
+Az eddigiek alá:
+
+[source,csharp]
+----
+var i = 0;
+foreach (var n in numbers
+                    .Where(p => p > 2)
+                    .Select(p => new { p, x = ++i }))
+{
+    Console.WriteLine($"{n} - {i}");
+}
+
+Console.WriteLine();
+
+i = 0;
+foreach (var n in numbers
+                    .Where(p => p > 2)
+                    .Select(p => new { p, x = ++i })
+                    .ToList())
+{
+    Console.WriteLine($"{n} - {i}");
 }
 ----
+
+A `ToList` hívásunk először bejárja az iterátort és visszaad egy listát, amelybe összegyűjti az `IEnumerable` elemeit. Ezért az `i` változónk a második esetben nem együtt inkrementálódik a bejárással, mert az kétszer történik meg. Az első bejáráskor (a `ToList` hívásakor) inkrementálódik az `i` értéke, másodjára pedig már csak bejárjuk a kapott listát. Eddigre az `i` értéke már meg van növelve.
+
+Ezzel a megközelítéssel futásidőben is állíthatunk össze egy időben változó lekérdezést, amit majd egyszer, a későbbiekben fogunk bejárni (pl. sorosításkor).
 
 == Aszinkron működés
 
 Töltsünk le egy HTML oldalt, és ezen a problémán keresztül bemutatjuk az aszinkron programozási modellt. A `HttpClient` működésének a részletesebb ismertetése most nem téma, csak a legalapvetőbb funkciókat fogjuk használni.
 
-A fő gond a hosszan futó műveletek blokkolhatják a fő/UI/aktuális szál futását, mindez kliens alkalmazások esetében úgy jelentkezik, hogy nem lesz a alkalmazásunk reszponzív a felhasználói bemenetekre; szerveralkalmazások esetében pedig az adott kérést kiszolgáló szál feleslegesen blokkolódik, amikor esetleg mással is tudna foglalkozni.
+A fő gond, hogy a hosszan futó műveletek blokkolhatják a fő/UI/aktuális szál futását, mindez kliens alkalmazások esetében úgy jelentkezik, hogy nem lesz a alkalmazásunk reszponzív a felhasználói bemenetekre; szerveralkalmazások esetében pedig az adott kérést kiszolgáló szál feleslegesen blokkolódik, amikor esetleg mással is tudna foglalkozni.
 
-Ötlet a hosszan tartó műveleteket végezzük aszinkron módon, egy másik szálon, és ha az befejeződött az eredményről valamilyen módon értesüljünk. Az előadáson bemutatásra kerültek a különböző modellek: Asynchronous Programming Model (APM), Event-based Asynchronous Pattern (EAP), Task-based Asynchronous Pattern (TAP).
+Ötlet a hosszan tartó műveleteket végezzük aszinkron módon, és ha az befejeződött az eredményről valamilyen módon értesüljünk. A keretrendszer többféle mintát kínál erre: Asynchronous Programming Model (APM), Event-based Asynchronous Pattern (EAP), Task-based Asynchronous Pattern (TAP). Mi most a legutóbbival foglalkozunk csak, a többi jórészt elavultnak számít ma már.
 
 A TAP-ra már C# nyelvi támogatást is kapunk az `async`/`await` kulcsszavakon keresztül.
-Vegyünk fel egy új metódust és hívjuk meg a `Main` metódusban. A megírt metódus írása során hivatkozzuk be a `System.Net.Http` névteret. A kód semmi más nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott URL-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és kiírja a konzolra.
+Vegyünk fel egy új metódust és hívjuk meg a `Main` metódusban. A megírt metódus írása során hivatkozzuk be a `System.Net.Http` névteret. A kód semmi mást nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott URL-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és kiírja a konzolra.
 
 [source,csharp]
 ----
@@ -68,23 +113,21 @@ public static async void LoadWebPageAsync()
 
 *async:* ha await-elni akarunk, akkor muszáj `async`-nak lennie a tartalmazó metódusnak, mert ilyenkor építi fel a fordító az aszinkron végrehajtáshoz szükséges állapotgépet.
 
-Debuggoljuk ki! Nézzük meg melyik rész milyen szálon fut le. Azt is nézzük meg milyen sorrendben. A `LoadWebPageAsync` utáni rész előbb fog lefutni, mint az első `await` utáni rész.
-
-Figyeljük meg, hogy az _Ez a vége_ szöveg hamarabb kiíródik, mit a HTML oldal letöltése.
+Debuggoljuk ki! Minden `Console`, `async` sorra tegyünk töréspontot, debuggolás során (kbd:[F5]) kövessük végig milyen sorrendben éri el őket a végrehajtás. Nézzük meg melyik rész milyen szálon fut le (debug közben menu:Debug[Windows > Threads]). A `LoadWebPageAsync` utáni rész előbb fog lefutni, mint az első `await` utáni rész. Az `await` utáni rész nem a _Main Thread_-en fut. Figyeljük meg azt is, hogy az _Ez a vége_ szöveg hamarabb kiíródik, mit a HTML oldal letöltése.
 
 Próbáljuk ki a `Console.ReadKey` nélkül is, ilyenkor jó eséllyel hamarabb leáll a process, minthogy a `Task` befejeződne. Az ilyen fire-and-forget típusú hívásoknál nem figyel arra senki, hogy itt még valami háttérművelet folyik.
+
+WARNING:  Az async void általában helytelen kód, mert nem lehet bevárni a háttérművelet végét. Az `async Task` máris jobb a bevárhatóság és a hibakezelés miatt, és alig kell módosítani a kódot. Kivétel, amikor valamiért kötelező a `void`, például, ha esemény vagy interfész előírja.
 
 === Az oldalletöltés bevárása
 
 Módosítsuk úgy a kódot, hogy a `LoadWebPageAsync` utáni rész várja meg a letöltés befejeződését. Ez akkor jó például, ha a letöltés után valamit még szeretnék elvégezni a hívó függvényben.
 
-TIP:  Az async void általában nem jó, mert nem lehet bevárni a végét. Az `async Task` máris jobb a bevárhatóság és a hibakezelés miatt, és alig kell módosítani a kódot. Kivétel, amikor valamiért szükséges a `void` pl. esemény vagy interfész előírja.
-
 Módosítsuk a `LoadWebPageAsync` fejlécét, hogy taszkot adjon vissza:
 
 [source,csharp]
 ----
-public static async Task LoadWebPageAsync()
+/**/public static async Task LoadWebPageAsync() //void helyett Task
 ----
 
 Várjuk be az szinkron művelet végét a `Main` függvényben. Ehhez viszont a `Main` függvénynek is async-nak kell lennie. Ez csak a C# 7.1 óta támogatott.
@@ -93,18 +136,18 @@ TIP: A Visual Studio 2019-ben a nyelv alapértelmezett verzióját a projekt fut
 
 [source,csharp]
 ----
-static async Task Main(string[] args)
-{
-    await LoadWebPageAsync();
-
-    Console.WriteLine("Ez a vége");
-    Console.ReadKey();
-}
+/**/static async Task Main(string[] args) //void helyett async Task bekerült
+/**/{
+/**/    await LoadWebPageAsync(); //await bekerült
+/**/
+/**/    Console.WriteLine("Ez a vége");
+/**/    Console.ReadKey();
+/**/}
 ----
 
 Figyeljük meg, hogy így már az _Ez a vége_ felirat már a letöltés után jelenik meg.
 
-TIP:  Az `async Main` háttere: a fordító egy saját (nem `async`-os) `Main`-t generál, ez lesz az igazi belépési pont. Annyit csinál, hogy áthív és bevárja a mi `Main`-ünket.
+TIP:  Az `async Main` háttere: a fordító egy saját (nem `async`-os) `Main`-t generál, ez lesz az igazi belépési pont. Annyit csinál, hogy meghívja és bevárja a mi `Main`-ünket.
 
 === Háttérművelet eredményének visszaadása
 
@@ -121,7 +164,7 @@ Alakítsuk át, hogy a weboldal tartalmának kiíratása a `Main`-ben történje
 /**/    Console.ReadKey();
 /**/}
 
-/**/public static async Task<string> LoadWebPageAsync()
+/**/public static async Task<string> LoadWebPageAsync() //generikus paraméter
 /**/{
 /**/    using (var client = new HttpClient())
 /**/    {
@@ -138,9 +181,7 @@ A `return` valójában ezen `Task` eredményét állítja be `async` metódusok 
 
 == Nem nullozható referencia típusok
 
-Korábban láttuk, hogy hogyan lehet egy érték típusnak null értéket adni (`Nullable<T>`). Az érem másik oldala a C# 8-ban megjelent nem nullozható referencia típusok. Mivel itt nem egy új típust vezettek be, hanem az eddig megszokott típusneveket értelmezi máshogyan a fordító, így ez a képesség alapból nincs bekapcsolva.
-
-Vegyünk fel egy másik C# konzolos projektet a solutionünkbe. A projekt szintű bekapcsoláshoz a projektfájlban kell egy új beállítást felvennünk a _ProprtyGroup_ címkén belül.
+Korábban láttuk, hogy hogyan lehet egy érték típusnak null értéket adni (`Nullable<T>`). Az érem másik oldala a C# 8-ban megjelent nem nullozható referencia típusok. Mivel itt nem egy új típust vezettek be, hanem az eddig megszokott típusneveket értelmezi máshogyan a fordító, így ez a képesség alapból nincs bekapcsolva. A projekt szintű bekapcsoláshoz a projektfájlban kell egy új beállítást felvennünk a _ProprtyGroup_ címkén belül (menu:jobbklikk a projekten[Edit Project File]).
 
 [source,xml]
 ----
@@ -149,9 +190,7 @@ Vegyünk fel egy másik C# konzolos projektet a solutionünkbe. A projekt szint�
 
 TIP: Ezen kívül még https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references#nullable-contexts[preprocessor direktívákkal] is szabályozhatjuk a működést.
 
-Induljunk ki egy egyszerű személyeket nyilvántartó adatosztályból, ahol elhatározzuk, hogy a középső név kivételével a többi névdarab nem nullozható szöveg lesz. 
-
-TIP: Az egyes kódrészletek kóddarabkaként is elérhetőek.
+Induljunk ki egy egyszerű személyeket nyilvántartó adatosztályból, ahol elhatározzuk, hogy a középső név kivételével a többi névdarab nem nullozható szöveg lesz.
 
 [source,csharp]
 ----
@@ -185,7 +224,7 @@ WARNING: Ha biztosan látni akarjuk az összes figyelmeztetést, akkor sima Buil
 
 WARNING: Sajnos a kötelezően konstruktoron keresztüli inicializáció nem mindig működik, például a sorosítók általában nem szeretik, ha nincs alapértelmezett konstruktor.
 
-Mennyire okos a fordító a `null` érték detektálásában? Nézzünk pár példát! Az alábbi statikus függvényt tegyük bele a Person osztályunkba.
+Mennyire okos a fordító a `null` érték detektálásában? Nézzünk pár példát! Az alábbi statikus függvényt tegyük bele a `Person` osztályunkba és vegyük fel a `using static System.Console;` névtérhivatkozást is.
 
 [source,csharp]
 ----
@@ -211,7 +250,7 @@ static void M(string? ns)
 <2> Ha egy egyszerű `if`-fel levizsgáljuk, akkor máris ok. Pedig pl. többszálú környezetben az `if` kiértékelése és ezen sor végrehajtása között a változó akár `null` értékre is beíródhat.
 <3> Az előtte lévő rövidzár is megnyugtatja a fordítót, így itt sincs figyelmeztetés.
 <4> Ezt az előző sor alapján figyelmeztetéssel jutalmazza.
-<5> Ez is figyelmeztetés, a `default` által adott értékkel nem inicializálhatunk.
+<5> Ez is figyelmeztetés, a `default` operátor által adott értékkel nem inicializálhatunk.
 <6> Ez viszont nem figyelmeztetés, pedig egy csomó `null` jön létre. Ha ez figyelmeztetés lenne, az aránytalanul megnehezítené a tömbök kezelését.
 
 Látható, hogy az egyszerűbb eseteket jól kezeli a fordító, de korántsem mindenható, illetve nem mindig szól akkor sem, amikor egyébként szólhatna.
@@ -255,8 +294,8 @@ void M(Person p)
 ----
 <1> A fordító nem követi le, hogy a `ResetFields` veszélyes módon változtatja az állapotot, csak azt nézi, hogy az `if` már kivédte a veszélyt.
 <2> Ez egy fals pozitívnak tűnő eset, az előző sorban lévő függvény alapján a `p.MiddleName` nem lehetne `null`, de a fordító csak azt figyeli, hogy a beburkoló `if` ellenőrzése a `p` megváltozása miatt már nem érvényes.
-<3> Egyértelmű figyelmeztetés.
-<4> Jár a figyelmeztetés, mert nem kezeljük a `p.MiddleName == null` esetet.
+<3> Egyértelműen jogos figyelmeztetés.
+<4> Jogos a figyelmeztetés, mert nem kezeljük a `p.MiddleName == null` esetet.
 
 Struktúratagok esetén is a fals negatív eset jön elő. Próbáljuk ki, akár a `Person` osztályba írva:
 
@@ -280,103 +319,77 @@ A felkiáltójeles ráerőszakolást a `ResetFields`-ben látható ámokfutás h
 
 Figyeljük meg, ahogy a figyelmeztetés eltűnik.
 
-Ha igazán elkötelezettek vagyunk a `null` kiirtása mellett, akkor bekapcsolhatjuk, hogy minden, a `null` kezelés miatti, fordító által detektált figyelmeztetés legyen hiba. A projekt beállítási között (a projekten jobbklikk → Properties), a _Build_ lapon kapcsoljuk be a _Treat warnings as errors_ részen a _Specific warnings_ opciót, majd az opciónak adjuk meg a `nullable` értéket.
+Ha igazán elkötelezettek vagyunk a `null` kiirtása mellett, akkor bekapcsolhatjuk, hogy minden, a `null` kezelés miatti, fordító által detektált figyelmeztetés legyen hiba. A projekt beállítási között (menu:a projekten jobbklikk[Properties]), a _Build_ lapon kapcsoljuk be a _Treat warnings as errors_ részen a _Specific warnings_ opciót, majd az opciónak adjuk meg a `nullable` értéket.
 
 Ellenőrizzük, hogy tényleg hibaként jelennek-e meg az eddigi `null` kezelés miatti figyelmeztetések.
 
-Mivel ez csak egy példakód, ne javítsuk ki a hibákat, csak távolítsuk el a projektet a solutionből (a projekten jobbklikk → Remove).
+Mivel ez csak egy példakód, ne javítsuk ki a hibákat, csak távolítsuk el a projektet a solutionből (menu:a projekten jobbklikk[Remove]).
 
-== Bejárási problémák
+== Tuple nyelvi szinten, lokális függvények, Dispose minta
 
-Enumerátorok használata esetén két alapvető problémába ütközünk: az egyik a mögöttes kollekció módosulása bejárás során, a másik pedig a késleltetett kiértékelésből adódó mellékhatások kezelése.
+=== Tuple nyelvi szinten, lokális függvények
 
-=== Kollekció módosulása bejárása során
+Készítsünk Fibonacci számsor kiszámolására alkalmas függvényt, ahol használjunk ki az alábbi két új nyelvi elemet. Természetesen nagyon sokféleképpen meg lehetne valósítani ezt a metódust, de most kifejezetten a _tuple_-ök nyelvi támogatását és lokális függvényeket szeretnénk demonstrálni.
 
-Szűrjünk le egy szám-szám szótárat csak azokra az elemekre, amik megfelelnek egy feltételnek, és ezeket távolítsuk el a szótárból!
+* Lokális függvények: ezek a függvények csak adott metódusban láthatók. Két esetben érdemes őket használni: ha nem szeretnénk „szennyezni” a környező osztályt különféle privát segédmetódusokkal, vagy ha egy mélyebb, komplexebb hívási láncban nem szeretnénk a paramétereket folyamatosan továbbpasszolni, ugyanis ezek a metódusok elérik a külső scope-on található változókat is (a lenti esetben például az `x`-et).
+
+* Value tuple típus: a tuple (ennes) több összetartozó érték összefogása, ami gyors, nyelvi szinten támogatott adattovábbítást tesz lehetővé - gyakorlatilag inline, nevesítetlen struktúratípust hozunk így létre. Publikus API-kon, függvényeken nem érdemes használni, viszont privát, belső használatnál sebességnövekedést és API tisztulást érhetünk vele el. Érték típus.
+
+TIP: Léteznek generikus `Tuple<>` típusok is. Ezek referencia típusok, hasonló szerepet töltenek be, viszont az egyes értékeiket az elég semmitmondó `Item1`, `Item2`... neveken lehet elérni.
 
 [source,csharp]
 ----
-var numbers = Enumerable.Range(1, 8).ToList();
-foreach (var p in numbers)
+public static long Fibonacci(long x)
 {
-    if (p % 2 == 0)
+    (long Current, long Previous) Fib(long i) //<1> 
     {
-        numbers.Remove(p);
+        if (i == 0) return (1, 0);
+        var (curr, prev) = Fib(i - 1); //<2>
+        Thread.Sleep(100); //<3>
+        return (curr + prev, curr);
     }
+
+    return x < 0
+        ? throw new ArgumentException("Less negativity please!", nameof(x))
+        : Fib(x).Current;
 }
 ----
+<1> Nevesített tuple visszatérés. Ez egy lokális függvény, szintaxist tekintve függvényen belüli függvény.
+<2> Az eredmény eltárolása egy tuple változóban. Ezzel dekonstruáljuk is, darabokra szedjük a tuple-t, mert `curr`, `prev` változón keresztül elérjük a két `long` alkotórészt. Ugyanezen sorban történik a rekurzív hívás is.
+<3> Lassú művelet szimulációja mesterséges késleltetéssel.
 
-Kivételt kapunk, mi a probléma? A kollekciót bejárás közben szerettük volna módosítani, viszont ez könnyen nem várt működést (túlcímzést, nemdeterminisztikus bejárást) tenne lehetővé, ezért kivételt kapunk. Oldjuk meg a problémát: nem módosíthatjuk a forrás objektumot bejárás közben, tehát ne azt a kollekciót járjuk be, másoljuk le!
+TIP: A dekonstrukciós szintaxis a korábbi gyakorlaton megismert rekord típusok esetén is működik.
 
-[source,csharp]
-----
-foreach (var p in numbers.ToList()) // a ToList bekerült
-----
-
-Ez megoldja a problémát, sikerül eltávolítani az elemeket a kollekcióból. De miért? A `ToList` `IEnumerable` bővítő, tehát bejárhatja a kollekciót, ezután pedig egy **másik ** `List<>` objektumban tárolja az elemeket. Így tehát két listánk lesz (a `numbers` és a `numbers.ToList` visszatérési értéke), amik kezdetben egymás klónjai, menet közben az egyikből veszünk ki, a másikon pedig iterálunk.
-
-TIP: bár a fenti az általános szabály, bizonyos kollekciók bizonyos módosító műveletei mégsem dobnak kivételt, ilyen például .NET Core 3.0 óta a `Dictionary<,>` `Remove` és `Clear` műveletei.
-
-=== Azonnali és késleltetett kiértékelés
-
-Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<T>` visszatérési értékű), az egyes elemeken történő iteráció a generátorok egymásba ágyazását jelenti, azaz az egyes generátorokban a `yield return` által visszaadott értéket fogja az enumerátor `MoveNext` metódusa visszaadni. Amíg az `IEnumerable`-re van referenciánk, és nem járjuk azt közvetlenül be, addig _késleltetett kiértékelésről_ beszélünk.
-
-[source,csharp]
-----
-var i = 0;
-foreach (var n in numbers
-                    .Where(p => p > 2)
-                    .Select(p => new { p, x = ++i }))
-{
-    Console.WriteLine($"{n} - {i}");
-}
-
-Console.WriteLine();
-
-i = 0;
-foreach (var n in numbers
-                    .Where(p => p > 2)
-                    .Select(p => new { p, x = ++i })
-                    .ToList())
-{
-    Console.WriteLine($"{n} - {i}");
-}
-----
-
-A `ToList` hívásunk először bejárja az iterátort és visszaad egy listát, amelybe összegyűjti az `IEnumerable` elemeit. Ezért az `i` változónk a második esetben nem együtt inkrementálódik a bejárással, mert az kétszer történik meg. Az első bejáráskor (a `ToList` hívásakor) inkrementálódik az `i` értéke, másodjára pedig már csak bejárjuk a kapott listát. Eddigre az `i` értéke már meg van növelve.
-
-Ezzel a megközelítéssel futásidőben is állíthatunk össze egy időben változó lekérdezést, amit majd egyszer, a későbbiekben fogunk bejárni (pl. sorosításkor).
-
-== Dispose minta
+=== Dispose minta
 
 A Dispose minta az erőforrás-felszabadítás megfelelő megvalósításához készült. Hasonló elv mentén üzemel, mint a destruktor, viszont a minta nem feltétlenül kötött az objektum életciklusának elejéhez és végéhez. Amennyiben egy objektum megvalósítja az `IDisposable` interfészt, van `Dispose` metódusa. A metódus meghívásával az objektum által használt, nem a keretrendszer által menedzselt erőforrásokat szabadítjuk fel. Nem csak memóriafoglalásra kell gondolni, hanem lehetnek nyitott fájlrendszeri handle-ök, adatkapcsolatok, stream-ek, vagy üzleti erőforrások, tranzakciók.
 
-Mérjük meg az első 50 Fibonacci szám kiszámítását (a mesterséges késleltetéssel):
+Mérjük meg az első pár Fibonacci szám kiszámítását (a mesterséges késleltetéssel):
 
 [source,csharp]
 ----
-static void Main(string[] args)
-{
-    var sw = Stopwatch.StartNew();
-    foreach (var n in Enumerable.Range(1, 50))
-    {
-        Console.WriteLine($"{n}: {Fibonacci(n)}");
-    }
-    sw.Stop();
-    Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
-    Console.ReadKey();
-}
+/**/static void Main(string[] args)
+/**/{
+        var sw = Stopwatch.StartNew();
+        foreach (var n in Enumerable.Range(1, 15))
+        {
+            Console.WriteLine($"{n}: {Fibonacci(n)}");
+        }
+        sw.Stop();
+        Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
+        Console.ReadKey();
+/**/}
 ----
 
 Ez így jó, működik, viszont nem újrahasznosítható ez az időmérési mechanizmus.
 
-Készítsünk egy saját időmérő osztályt `StopwatchWrapper` néven, ami a `Stopwatch` használatát egyszerűsíti a Dispose mintán keresztül.
+Készítsünk egy saját időmérő osztályt `StopwatchWrapper` néven, ami a `Stopwatch` használatát egyszerűsíti a *Dispose* mintán keresztül.
 
 [source,csharp]
 ----
 public class StopwatchWrapper : IDisposable
 {
-    public Stopwatch Stopwatch { get; } // using System.Diagnostics
+    public Stopwatch Stopwatch { get; }
 
     public string Title { get; }
 
@@ -393,7 +406,7 @@ Ha kérjük a villanykörte segítségét az `IDisposable`-ön, akkor 2x2 lehet�
 
 image::images/csharp4-dispose.png[Dispose minta implementálása IntelliSense segítségével]
 
-Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy nem menedzselt kód esetén az erőforrásokat szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén adott helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizmust!
+Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy a nem menedzselt erőforrásokat (_unmanaged objects / resources_) szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén a kommentekkel kijelölt helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizmust!
 
 [source,csharp]
 ----
@@ -413,26 +426,28 @@ Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hog
 /**/}
 ----
 
+Csak felügyelt erőforrásokkal (_managed objects_) dolgozunk, így csak egy helyen kellett a leállító logikát megadnunk.
+
 Az `IDisposable` interfészt megvalósító elemekkel használhatjuk a `using` konstrukciót:
 
 [source,csharp]
 ----
 /**/static void Main(string[] args)
 /**/{
-        using (new StopwatchWrapper("Fib 1-50"))
+        using (new StopwatchWrapper("Fib 1-15"))
         {
-            foreach (var n in Enumerable.Range(1, 50))
+            foreach (var n in Enumerable.Range(1, 15))
             {
                 Console.WriteLine($"{n}: {Fibonacci(n)}");
             }
         }    
-/**/Console.ReadKey();
+/**/    Console.ReadKey();
 /**/}
 ----
 
 Tehát a `using` használatával a blokk elejét és végét tudjuk kezelni. Gyakorlatilag egy `try-finally`-val ekvivalens a minta, a `finally`-ben meghívódik a `Dispose` metódus.
 
-Vegyíthetjük ezt a változó kiemelésével is, de előbb készítsünk egy segédfüggvényt a `StopwatchWrapper`-be:
+Jelenleg csak a folyamat végén kapunk jelentést az eltelt időről. Részidők kiírásához készítsünk egy segédfüggvényt a `StopwatchWrapper`-be:
 
 [source,csharp]
 ----
@@ -442,17 +457,18 @@ public void Snapshot(string text) =>
     );
 ----
 
+Hívjuk meg a `foreach` ciklusból:
+
 [source,csharp]
 ----
 /**/using (
     var sw =
-/**/      new StopwatchWrapper("Fib 0-50"))
+/**/      new StopwatchWrapper("Fib 0-15"))
 /**/{
-/**/    foreach (var n in Enumerable.Range(1, 50))
+/**/    foreach (var n in Enumerable.Range(1, 15))
 /**/    {
             sw.Snapshot(n.ToString());
 /**/        Console.WriteLine($"{n}: {Fibonacci(n)}");
 /**/    }
 /**/}
 ----
-

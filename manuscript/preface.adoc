@@ -13,7 +13,7 @@ A feltételezett előismeretek:
  ** operátorok, változók, tömbök, struktúrák, függvények fogalma
  ** operátor felüldefiniálás és függvényváltozatok
  ** alapvető memóriakezelés (heap, stack), mutatók fogalma, érték és referencia típusok
- ** alapvető vezérlési szerkezetek (ciklus, elágazás, stb.), érték- és referencia szerinti paraméterátadás
+ ** alapvető vezérlési szerkezetek (ciklus, elágazás, stb.), érték- és referencia szerinti paraméterátadás, rekurzió
  ** osztály, osztálypéldány fogalma, static, `new` operátor, osztály szintű változók, generikus típusok
  ** leszármazás, virtuális tagfüggvények
  ** C# esemény, delegate típusok és delegate példányok
