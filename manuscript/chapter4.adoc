@@ -1,7 +1,7 @@
 [#csharp4]
-= C# alapok III.
+= C# alapok IV.
 
-Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesfelvágott jelleggel. Az egyes fő alfejezeteket külön projektként dolgozzuk ki. A projekteket hozzáadhatjuk az elsőként létrehozott projekt solutionjéhez (menu:jobbklikk a projekten[Add > New project]). Hozzáadás után ne felejtsük el átállítani a futtatandó projektet: menu:jobbklikk a projekten[Set as Startup Project]
+Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesfelvágott jelleggel. Az egyes fő témaköröket külön projektként dolgozzuk ki. A projekteket hozzáadhatjuk az elsőként létrehozott projekt solutionjéhez (menu:jobbklikk a projekten[Add > New project]). Hozzáadás után ne felejtsük el átállítani a futtatandó projektet: menu:jobbklikk a projekten[Set as Startup Project]
 
 == Bejárási problémák
 

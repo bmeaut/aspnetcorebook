@@ -2,34 +2,31 @@
 
 == Projekt létrehozása
 
-Ezen a laboron nem a beépített API projektsablont fogjuk felhasználni, hanem egy üres ASP.NET Core projektből próbáljuk felépíteni és megérteni azt a funkcionalitást, amit egyébként az előre elkészített VS projektsablonok adnának készen a kezünkbe.
+Ezen a gyakorlaton nem a beépített API projektsablont fogjuk felhasználni, hanem egy üres ASP.NET Core projektből próbáljuk felépíteni és megérteni azt a funkcionalitást, amit egyébként az előre elkészített VS projektsablonok adnának készen a kezünkbe.
 
 === Generálás
 
-Hozzunk létre a Visual Studioban egy új, C# nyelvű _ASP.NET Core Web Application_ projektet, a neve legyen _HelloAspNetCore_.
-A következő dialógusablakban válasszuk ki a _.NET Core_ és az _ASP.NET Core 3.1_ opciókat, valamint a sablonok közül az _Empty_ sablont. A jobb sávban legyen minden kikapcsolva, a HTTPS is. Most szándékosan nem a _Web Api_ vagy a _Web Application_ opciót választottuk, mivel a labor célja egy általános ASP.NET Core alkalmazás működésének megismerése, amit most saját kezűleg fogunk felépíteni.
+Hozzunk létre a Visual Studioban egy új, C# nyelvű  projektet az _ASP.NET Core Empty_ sablonnal, a neve legyen _HelloAspNetCore_. Megcélzott keretrendszerként adjuk meg a _.NET 5_-öt. Minden extra opció legyen kikapcsolva, a docker és a HTTPS is.
 
-image::images/aspnetcore1-choosetemplate.png[ASP.NET Core projektsablonok]
+=== Kitérő: NuGet és a keretrendszert alkotó komponensek helye
 
-=== Kitérő: NuGet
+A .NET 5 és az ASP.NET Core gyakorlatilag teljes mértékben publikusan elérhető komponensekből épül fel. A komponensek kezelésének infrastruktúráját a NuGet csomagkezelő szolgáltatja. A csomagkezelőn keresztül elérhető csomagokat a https://www.nuget.org/[nuget.org] listázza és igény esetén a NuGet kliens, illetve a .NET Core eszközök (dotnet.exe, Visual Studio) is innen tölti le. A fejlesztőknek teljesítményszempontból nem érné meg az alap keretrendszert alkotó csomagokat állandóan letöltögetni, így a klasszikus keretrendszerekhez hasonlóan a .NET 5 telepítésekor egy könyvtárba (Windows-on ide: *C:\Program Files (x86)\dotnet*, illetve *C:\Program Files\dotnet*) bekerülnek az alap keretrendszert alkotó komponensek - lényegében egy csomó .dll különböző alkönyvtárakban. A futtatáshoz szükséges szerelvények a *shared* alkönyvtárba települnek, ezek az ún. *Shared Framework*-ök. A gépen futó különböző .NET Core/5 alkalmazások közösen használhatják ezeket. A fejlesztéshez az alapvető függőségeket *packs* alkönyvtárból hivatkozhatjuk.
 
-A .NET Core gyakorlatilag teljes mértékben publikusan elérhető komponensekből épül fel. A komponensek kezelésének infrastruktúráját a NuGet csomagkezelő szolgáltatja. A csomagkezelőn keresztül elérhető csomagokat a https://www.nuget.org/[nuget.org] listázza és igény esetén a NuGet kliens, illetve a .NET Core eszközök (dotnet.exe, Visual Studio) is innen tölti le. A fejlesztőknek teljesítményszempontból nem érné meg az alap keretrendszert alkotó csomagokat állandóan letöltögetni, így a klasszikus framework-ökhöz hasonlóan a .NET Core SDK telepítésekor a fejlesztő gépén egy könyvtárba (Windows-on ide: *C:\Program Files (x86)\dotnet\shared\*, illetve *C:\Program Files\dotnet\shared\*) bekerülnek az alap keretrendszert alkotó komponensek - lényegében egy csomó .dll egy könyvtárban - ezek az ún. *Shared Framework*-ök. Általában ebből a könyvtárból vesszük ezeket az alapvető függőségeket.
-
-Nem fejlesztői, például végfelhasználói vagy szerver környezetben- ahol nem is biztos, hogy fel van telepítve az SDK, nem feltétlenül így biztosítjuk a függőségeket, de ennek a boncolgatása nem témája ennek a labornak.
+Nem fejlesztői, például végfelhasználói vagy szerver környezetben- ahol nem is biztos, hogy fel van telepítve az SDK, nem feltétlenül így biztosítjuk a függőségeket, de ennek a boncolgatása nem témája ennek a gyakorlatnak.
 
 === Eredmény
 
 Nézzük meg milyen projekt generálódott:
 
-* *.csproj*: (Projekten jobb gomb, edit .csproj) a projekt fordításához szükséges beállításokat tartalmazza. Előző verziókhoz képest itt erősen építenek az alapértelmezett értékekre, hogy minél karcsúbbra tudják fogni ezt az állományt.
- ** *SDK*: projekt típusa (Microsoft.NET.Sdk.Web), az eszközkészlet funkcióit szabályozza, illetve meghatározza a Framework-öt (lásd lentebb)
- ** *TargetFramework*: netcoreapp3.1
+* *.csproj*: (menu:Projekten jobb gomb[Edit Project File]) a projekt fordításához szükséges beállításokat tartalmazza. Előző verziókhoz képest itt erősen építenek az alapértelmezett értékekre, hogy minél karcsúbbra tudják fogni ezt az állományt.
+ ** *Project SDK*: projekt típusa (Microsoft.NET.Sdk.Web), az eszközkészlet funkcióit szabályozza, illetve meghatározza a megcélzott keretrendszert (lásd lentebb)
+ ** *TargetFramework*: _net5.0_. Ezzel jelezzük, hogy .NET 5-ös API-kat használunk az alkalmazásban.
 * *Connected Services*: külső szolgáltatások, amiket használ a projektünk, most nincs ilyenünk.
-* *Dependencies*: Framework-ök és NuGet csomagfüggőségek kezelése. Egyelőre csak Framework-jeink vannak.
- ** *Frameworks*: Az AspNetCore.App csomag került be, ami egy https://www.nuget.org/packages/Microsoft.AspNetCore.App[metacsomag], összefog kb. minden MS fejlesztésű, ASP.NET Core alapcsomagot. Ezen kívül kívül a _NetCore.App_ .NET Core metacsomag is bekerül. Jobbklikk → Properties ablakban megfigyelhetjük, hogy ezek a referenciák egy-egy _Shared Framework_ könyvtárra mutatnak.
+* *Dependencies*: a keretrendszer alapfüggőségei és egyéb NuGet csomagfüggőségek szerepelnek itt. Egyelőre csak keretrendszer függőségeink vannak.
+ ** *Frameworks*: két alkönyvtárat (Microsoft.AspNetCore.App.Ref, Microsoft.NETCore.App.Ref) hivatkozunk a .NET SDK *packs* alkönyvtárából. Ezek a függőségek külső NuGet csomagként is elérhetőek, de ahogy fentebb jeleztük, nem érdemes úgy hivatkozni őket.
  ** *Analyzers*: speciális komponensek, amik kódanalízist végzenek, de egyébként ugyanúgy külső függőségként (NuGet csomag) kezelhetjük őket. Ha kibontjuk az egyes analizátorokat, akkor láthatjuk, hogy miket ellenőriznek. Ezek a függőségek a futáshoz nem szükségesek.
 * *Properties*: duplakattra előjön a klasszikus projektbeállító felület
- ** *launchSettings.json:* a különböző indítási konfigurációkhoz tartozó beállítások.
+ ** *launchSettings.json:* a különböző indítási konfigurációkhoz tartozó beállítások (lásd később).
 * *appsettings.json*: futásidejű beállítások helye. Kibontható, kibontva a különböző környezetekre specifikus konfigurációk találhatóak (lásd később).
 
 ==== Program.cs
@@ -40,7 +37,7 @@ Az előző ASP.NET verzióval ellentétben, itt már az ASP.NET Core alkalmazás
 * a builder objektum alapján a hosztolási környezet és az alkalmazás szerkezetének felállítása (`Build` függvényhívás)
 * a felállított szerkezet futtatása (`Run` függvényhívás)
 
-Az igazán munkás feladat a builder megalkotása lenne, igen sok mindent lehetne benne konfigurálni, ez a kódban a `CreateHostBuilder`-ben történik. Szerencsére meghívhatjuk a `CreateDefaultBuilder` gyártófüggvényt, ami egy szokványos (főleg hosztinggal kapcsolatos) beállításokat tartalmazó buildert állít elő. Az alkalmazás szerkezetét pedig a `Startup` osztállyal írjuk le. A ``Startup ``osztályra nincsenek erős megkötések, nem kötelező interfészt implementálnia, csupán a megfelelő szignatúrájú függvényeket (`Configure`, `ConfigureServices` - opcionális) fogja az ASP.NET Core keresni.
+Az igazán munkás feladat a builder megalkotása lenne, igen sok mindent lehetne benne konfigurálni, ez a kódban a `CreateHostBuilder`-ben történik. Szerencsére meghívhatjuk a `CreateDefaultBuilder` gyártófüggvényt, ami egy szokványos, az egész alkalmazás működési környezetét meghatározó beállításokat elvégző __builder__t állít elő. Ezek a beállítások még függetlenek attól, hogy milyen jellegű (webes, konzolos) alkalmazásunk van. Ezután adjuk hozzá webes alkalmazás esetén a webre jellemző környezeti beállításokat (pl. webszerver konfiguráció), szerencsére ehhez is van alapértelmezett implementáció (`ConfigureWebHostDefaults`). Az alkalmazás szerkezetét pedig a `Startup` osztállyal írjuk le. A `Startup` osztályra nincsenek erős megkötések, nem kötelező interfészt implementálnia, csupán a megfelelő szignatúrájú függvényeket (`Configure`, `ConfigureServices` - opcionális) fogja az ASP.NET Core keresni.
 
 TIP: Később érdemes megnézni a `CreateDefaultBuilder` implementációját, de most még nem sok mindent értenénk belőle.
 
@@ -54,23 +51,23 @@ A `Configure` metódusban pedig a middleware (MW) csővezetéket adjuk meg, teh�
 
 image::images/aspnetcore1-pipeline.png[ASP.NET Core pipeline]
 
-Az ASP.NET Core alkalmazás alapszerkezete, hogy a befutó HTTP kérés (végig)fusson a middleware-ekből álló csővezetéken és valamelyik (alapesetben az utolsó) middleware előállítja a választ, ami visszairányban halad (végig) a csővezetéken.
+Az ASP.NET Core alkalmazás alapszerkezete, hogy a befutó HTTP kérés (végig)fusson a middleware-ekből álló csővezetéken és valamelyik (alapesetben az utolsó) middleware előállítja a választ, ami visszairányban halad végig a csővezetéken.
 
 Esetünkben most csak három middleware-ünk van:
 
-* Kivételkezelő middleware, ami az őt követő middleware-ek hibáit képes elkapni és ennek megfelelően egy hibaoldalt jelenít meg. Ez csak opcionálisan kerül beregisztrálásra attól függően, hogy most éppen _Development módban_ futtatjuk-e az alkalmazást vagy sem. (lásd később)
-* Routing middleware, aminek a feladata, hogy a bejövő kérés és az endpointok (lásd lentebb) által adott információk alapján kitalálja, hogy melyik endpoint felé továbbítsa a bejövő kérést.
-* endpointokat összefogó middleware, amiben jelenleg egy endpoint árválkodik, ami a gyökércímre (`/`) küldött GET kérésre reagál (ez a routing információ) és válaszba ír egy _Hello World!_ szöveget (ez a működés). Figyeljük meg, hogy ez most egy lambda kifejezéssel kerül megadásra, viszont bonyolultabb esetben érdemes a middleware logikát egy külön osztályba kiszervezni (lásd később)
+* kivételkezelő middleware, ami az őt követő middleware-ek hibáit képes elkapni és ennek megfelelően egy a fejlesztőknek szóló hibaoldalt jelenít meg. Ez csak opcionálisan kerül beregisztrálásra attól függően, hogy most éppen _Development módban_ futtatjuk-e az alkalmazást vagy sem. (lásd később)
+* routing middleware, aminek a feladata, hogy a bejövő kérés és a végpontok (lásd lentebb) által adott információk alapján kitalálja, hogy melyik endpoint felé továbbítsa a bejövő kérést.
+* végpontokat (_endpoints_) összefogó middleware, amiben jelenleg egy endpoint árválkodik, ami a gyökércímre (`/`) küldött GET kérésre reagál (ez a routing információ) és válaszba ír egy _Hello World!_ szöveget (ez a működés). Figyeljük meg, hogy ez most egy lambda kifejezéssel kerül megadásra, viszont bonyolultabb esetben érdemes a middleware logikát egy külön osztályba kiszervezni (lásd később)
 
 == Hosztolási lehetőségek
 
 Próbáljuk ki IIS Expressen keresztül futtatva, azaz a VS-ben az indítógomb (zöld nyíl) mellett az IIS Express felirat legyen!
 
-Két dolog is történik: az alkalmazásunk IIS Express webkiszolgálóban hosztolva kezd futni és egy böngésző is elindul, hogy ki tudjuk próbálni. Figyeljük meg a tálcán megjelenő IIS Express ikont és azon jobbklikkelve a hosztolt alkalmazás címét.
+Két dolog is történik: az alkalmazásunk IIS Express webkiszolgálóban hosztolva kezd futni és egy böngésző is elindul, hogy ki tudjuk próbálni. Figyeljük meg az értesítési területen (az óra mellett) megjelenő IIS Express ikont (image:images/aspnetcore1-iisexpress.png[title="IIS Express ikon"]) és azon jobbklikkelve a hosztolt alkalmazás címét (menu:jobklikk[Show All Applications]).
 
 TIP: A indítógomb legördülőjében a böngésző típusát is állíthatjuk.
 
-TIP: Debuggerrel mutassuk meg, hogy a `Main` ilyenkor is meghívódik, illetve, ahogy az egysoros middleware-ünk előállítja a választ.
+TIP: Debuggerrel nézzük meg, hogy a `Main` ilyenkor is meghívódik, illetve, ahogy az egysoros middleware-ünk előállítja a választ.
 
 TIP: Az IIS Express a Microsoft web szerverének (IIS) fejlesztői célra optimalizált változata. Alapvetően csak ugyanarról a gépről érkező (localhost) kéréseket szolgál ki.
 
@@ -78,7 +75,7 @@ A másik lehetőség, ha közvetlenül a konzolos alkalmazást szeretnénk futta
 
 Két dolog is történik: az alkalmazásunk konzolos alkalmazásként kezd futni, illetve az előző esethez hasonlóan a böngésző is elindul. Figyeljük meg a konzolban megjelenő naplóüzeneteket.
 
-TIP: Bár ezek a hosztolási opciók fejlesztői környezetben nagyon kényelmesek, érdemes áttekinteni az éles hosztolási opciókat https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/?view=aspnetcore-3.1[itt]. A Kestrel ugyan jelenleg már alkalmas arra, hogy kipublikáljuk közvetlenül a világhálóra, de mivel nem rendelkezik túl bő konfigurációs és biztonsági beállításokkal, így érdemes lehet egy fejlettebb webszervert a Kestrel elé rakni proxy gyanánt, például az IIS-t vagy nginx-et.
+TIP: Bár ezek a hosztolási opciók fejlesztői környezetben nagyon kényelmesek, érdemes áttekinteni az éles hosztolási opciókat https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers[itt]. A Kestrel ugyan jelenleg már alkalmas arra, hogy kipublikáljuk közvetlenül a világhálóra, de mivel nem rendelkezik olyan széles konfigurációs és biztonsági beállításokkal, mint a már bejáratott webszerverek, így érdemes lehet egy ilyen webszervert a Kestrel elé rakni proxy gyanánt, például az IIS-t vagy nginx-et.
 
 Rakjunk most az utolsó middleware-ünkbe egy kivétel dobást a kiírás helyett, hogy kipróbáljuk a hibakezelő MW-t.
 
@@ -97,17 +94,15 @@ Láthatjuk, hogy a kivételt a hibakezelő middleware elkapja és egy hibaoldalt
 
 == Alkalmazásbeállítások vs. indítási profilok
 
-Figyeljük meg, hogy most Development konfigurációban fut az alkalmazás (konzolban a legelső sor). Ezt az információt a keretrendszer környezeti változó alapján állapítja meg. Ha a *lauchSettings.json* állományt megnézzük, akkor láthatjuk, hogy az _ASPNETCORE_ENVIRONMENT_ környezeti változó _Development_-re van állítva.
+Figyeljük meg, hogy most Development konfigurációban fut az alkalmazás (konzolban a __Hosting environment__ kezdetű sor). Ezt az információt a keretrendszer környezeti változó alapján állapítja meg. Ha a *lauchSettings.json* állományt megnézzük, akkor láthatjuk, hogy az _ASPNETCORE_ENVIRONMENT_ környezeti változó _Development_-re van állítva.
 
-Próbáljuk ki Visual Studión kívülről futtatni. Projekten jobb gomb Open Folder → címsorba cmd + [Enter] → dotnet run.
+Próbáljuk ki Visual Studio-n kívülről futtatni. menu:Projekten jobb klikk[Open Folder in File Explorer]. Ezután a címsorba mindent kijelölve kbd:[cmd + Enter], a parancssorba `dotnet run`.
 
-Ugyanúgy fog indulni, mint VS-ből, mert az újabb .NET Core verziókban már a _dotnet run_ is figyelembe veszi a *launchSettings.json*-t. Ha nem akarjuk ezt, akkor a --no-launch-profile kapcsolót használhatjuk a _dotnet run_ futtatásánál.
+Ugyanúgy fog indulni, mint VS-ből, mert az újabb .NET Core verziókban már a _dotnet run_ is figyelembe veszi a *launchSettings.json*-t. Ha nem akarjuk ezt, akkor a `--no-launch-profile` kapcsolót használhatjuk a _dotnet run_ futtatásánál.
 
 Most az alkalmazásunk Production módban indul el, és ha a _localhost:5000_-es oldalt megnyitjuk a böngészőben, akkor nem kapunk hibaoldalt, de a konzolon megjelenik a naplóbejegyzés.
 
-TIP: A konzolban a setx ENV_NAME Value utasítással tudunk felvenni, ami a konzol bezárásáig marad érvényben, ha permanensen akarjuk tartani ezt akkor ezt a /M kapcsolóval tudjuk megtenni. (Admin/nem admin, illetve powershell konzolok különbözőképpen viselkednek)
-
-Az alkalmazás számára a különböző beállításokat JSON állományokban tárolhatjuk, amelyek akár környezetenként különbözőek is lehetnek. A generált projektünkben ez az *appsettings.json*, nézzünk bele - főleg naplózási beállítások vannak benne. A fájl a Solution Explorer ablakban kinyitható, alatta megtaláljuk az *appsettings.Development.json*-t. Ez a _Development_ nevű konfigurációra vonatkozó beállítások.
+TIP: A konzolban a setx ENV_NAME Value utasítással tudunk felvenni környezeti változót, ami a konzol bezárásáig marad érvényben, ha permanensen akarjuk tartani ezt akkor ezt a /M kapcsolóval tudjuk megtenni. (Admin/nem admin, illetve powershell konzolok különbözőképpen viselkednek)
 
 A Hello World kiírásunkat kommentezzük vissza.
 
@@ -120,21 +115,40 @@ A Hello World kiírásunkat kommentezzük vissza.
 /**/});
 ----
 
-Próbáljuk ki a projektneves indítással és figyeljük meg, hogy ahányszor frissítünk a böngészőben a kérés megjelenik a konzolablakban _Info_ előtaggal, tehát az info szintű naplóbejegyzések megjelennek. Jelen állás szerint a _Development_ konfiguráció jut érvényre a fent tárgyalt *launchsettings.json* környezeti változó beállítása alapján, ami így érvényre juttatja az *appsettings.Development.json*-t.
+Az alkalmazás számára a különböző beállításokat JSON állományokban tárolhatjuk, amelyek akár környezetenként különbözőek is lehetnek. A generált projektünkben ez az *appsettings.json*, nézzünk bele - főleg naplózási beállítások vannak benne. A fájl a Solution Explorer ablakban kinyitható, alatta megtaláljuk az *appsettings.Development.json*-t. Ebben a _Development_ nevű konfigurációra vonatkozó beállítások vannak. Alapértelmezésben az *appsettings.<indítási konfiguráció neve>.json* beállításai jutnak érvényre, felülírva a sima *appsettings.json* egyező értékeit (a pontosabb logikát lásd lentebb).
 
-VS-ből is tudjuk állítani a környezetei változókat, nem kell a *launchsettings.json*-ban kézzel varázsolni. A projekt tulajdonságok _Debug_ lapján tudunk új indítási profilt megadni, illetve a meglévőeket módosítani. Válasszuk ki az aktuálisan használt profilunkat (projektneves), majd írjuk át az _ASPNETCORE_ENVIRONMENT_ környezeti változó értékét az _Environment Variables_ részen mondjuk _Production_-re.
+Állítsunk Development módban részletesebb naplózást. Az *appsettings.Development.json*-ben minden naplózási szintet írjunk `Debug`-ra.
 
-Indítsuk ezzel a profillal és figyeljük meg, hogy már nem jelennek meg info szintű naplóbejegyzések bárhogy is frissítgetjük a böngészőt. Oka: nincs *appsettings.Production.json*, így az általános *appsettings.json* jut érvényre.
+[source,javascript]
+----
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "Microsoft": "Debug",
+      "Microsoft.Hosting.Lifetime": "Debug"
+    }
+  }
+}
+----
+
+Próbáljuk ki, hogy így az alkalmazásunk futásakor minden böngészőbeli frissítésünk (kbd:[F5]) megjelenik a konzolon.
+
+VS-ből is tudjuk állítani a környezeti változókat, nem kell a *launchsettings.json*-ben kézzel varázsolni. A projekt tulajdonságok _Debug_ lapján tudunk új indítási profilt megadni, illetve a meglévőeket módosítani. Válasszuk ki az aktuálisan használt profilunkat (projektneves), majd írjuk át az _ASPNETCORE_ENVIRONMENT_ környezeti változó értékét az _Environment Variables_ részen mondjuk _Production_-re.
+
+Mivel nincs *appsettings.Production.json*, így csak a sima *appsettings.json* jut érvényre. 
+
+Indítsuk ezzel a profillal és figyeljük meg, hogy már nem jelennek meg az egyes kérések a naplóban, bárhogy is frissítgetjük a böngészőt. Oka: nincs *appsettings.Production.json*, így az általános *appsettings.json* jut érvényre.
 
 TIP: Parancssorban a dotnet run --launch-profile [profilnév] kapcsolóval adhatjuk meg az indítási profilt.
 
-TIP: Számos forrásból lehet konfigurációt megadni: parancssor, környezeti változó, fájl (ezt láttuk most), felhő (Azure Key Vault), stb. Ezek közül többet is használhatunk egyszerre, a különböző források konfigurációja a közös kulcsok mentén összefésülődik. A források (_configuration provider_-ek) között sorrendet adhatunk meg, amikor regisztráljuk őket, a legutolsóként regisztrált provider konfigurációja a legerősebb. Az alapértelmezett provider-ek regisztrációját elintézi a `CreateDefaultBuilder`.
+TIP: Számos forrásból lehet konfigurációt megadni: parancssor, környezeti változó, fájl (ezt láttuk most), felhő (Azure Key Vault), stb. Ezek közül többet is használhatunk egyszerre, a különböző források konfigurációja a közös kulcsok mentén összefésülődik. A források (_configuration provider_-ek) között sorrendet adhatunk meg, amikor regisztráljuk őket, a legutolsóként regisztrált provider konfigurációja a legerősebb. Az alapértelmezett provider-ek regisztrációját elintézi a korábban látott `CreateDefaultBuilder`.
 
 === Statikus fájl MW
 
-Hozzunk létre a projekt gyökerébe egy _wwwroot_ nevű mappát (jobbklikk) és tegyünk egy képfájlt bele. (Ellophatjuk pl. a http://www.bme.hu honlap bal felső sarkából a logo-t)
+Hozzunk létre a projekt gyökerébe egy _wwwroot_ nevű mappát (menu:jobbklikk a projekten[Add > New Folder]) és tegyünk egy képfájlt bele. (Ellophatjuk pl. a http://www.bme.hu honlap bal felső sarkából a logo-t)
 
-A statikus fájlkezelést a teljes modularitás jegyében egy külön middleware-ként implementálták a _Microsoft.AspNetCore.StaticFiles_ nuget csomagban (az AspNetCore.App már függőségként tartalmazza, így nem kell feltennünk most), csak hozzá kell adnunk a pipeline-hoz. Mindig gondoljunk arra, hogy a `Configure` metódusban a mw-ek konfigurációjának sorrendje fontos, mindig az általunk szabályozott kódlefutási sorrendben fog a kérés a csővezetéken végigfutni. A routing MW által nyújtott szolgáltatás felesleges a statikus fájl middleware-nek, hiszen nem egy endpoint-on elérhető logikát akarunk meghívni, így őt majdnem legelőre a hibakezelés után érdemes rakni.
+A statikus fájlkezelést a teljes modularitás jegyében egy külön middleware-ként implementálták a _Microsoft.AspNetCore.StaticFiles_ osztálykönyvtárban (az AspNetCore.App már függőségként tartalmazza, így nem kell külön hivatkoznunk), csak hozzá kell adnunk a pipeline-hoz. Mindig gondoljunk arra, hogy a `Configure` metódusban a mw-ek konfigurációjának sorrendje fontos, mindig az általunk szabályozott kódlefutási sorrendben fog a kérés a csővezetéken végigfutni. A routing MW által nyújtott szolgáltatás felesleges a statikus fájl middleware-nek, hiszen nem egy endpoint-on elérhető logikát akarunk meghívni, így őt majdnem legelőre a hibakezelés után érdemes rakni.
 
 [source,csharp]
 ----
@@ -149,9 +163,7 @@ A statikus fájlkezelést a teljes modularitás jegyében egy külön middleware
 
 Próbáljuk ki! Láthatjuk hogy a _localhost:port_ címen még mindig a _Hello World_ szöveg tűnik fel, de amint a _localhost:port/[képfájlnév]_-vel próbálkozunk, a kép töltődik be. A static file MW megszakítja a pipeline futását, ha egy általa ismert fájltípusra hivatkozunk, egyébként továbbhív a következő MW-be.
 
-TIP: Ezt az egysoros middleware-re tett törésponttal is szemléltethetjük. Figyeljünk arra, hogy csak az `await`-es sorra kerüljön a töréspont és ne az egész `endpoints.MapGet` sorra, illetve csak akkor nézzük, hogy mi fut le, amikor a kép URL-re hívunk.
-
-Próbáljuk ki úgy is, hogy kikommentezzük a static files middleware-t. Így hiába hívunk bármilyen címre, a „Hello world!"-öt kapjuk vissza.
+TIP: Ezt az egysoros „Hello world!” middleware-re tett törésponttal is szemléltethetjük. Figyeljünk arra, hogy csak az `await`-es sorra kerüljön a töréspont és ne az egész `endpoints.MapGet` sorra, illetve csak akkor nézzük, hogy mi fut le, amikor a kép URL-re hívunk.
 
 == Alkalmazásbeállítások vs. DI
 
@@ -161,16 +173,15 @@ Valósítsuk meg ezt a `Startup` osztályban:
 
 [source,csharp]
 ----
-//ctor snippet ajánlott
+public IConfiguration Configuration { get; }
+
 public Startup(IConfiguration configuration)
 {
     Configuration = configuration;
 }
-
-public IConfiguration Configuration { get; }
 ----
 
-A konstruktor végén törésponton megállva megvizsgálhatjuk például a `Configuration["AllowedHosts"]` értéket - az appsettings.json szerint ennek * értékűnek kell lennie.
+A konstruktor végére tett törésponton megállva megvizsgálhatjuk a *Watch* ablakban például a `Configuration["AllowedHosts"]` értéket - az appsettings.json szerint ennek * értékűnek kell lennie.
 
 == Web API
 
