@@ -59,11 +59,11 @@ Esetünkben most csak három middleware-ünk van:
 * routing middleware, aminek a feladata, hogy a bejövő kérés és a végpontok (lásd lentebb) által adott információk alapján kitalálja, hogy melyik endpoint felé továbbítsa a bejövő kérést.
 * végpontokat (_endpoints_) összefogó middleware, amiben jelenleg egy endpoint árválkodik, ami a gyökércímre (`/`) küldött GET kérésre reagál (ez a routing információ) és válaszba ír egy _Hello World!_ szöveget (ez a működés). Figyeljük meg, hogy ez most egy lambda kifejezéssel kerül megadásra, viszont bonyolultabb esetben érdemes a middleware logikát egy külön osztályba kiszervezni (lásd később)
 
-== Hosztolási lehetőségek
+== Hosztolási lehetőségek a fejlesztői gépen
 
 Próbáljuk ki IIS Expressen keresztül futtatva, azaz a VS-ben az indítógomb (zöld nyíl) mellett az IIS Express felirat legyen!
 
-Két dolog is történik: az alkalmazásunk IIS Express webkiszolgálóban hosztolva kezd futni és egy böngésző is elindul, hogy ki tudjuk próbálni. Figyeljük meg az értesítési területen (az óra mellett) megjelenő IIS Express ikont (image:images/aspnetcore1-iisexpress.png[title="IIS Express ikon"]) és azon jobbklikkelve a hosztolt alkalmazás címét (menu:jobklikk[Show All Applications]).
+Két dolog is történik: az alkalmazásunk IIS Express webkiszolgálóban hosztolva kezd futni és egy böngésző is elindul, hogy ki tudjuk próbálni. Figyeljük meg az értesítési területen (az óra mellett) megjelenő IIS Express ikont (image:images/aspnetcore1-iisexpress.png[title="IIS Express ikon",16,16]) és azon jobbklikkelve a hosztolt alkalmazás címét (menu:jobbklikk[Show All Applications]).
 
 TIP: A indítógomb legördülőjében a böngésző típusát is állíthatjuk.
 
@@ -102,7 +102,7 @@ Ugyanúgy fog indulni, mint VS-ből, mert az újabb .NET Core verziókban már a
 
 Most az alkalmazásunk Production módban indul el, és ha a _localhost:5000_-es oldalt megnyitjuk a böngészőben, akkor nem kapunk hibaoldalt, de a konzolon megjelenik a naplóbejegyzés.
 
-TIP: A konzolban a setx ENV_NAME Value utasítással tudunk felvenni környezeti változót, ami a konzol bezárásáig marad érvényben, ha permanensen akarjuk tartani ezt akkor ezt a /M kapcsolóval tudjuk megtenni. (Admin/nem admin, illetve powershell konzolok különbözőképpen viselkednek)
+TIP: A konzolban a `setx ENV_NAME Value` utasítással tudunk https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx[felvenni] környezeti változót úgy, hogy az permanensen megmaradjon, és ne csak a konzolablak bezárásáig maradjon érvényben. (Admin/nem admin, illetve powershell konzolok különbözőképpen viselkednek)
 
 A Hello World kiírásunkat kommentezzük vissza.
 

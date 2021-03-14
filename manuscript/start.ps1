@@ -1,1 +1,1 @@
-docker run -it -v ${PWD}:/documents/ asciidoctor/docker-asciidoctor
+docker run --rm -it -v ${PWD}:/documents/ asciidoctor/docker-asciidoctor
