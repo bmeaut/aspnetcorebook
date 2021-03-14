@@ -189,7 +189,7 @@ Minden API-nál nagyon magas szinten az a cél, hogy egy kérés hatására egy 
 
 === DummyController
 
-Hozzunk létre egy új mappát _Controllers_ néven. A mappába hozzunk létre egy kontrollert (Add → Controller... → API Controller with read/write actions) `DummyController` néven. Ez a művelet hozzáad egy új nuget csomagot a projekthez, ami a kódgeneráláshoz (scaffolding) kell és le is generálja az új kontrollerünket. A kontrollerünk az _AspNetCore.Mvc.Core_ nuget csomagban található Controller osztályból származik. (Ezt a csomagot sem kell feltennünk, mivel az AspNetCore.App függősége)
+Hozzunk létre egy új mappát _Controllers_ néven. A mappába hozzunk létre egy kontrollert (menu:jobbklikk a projekten[Add > Controller... > a bal oldali fában Common > API > jobb oldalon API Controller with read/write actions]) `DummyController` néven. A generált kontrollerünk a _Microsoft.AspNetCore.Mvc.Core_ nuget csomagban található `ControllerBase` osztályból származik. (Ezt a csomagot sem kell feltennünk, mivel az AspNetCore.App függősége)
 
 Adjuk hozzá a DI konténerhez az MVC-s szolgáltatásokat, és adjuk hozzá a csővezetékhez az MVC MW-t. Az egysoros MW-t kommentezzük ki.
 
@@ -223,17 +223,17 @@ Adjuk hozzá a DI konténerhez az MVC-s szolgáltatásokat, és adjuk hozzá a c
 /**/}
 ----
 
-Próbáljuk ki. Az alapoldal üres, viszont ha a _/api/Dummy_ címre hívunk, akkor megjelenik a `DummyController.Get` által visszaadott érték. Magyarázzuk el a routing szabályokat, hogy hogyan jut el a HTTP kérés alapján a végrehajtás a függvényig: attribútum alapú routing-ot használunk, azaz a kontroller osztályra és a függvényeire biggyesztett attribútumok határozzák meg, hogy a HTTP kérés adata (pl. URL) alapján melyik függvény hívódik meg.
+Próbáljuk ki. Az alapoldal üres, viszont ha a _/api/Dummy_ címre hívunk, akkor megjelenik a `DummyController.Get` által visszaadott érték. A routing szabályok szabályozzák, hogy hogyan jut el a HTTP kérés alapján a végrehajtás a függvényig. Itt attribútum alapú routing-ot használunk, azaz a kontroller osztályra és a függvényeire biggyesztett attribútumok határozzák meg, hogy a HTTP kérés adata (pl. URL) alapján melyik függvény hívódik meg. 
 
-TIP: API-t publikáló alkalmazásoknál az attribútum alapú routing az ajánlott, de emellett vannak más megközelítések is, például Razor alapú weboldalaknál konvenció alapú routing az ajánlott. Bővebben a témakörről https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1[itt] lehet olvasni.
+A `DummyController` osztályon lévő `Route` attribútum az `"api/[controller]"` útvonalat definiálja, melyből a `[controller]` úgynevezett token, ami jelen esetben controller nevére cserélődik. Ezzel összességében megadtuk, hogy az _api/Dummy_ útvonal a `DummyController`-t választja ki, de még nem tudjuk, hogy a függvényei közül melyiket kell meghívni - ez a függvényekre tett attribútumokból következik. A `Get` függvényen levő `HttpGet` mutatja, hogy ez a függvény akkor hívandó, ha a GET kérés URL-je nem folytatódik - ellentétben a `Get(int id)` függvénnyel, ami az URL-ben még egy további szegmenst vár (ezért van egy `"{id}"` paraméter megadva az attribútum konstruktorban), amit az `id` nevű függvényparaméterként használ fel.
+
+TIP: API-t publikáló alkalmazásoknál az attribútum alapú routing az ajánlott, de emellett vannak más megközelítések is, például Razor alapú weboldalaknál konvenció alapú routing az ajánlott. Bővebben a témakörről általánosan https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing[itt], illetve specifikusan webes API-k vonatkozásában https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/routing#attribute-routing-for-rest-apis[itt] lehet olvasni. A dokumentáció mennyiségéből látható, hogy a routing alrendszer nagyon szofisztikált és sokat tud, szerencsére az alap működés elég egyszerű és gyorsan megszokható.
 
 Ha van időnk, próbáljuk ki az _/api/Dummy/[egész szám]_ címet is.
 
-== IOption<T>
+== Típusos beállítások, IOption<T>
 
 Fentebb láttuk, hogy a konfigurációt ki tudtuk olvasni az `IConfiguration` interfészen keresztül, de még jobb lenne, ha csoportosítva és csoportonként külön C# osztályokon keresztül látnánk őket.
-
-TIP: Ezen alfejezethez tartozó legtöbb kódrészlet kóddarabkaként is elérhető.
 
 Bővítsük az _appsettings.json_-t egy saját beállításcsoporttal (_DummySettings_):
 
@@ -293,17 +293,17 @@ public DummyController(IOptions<DummySettings> options)
 }
 ----
 
-TIP: Látható, hogy a beállítás `IOptions`-ba burkolva érkezik. Vannak az `IOptions`-nál okosabb burkolók is (pl. `IOptionsMonitor`), ami például jelzi, ha megváltozik valamilyen beállítás. Bővebb információ az `IOptions` és társairól a hivatalos dokumentációban https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-3.1#general-options-configuration[található].
+TIP: Látható, hogy a beállítás `IOptions`-ba burkolva érkezik. Vannak az `IOptions`-nál okosabb burkolók is (pl. `IOptionsMonitor`), ami például jelzi, ha megváltozik valamilyen beállítás. Bővebb információ az `IOptions` és társairól a hivatalos dokumentációban https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options[található].
 
 Az egész számot váró `Get` változatban használjuk fel az értékeket:
 
 [source,csharp]
 ----
-[HttpGet("{id}", Name = "Get")]
-public string Get(int id)
-{
-    return id % 2 == 0 ? options.DefaultString : options.DefaultInt.ToString();
-}
+/**/[HttpGet("{id}", Name = "Get")]
+/**/public string Get(int id)
+/**/{
+        return id % 2 == 0 ? options.DefaultString : options.DefaultInt.ToString();
+/**/}
 ----
 
 Próbáljuk ki, hogy az _/api/Dummy/[páros szám]_, illetve _/api/Dummy/[páratlan szám]_ a megfelelő értéket kapjuk-e vissza.
@@ -329,8 +329,10 @@ Másoljuk át az *appsettings.json* tartalmát a *secrets.json*-be, vegyük ki a
 }
 ----
 
-Töréspontot letéve (pl. a `DummyController` konstruktorának végén) ellenőrizzük, hogy a titkos érték melyik fájlból jön. Fontos tudni, hogy a _User Secrets_ tároló csak **Development** mód esetén jut érvényre, így figyeljünk rá, hogy a megfelelő módot indítsuk és a környezeti változók is jól legyenek beállítva.
+Töréspontot letéve (pl. a `DummyController` konstruktorának végén) ellenőrizzük, hogy a titkos érték melyik fájlból jön. 
+
+WARNING: Fontos tudni, hogy a _User Secrets_ tároló csak **Development** mód esetén jut érvényre, így figyeljünk rá, hogy a megfelelő módot indítsuk és a környezeti változók is jól legyenek beállítva.
 
 Ez az eljárás tehát a futtató felhasználó saját könyvtárából a GUID alapján kikeresi a projekthez tartozó *secrets.json*-t, annak tartalmát pedig futás közben összefésüli az *appsettings.json* tartalmával. Így szenzitív adat nem kerül a projekt könyvtárába.
 
-TIP: Mivel a _User Secrets_ tároló csak Development mód esetén jut érvényre, így ha az éles változatnak szüksége van ezekre a titkos értékekre, akkor további trükkökre van szükség. Ilyen megoldás lehet, ha Azure Key Vault-ból https://docs.microsoft.com/en-us/aspnet/core/security/key-vault-configuration?view=aspnetcore-3.1[töltjük be] vagy a DevOps eszközből (pl. https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables[Azure DevOps Pipelines]) a szenzitív beállításokat.
+TIP: Mivel a _User Secrets_ tároló csak Development mód esetén jut érvényre, így ha az éles változatnak szüksége van ezekre a titkos értékekre, akkor további trükkökre van szükség. Ilyen megoldás lehet, ha a felhős hosztolás esetén a felhőből (pl. https://docs.microsoft.com/en-us/azure/app-service/configure-common#configure-app-settings[Azure App Service Configuration]) vagy felhőbeli titok tárolóból (pl. https://docs.microsoft.com/en-us/aspnet/core/security/key-vault-configuration[Azure Key Vault]) vagy a DevOps eszközből (pl. https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables[Azure DevOps Pipeline Secrets]) töltjük be a szenzitív beállításokat.
