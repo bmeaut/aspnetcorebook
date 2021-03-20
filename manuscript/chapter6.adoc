@@ -2,26 +2,35 @@
 
 == Az Entity Framework mapping módszerei
 
-Az OR leképzés két fő részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektum modell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk _Code-First_ mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot _Reverse Engineered Code-First_-nek hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
+Az objektum-relációs (OR) leképzés két fő részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektummodell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk _Code-First_ mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot __Reverse Engineered Code-First__nek vagy https://docs.microsoft.com/en-us/ef/core/managing-schemas/scaffolding[__scaffolding__nak] hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
+
+Akárhogy is, az Entity Framework (EF), mint OR leképező eszköz (ORM) használatához az alábbi összetevőkre van szükség:
+
+- objektummodell kódban
+- relációs modell az adatbázisban
+- leképezés (mapping) az előbbi kettő között, szintén kódban megadva
+- maga az Entity Framework Core, mint (NuGet) komponens
+- Entity Framework Core kompatibilis adatbázis driver (provider)
+- adatbázis kapcsolódási adatok, connection string formátumban
 
 === A Code-first mapping módszer
 
-A Code-First módszer lényege, hogy elsőként az OO entitásokat definiáljuk egyszerűen programkódban, majd a leképezést szintén programkódban. A leképezés alapján az EF eszközök képesek az adatbázis létrehozására, inicializálására és a séma változáskövetésére is (lásd _Code-First Migrations_).
+A Code-First módszer lényege, hogy elsőként az OO entitásokat definiáljuk egyszerűen programkódban, majd a leképezést szintén programkódban. A leképezés alapján az EF eszközök képesek az adatbázis létrehozására, inicializálására és a séma változáskövetésére is (lásd lentebb a _Code-First Migrations_ részt).
 
 === Az entitások definiálása
 
-Készítsünk egy konzolos alkalmazást, majd a projekten belül hozzunk létre egy _Entities_ nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
+Készítsünk egy .NET 5 konzolos alkalmazást, majd a projekten belül hozzunk létre egy _Entities_ nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
 
-* *Product* (Id:int, Name:string, UnitPrice:int)
-* *Order* (Id:int, OrderDate:DateTime)
-* *Category* (Id:int, Name:string)
-Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (prop snippet).
+* *Product* (`Id`:`int`, `Name`:`string`, `UnitPrice`:`int`)
+* *Order* (`Id`:`int`, `OrderDate`:`DateTime`)
+* *Category* (`Id`:`int`, `Name`:`string`)
+Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (_prop_ snippet).
 
 === Mapping és egyéb metaadatok megadása I.
 
 Eddig megadtuk az entitás nevét, az attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen az attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál ezek megadására. Az egyik módszer, hogy attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
 
-A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: pl. gyakori, hogy az elsődleges kulcs neve tartalmazza az _id_ szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor az attribútumos vagy fluent megadással tehetjük meg.
+A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: például gyakori, hogy az elsődleges kulcs neve tartalmazza az _id_ szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor azt az attribútumos vagy a fluent megadással tehetjük meg.
 
 TIP: EF 6-ban saját konvenciókat is megadhatunk, viszont Core-ban https://github.com/aspnet/EntityFrameworkCore/issues/214[még] nem.
 
@@ -33,13 +42,17 @@ Az entitások közötti kapcsolatokat mutatja az alábbi ábra:
 
 image::images/efcore-rels.png[EF Core példaséma]
 
-A Product-Category egy-többes kapcsolathoz egy idegen kulcs property és egy navigációs property tartozik a `Product` osztályban és egy navigációs property a `Category`-ban. A többes navigációs property-k legyenek csak olvashatók és a típusuk legyen `ICollection<>`.
+A relációkat idegen kulcs propertyk és navigációs propertyk reprezentálják. Az idegen kulcs propertyk típusa a kapcsolat másik végén lévő entitás *kulcsának* típusa. A navigációs propertyk típusa pedig a kapcsolat másik végén lévő entitás típusa vagy ilyen típusú kollekció.
+
+Egy konkrét kapcsolat esetében: a `Product`-`Category` egy-többes kapcsolathoz egy idegen kulcs property és egy navigációs property tartozik a `Product` osztályban és egy kollekció típusú navigációs property a `Category`-ban. A többes navigációs property-k legyenek csak olvashatók és a típusuk legyen `ICollection<>`.
 
 TIP: Általánosságban nem kötelező egy kapcsolat mindkét oldalán navigációs property-t felvenni, de erősen javasolt és mindig jó, ha van. Az entitáson végzendő műveleteket egyszerűsíti, illetve a konvenciós logika is következtet belőle.
 
-Az Order-Product több-többes kapcsolatokhoz nem elég egy-egy kollekciót felvenni a két osztályban. Létre kell hozzuk a kapcsolótáblának megfelelő entitást is, ami egy-egy Product és Order közötti kapcsolatot reprezentálja.
+Az `Order`-`Product` több-többes kapcsolatokhoz hozzuk létre a kapcsolótáblának megfelelő entitást is, ami egy-egy Product és Order közötti kapcsolatot reprezentálja.
 
-* *ProductOrders* (ProductId:int, OrderId:int)
+* *OrderItem* (`Id`:`int`, `ProductId`:`int`, `OrderId`:`int`, `Quantity`:`int`)
+
+TIP: Nem kötelező létrehozni osztályt a kapcsolótáblának, konfigurációval is lehet érni, hogy a kapcsolótábla létrejöjjön és az EF megfelelően használja. Ezt a módszert akkor érdemes követni ha a kapcsolótábla csupán technikai tehertétel, de ha például extra adatot is tárol, például esetünkben a rendelt mennyiséget (`Quantity`), akkor jobban követhető kódot eredményez, ha explicit létrehozzuk a kapcsolótáblának megfelelő entitástípust.
 
 image::images/efcore-bridgetab.png[Product-Order kapcsolótábla]
 
@@ -56,23 +69,25 @@ include::code/efcore-product.cs[]
 include::code/efcore-productorder.cs[]
 ----
 
-TIP: A fenti kódok kóddarabkákként is elérhetőek.
+Vegyük észre, hogy eddig semmilyen EF specifikus kódot nem írtunk, a modellünk sima ún. https://stackoverflow.com/a/250006/472575[_POCO_] osztályokból áll.
 
 == Kapcsolat az adatbázissal
 
 === DbContext - NuGet
 
-Az entitásokat definiáltuk, a mapping-et az EF eszére bíztuk, a következő lépés a DB séma létrehozása a mapping alapján, amit képes az EF létrehozni. Műveletet az ún. _kontext_-en keresztül tudunk végezni. Érdemes saját kontext típust létrehozni, amit az alap `DbContext`-ből származtatunk. Eddig még nem is írtunk semmilyen EF specifikus kódot, most viszont már kell a `DbContext` típus, így NuGet-ből hozzá kell adnunk a *Microsoft.EntityFrameworkCore.SqlServer* csomagot. Nem ez a csomag tartalmazza a `DbContext`-et, viszont függőségként hivatkozza (*Microsoft.EntityFrameworkCore*).
+Az entitásokat definiáltuk, a mapping-et az EF eszére bíztuk, a következő lépés az adatbázisséma létrehozása a mapping alapján, amit képes az EF migrációs eszköze megoldani. Műveletet az ún. _kontext_-en keresztül tudunk végezni. Érdemes saját kontext típust létrehozni, amit az alap `DbContext`-ből származtatunk. Eddig még nem is írtunk semmilyen EF specifikus kódot, most viszont már kell a `DbContext` típus, így NuGet-ből hozzá kell adnunk a *Microsoft.EntityFrameworkCore.SqlServer* csomagot. Nem ez a csomag tartalmazza a `DbContext`-et, viszont függőségként hivatkozza (*Microsoft.EntityFrameworkCore*).
 
-Adjunk hozzá új osztályt a projekthez `NorthwindContext` néven, ebben definiáljuk, hogy milyen entitáskollekciókon lehet műveleteket végezni.
+TIP: NuGet csomagok telepítéséhez segítség a https://docs.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-in-visual-studio#nuget-package-manager[dokumentációban].
 
-Az Entity Framework önmagában független az adatbázis implementációktól, azokhoz különböző https://docs.microsoft.com/en-us/ef/core/providers/[_adatbázis providereken_] keresztül kapcsolódik. A *Microsoft.EntityFrameworkCore.SqlServer* csomag hivatkozza az EF absztrakt relációs komponensét (_EntityFrameworkCore.Relational_), és tartalmazza az _MS SQL Server_-hez tartozó providert. A providert a `DbContext` `OnConfiguring` metódusában adhatjuk meg, esetünkben a `UseSqlServer` metódussal, ami egy connection stringet vár.
+Az Entity Framework önmagában független az adatbázis implementációktól, azokhoz különböző, adatbázisgyártó-specifikus https://docs.microsoft.com/en-us/ef/core/providers/[_adatbázis providereken_] keresztül kapcsolódik. A *Microsoft.EntityFrameworkCore.SqlServer* csomag hivatkozza az EF absztrakt relációs komponensét (_EntityFrameworkCore.Relational_), és tartalmazza az _MS SQL Server_-hez tartozó providert. A providert a `DbContext` `OnConfiguring` metódusában adhatjuk meg, esetünkben a `UseSqlServer` metódussal, ami egy connection stringet vár.
 
 MS SQL Server helyett a _LocalDB_ nevű fejlesztői adatbázist használjuk, mely fejlesztői szempontból gyakorlatilag megegyezik az MS SQL Server-rel. A LocalDB a Visual Studio-val együtt települ, minden Windows felhasználónak külön LocalDB példány indítható el. A Visual Studio az _SQL Server Object Explorer_ ablak megnyitásakor automatikusan létrehozza a felhasználónkhoz tartozó, _MSSQLLocalDB_ nevű példányt.
 
 TIP: A LocalDB külön is letölthető, illetve a vele együtt települő _sqllocaldb_ parancs segítségével egyszerűen kezelhető. Minderről bővebb információ a dokumentációban https://docs.microsoft.com/en-us/sql/tools/sqllocaldb-utility?view=sql-server-ver15[olvasható].
 
-Az automatikusan létrejövő MSSQLLocalDB nevű LocalDB példány connection stringjét adjuk meg, pontosabban az _SQL Server Object Explorer_ ablak segítésével másoljuk ki: _(localdb)\MSSQLLocalDB_ szerveren jobbklikk → Properties → Connection String. A kimásolt stringben az _Initial Catalog_ értékét (a DB nevét) a *master*-ről változtassuk meg valamilyen más névre, például a neptun kódunkra.
+Adjunk hozzá új osztályt a projekthez `NorthwindContext` néven, ebben definiáljuk majd, hogy milyen entitáskollekciókon lehet műveleteket végezni.
+
+Az automatikusan létrejövő MSSQLLocalDB nevű LocalDB példány connection stringjét adjuk meg, pontosabban az _SQL Server Object Explorer_ ablak segítésével másoljuk ki: menu:SQL Server-t kibontva[_(localdb)\MSSQLLocalDB_-n jobbklikk > Properties > Connection String]. A kimásolt stringben az _Initial Catalog_ értékét (a DB nevét) a *master*-ről változtassuk meg valamilyen más névre, például a Neptun kódunkra. Ha nincs a stringben _Initial Catalog_ rész, akkor írjuk a string végére, hogy `;Initial Catalog=neptunkod`.
 
 image::images/efcore-ssoe.png[Connection string megszerzése az SQL Server Object Explorer-ből]
 
@@ -93,7 +108,7 @@ public class NorthwindContext : DbContext
 }
 ----
 
-TIP: A nagyobb rugalmasság érdekében érdemes a connection stringet konfigurációs fájlba helyezni, és egy saját `IDbContextFactory` implementációval, vagy az ASP.NET konfigurációs megoldásaival felolvasni. Erre egy későbbi gyakorlaton nézünk példát.
+TIP: A nagyobb rugalmasság érdekében érdemes a connection stringet konfigurációs fájlba helyezni, majd az ASP.NET Core konfigurációs megoldásaival felolvasni. Erre egy későbbi gyakorlaton nézünk példát.
 
 Az első verziós DAL rétegünk ezzel kész is van.
 
@@ -106,10 +121,10 @@ A kódban történő sémamódosításokat követni tudja a keretrendszer, és a
 A migráció elvégzésére parancssoros utasításokat kell igénybe vennünk. Itt kétfajta megközelítés is adott: vannak PowerShell és vannak klasszikus cmd (dotnet cli) parancsaink.
 Fel kell telepítsük a projektünkbe valamelyik NuGet csomagot:
 
-* *Powershell*: Microsoft.EntityFrameworkCore.Tools (telepítsük fel most ezt)
+* *PowerShell*: Microsoft.EntityFrameworkCore.Tools (telepítsük fel most ezt)
 * *Parancssor*: Microsoft.EntityFrameworkCore.Tools.DotNet
 
-Hozzuk elő a *Package Manager Console*-t. (Tools → Library Package Manager). Ellenőrizzük, hogy a _Default Project_ legördülőben a mi projektünk van-e kiválasztva. Az `Add-Migration <név>` paranccsal tudunk készíteni egy új migrációs lépést, így az első migrációnk a kiinduló sémánk migrációját fogja tartalmazni.
+Hozzuk elő a *Package Manager Console*-t. (menu:Tools[NuGet Package Manager > Package Manager Console]). Ellenőrizzük, hogy a _Default Project_ legördülőben a mi projektünk van-e kiválasztva. Az `Add-Migration <név>` paranccsal tudunk készíteni egy új migrációs lépést, így az első migrációnk a kiinduló sémánk migrációját fogja tartalmazni.
 
 [source,powershell]
 ----
@@ -125,15 +140,15 @@ Fordítás után adjuk ki az `Update-Database` parancsot, amivel egy adott migr�
 Update-Database Init
 ----
 
-WARNING: Bizonyos LocalDB verzióknál hibára futhat az adatbázislétrehozás (_CREATE FILE encountered operating system error 5(Access is denied.)_), mert rossz helyen próbálja létrehozni az adatbázisfájlt. Ilyenkor az SQL Server Object Explorer ablakban bontsuk ki a LocalDB példányunk, alatta a _Databases_ mappán jobbklikk → _Add New Database_. A megjelenő ablakban adjuk meg névként ugyanazt az adatbázisnevet, amit korábban a connection string-ben a master helyett megadtunk.
+WARNING: Bizonyos LocalDB verzióknál hibára futhat az adatbázislétrehozás (_CREATE FILE encountered operating system error 5(Access is denied.)_), mert rossz helyen próbálja létrehozni az adatbázisfájlt. Ilyenkor az SQL Server Object Explorer ablakban bontsuk ki a LocalDB példányunk, alatta a menu:_Databases_ mappán jobbklikk[_Add New Database_]. A megjelenő ablakban adjuk meg névként ugyanazt az adatbázisnevet, amit korábban a connection string-ben a _master_ helyett megadtunk.
 
-Ellenőrizzük le az adatbázis sémáját az _SQL Server Object Explorer_ ablakban. Mutassuk meg, hogy pusztán konvenciók alapján milyen tulajdonságokat talált ki az EF.
+Ellenőrizzük le az adatbázis sémáját az _SQL Server Object Explorer_ ablakban. Nézzük meg, hogy pusztán konvenciók alapján milyen tulajdonságokat talált ki az EF.
 
 TIP: Kódból is legenerálhatnánk az adatbázist az aktuális sémával a `DbContext.Database.EnsureCreated` metódus segítségével, viszont ez a későbbiekben megnehezíti a további sémamódosítást, mivel mindig el kellene dobjuk az adatbázist, illetve a migrációt sem könnyű utólag bevezetni.
 
-=== Mapping és egyéb metaadatok megadása II. -- fluent és attribute mapping konfiguráció
+=== Leképezés és egyéb metaadatok megadása II. -- fluent és attribútum alapú leképezés
 
-Definiáljuk felül a kontext-ünkben az ős `OnModelCreating` metódusát és itt állítsunk be pár mapping információt.
+Definiáljuk felül a kontextünkben az ős `OnModelCreating` metódusát és itt állítsunk be pár mapping információt.
 
 [source,csharp]
 ----
@@ -150,28 +165,27 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 Ezzel a `Name` property hosszát állítottuk be és megadtuk, hogy kötelező (nem `NULL`-ozató) mező.
 
-A fluent mellett próbáljuk ki az attribútumos konfigurációt is. Állítsuk át az alapértelmezett táblanevet a `Product` osztály esetében a `Table` attribútummal.
+A fluent mellett próbáljuk ki az attribútumos konfigurációt is. Állítsunk át egy oszlopnevet a `Product` osztályban a `Column` attribútummal.
 
 [source,csharp]
 ----
-    [Table("PRODUCT")]
-/**/public class Product
-/**/{
-/**/ // ...
-/**/}
+[Column("ProductName")]
+public string Name { get; set; }
 ----
+
+TIP: A fenti miatt az entitásmodellünk már nem POCO, mert EF specifikus attribútum jelent meg a kódjában.
 
 TIP: Érdemes megfigyelni a táblanevek kapcsán, hogy eleve többesszámosított neveket találunk az adatbázisban. Ezt az `IPluralizer` service végzi, melyhez saját implementáció is https://docs.microsoft.com/en-us/ef/core/what-is-new/ef-core-2.0#pluralization-hook-for-dbcontext-scaffolding[írható].
 
 Mivel már létezik az adatbázisunk migráció segítségével kell frissítsük az adatbázis sémáját. Készítsünk egy új migrációs lépést az `Add-Migration` utasítással és frissítsük a sémát az `Update-Database` paranccsal.
 
-TIP: Ha van időnk megnézhetjük az adatbázison futtatott SQL-t is a Script-Migration paranccsal. Például ez mutatja a legutóbbi módosítást érvényesítő SQL-t: `Script-Migration -From Init`
-
 [source,powershell]
 ----
-Add-Migration CategoryName_ProductTableName
-Update-Database CategoryName_ProductTableName
+Add-Migration CategoryName_ProductName
+Update-Database CategoryName_ProductName
 ----
+
+TIP: Ha van időnk megnézhetjük az adatbázison futtatott SQL-t is a Script-Migration paranccsal. Például ez mutatja a legutóbbi módosítást érvényesítő SQL-t: `Script-Migration -From Init`
 
 TIP: Természetesen mivel még nincsenek adataink az adatbázisban akár el is dobhatnánk az adatbázist és újra legenerálhatnánk nulláról a sémát, de most kifejezetten a migrációt szeretnénk gyakorolni. Az `Add-Migration` kimenete figyelmeztet, hogy adatvesztés is történhet. Vannak veszélyes migrációs műveletek, ezért érdemes átnézni a generálódó migrációs kódot.
 
@@ -179,32 +193,24 @@ WARNING: Ha valamilyen okból nem megfelelő a migrációnk, ne töröljük kéz
 
 Nézzük meg milyen migrációs osztályt generáltunk, és hogy ez milyen utasításokat tartalmaz.
 
-Ellenőrizzük, hogy a _Name_ oszlop most már az új kényszereknek megfelelően lett-e felvéve, és hogy a termékek tábla megfelelő néven jelenik-e meg. Ezzel kész a DAL rétegünk konfigurációja.
+Ellenőrizzük, hogy a _Name_ oszlop most már az új kényszereknek megfelelően lett-e felvéve, és hogy a terméknév oszlop neve is megváltozott-e.
+
+Ezzel kész a DAL rétegünk konfigurációja, egyúttal mindent kipipáltunk az anyagrész elején lévő felsorolásból.
 
 == Adatbázis naplózás
 
-A következő feladat könnyebb követhetősége érdekében állítsuk be a naplózást az Entity Framework kapcsán.
-
-Az Entity Framework Core az ASP.NET Core-ban is megismert naplózó mechanizmusra épül rá az `ILoggerFactory` interfészen keresztül. Mi most a konzolon keresztül szeretnénk figyelni az éppen végrehajtott SQL utasításokat. Mivel a mi konzolos alkalmazásunkban nincs `Startup` osztály, így naplózást a `DbContext` `OnConfiguring` metódusában kell beállítanunk egy konzolos providert tartalmazó logger factory-ra. Ehhez a `Microsoft.Extensions.Logging.Console` NuGet csomagot kell a projektünkhöz adni.
-
-A kontext osztályba:
+A következő feladat könnyebb követhetősége érdekében állítsuk be a naplózást az Entity Framework kapcsán. A kontext osztályba:
 
 [source,csharp]
 ----
-public static readonly ILoggerFactory MyLoggerFactory
-    = LoggerFactory.Create(builder => { builder.AddConsole(); });
-
 /**/protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 /**/{
-/**/    optionsBuilder
-            .UseLoggerFactory(MyLoggerFactory)
-/**/        .UseSqlServer(@"<connstring>");    
+/**/    optionsBuilder.UseSqlServer(@"<connstring>")
+            .LogTo(Console.WriteLine, LogLevel.Information);
 /**/}
 ----
 
-WARNING: fontos, hogy ne jöjjön létre külön logger példány minden context példányhoz, ezért lett a `MyLoggerFactory` statikus.
-
-TIP: Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug outputra is írhatunk. Ehhez a _Microsoft.Extensions.Logging.Debug_ csomagban található `AddDebug` metódust kell használjuk.
+TIP: Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug kimenetre (Output ablak) is írhatunk. Ehhez a `LogTo`-nak adjuk meg paraméterként a `m => Debug.WriteLine(m)` delegátot.
 
 == Adatbázisműveletek
 
@@ -214,7 +220,7 @@ TIP: Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug outputra i
 
 [source,csharp]
 ----
-using System.Linq;
+//using System.Linq;
 
 static void SeedDatabase(NorthwindContext ctx)
 {
@@ -274,7 +280,7 @@ Javítsuk ki:
 
 Ennek már le kell futnia. Nézzük meg a konzolon az SQL utasításokat és a változásokat az adatbázisban. Paraméterezett `INSERT` utasításokat használ az EF, így elkerülve az SQL injection támadást.
 
-TIP: a háttérben az EF minden új entitásnak kioszt egy átmeneti azonosítót, amit felhasználhatunk a fenti hiba elkerülésére, ha semmiképp sem akarjuk a navigációs property-ket használni. Így tudnánk a context-től elkérni: `context.Entry(cat_drink).Property(e => e.Id).CurrentValue`
+TIP: a háttérben az EF minden új entitásnak kioszt egy átmeneti azonosítót, amit felhasználhatunk a fenti hiba elkerülésére, ha semmiképp sem akarjuk a navigációs property-ket használni. Így tudnánk a context-től elkérni: `ctx.Entry(cat_drink).Property(e => e.Id).CurrentValue`
 
 WARNING: Ha egyszerre több egymásra hivatkozó elemet szúrunk be és azonosító alapján kötjük őket össze, mindig gondoljuk át, hogy a tényleges adatbázisbeli azonosítók biztosan rendelkezésre állnak-e, mert különben futásidejű kivételt kaphatunk, a fordító nem fog figyelmeztetni.
 
@@ -336,7 +342,9 @@ foreach (var name in q)
 }
 ----
 
-A debuggerrel léptessük át az egyes utasításokon a program futását. A késleltetett kiértékelés miatt csak a `foreach` végrehajtása közben fog az adatbázishoz fordulni az EF. Nézzük meg a lefuttatott SQL-t is. Sikerült az `IQueryable<>`-ben található `Expression`-t SQL utasítássá alakítania.
+Itt figyelhető meg a korábban már tárgyalt `IEnumerable<>` - `IQueryable<>` különbség. A `Products` property típusa `DbSet`, ami IQuerable<>. Az `IQueryable<>`-n történő hívások kifejezésfát (`Expression`) építenek és szintén `IQueryable<>`-t adnak vissza. A `q` értéke egy olyan `IQueryable<>`, ami `Expression`-jében tartalmazza a teljes lekérdezést. Amikor szükség van az adatra, a kifejezésfa alapján SQL generálódik és ez az SQL fut le az adatbázison.
+
+A debuggerrel léptessük át az egyes utasításokon a program futását. A késleltetett kiértékelés miatt csak a `foreach` végrehajtása közben fog az adatbázishoz fordulni az EF, hiszen csak ekkor van ténylegesen szükség az adatra. Nézzük meg a lefuttatott SQL-t is. Sikerült az `IQueryable<>`-ben található `Expression`-t SQL utasítássá alakítania.
 
 Az EF elég sok C# függvényt SQL-lé tud fordítani. Példaképp alakítsuk a visszaadott nevet nagybetűssé.
 
@@ -361,7 +369,7 @@ var q = from p in ctx.Products
        select p.Name;
 ----
 
-`InvalidOperationException`-t kapunk: ezt a lekérdezést nem tudja a provider SQL-lé fordítani. Egyik lehetőségünk, ahogy a hibaüzenet is írja, hogy kikényszerítjük a vegyes kiértékelést a nem leforduló művelet elé helyezett `AsEnumerable` vagy `ToList` (illetve ezek aszinkron változatai) hívással. Próbáljuk ki - mivel a szűrést nem sikerült átfordítani, így a szűrés elé a from végére tegyük az `AsEnumerable`-t:
+`InvalidOperationException`-t kapunk: ezt a lekérdezést nem tudja a provider SQL-lé fordítani. Egyik lehetőségünk, ahogy a hibaüzenet is írja, hogy kikényszerítjük a kiértékelést a nem leforduló művelet elé helyezett `AsEnumerable` vagy `ToList` (illetve ezek aszinkron változatai) hívással. Próbáljuk ki - mivel a szűrést nem sikerült átfordítani, így a szűrés elé a from végére tegyük az `AsEnumerable`-t:
 
 [source,csharp]
 ----
@@ -371,9 +379,9 @@ var q = from p in ctx.Products
 /**/        select p.Name.ToUpper();
 ----
 
-Ez működik, de a konzolon megjelenő SQL utasításon látszik, hogy a **teljes** termék táblát lekérdeztük és felolvastuk a memóriába. Az `AsEnumerable` jelentése: a lekérdezés innentől LINQ-to-Objects-ként épül tovább, a lekérdezés eddigi része memóriabeli reprezentációja lesz az adatforrás, tehát a szűrés és a projekció már memóriában fut le. Mivel a teljes lekérdezés egy része LINQ-to-Entities (adatbázis értékeli ki), a másik része LINQ-to-Objects (a .NET runtime értékeli ki), így az ilyen lekérdezéseket ún. vegyes kiértékelésűnek (_mixed evaluation_), a LINQ-to-Objects részt kliensoldali kiértékelésűnek (_client evaluation_) nevezik.
+Ez működik, de a konzolon megjelenő SQL utasításon látszik, hogy a **teljes** termék táblát lekérdeztük és felolvastuk a memóriába. Az `AsEnumerable` jelentése: a lekérdezés innentől LINQ-to-Objects-ként épül tovább, a lekérdezés eddigi része memóriabeli reprezentációja lesz az adatforrás, tehát a szűrés és a projekció már memóriában fut le. Mivel a teljes lekérdezés egy része LINQ-to-Entities (adatbázis értékeli ki), a másik része LINQ-to-Objects (a .NET runtime értékeli ki), így az ilyen lekérdezéseket ún. vegyes kiértékelésűnek (_mixed evaluation_), a LINQ-to-Objects részt kliensoldali kiértékelésűnek (_client evaluation_) nevezik. A `q` típusa ebben az esetben már nem `IQueryable<>`, csak `IEnumerable<>`.
 
-TIP: Érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12], vagy jobbklikk _Go To Definition_) a két változatnál. Az első esetben `IQueryable` az adatforrás és `Expression` a feltétel, a másodiknál `IEnumerable` az adatforrás és sima delegate a feltétel.
+TIP: Érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12] vagy menu:jobbklikk[Go To Definition]) a két változatnál. Az első esetben `IQueryable` az adatforrás és `Expression` a feltétel, a másodiknál `IEnumerable` az adatforrás és sima delegate a feltétel.
 
 WARNING: Különösen fontos, hogy lehetőleg minden EF lekérdezésünket ellenőrizzük le, hogy minden része ott fut-e le (adatbázisban vagy memóriában), ahol számítunk rá.
 
@@ -403,13 +411,13 @@ A `TagWith` használatával könnyebben megtalálhatjuk a lekérdezés által ge
 
 Ismét figyeljük meg a naplóban, mikor fut le és milyen lekérdezés. Itt is látszik a késleltetett kiértékelés és a lekérdezések össze lesznek fűzve, egy lekérdezés hajtódik végre.
 
-TIP: Ez rámutat az EF egy nagy előnyére, bonyolult lekérdezéseket megírhatunk kisebb, egyszerűbb részletekben írhatunk meg, az EF pedig összevonja, sőt optimalizálhatja is a lekérdezést.
+TIP: Ez rámutat az EF egy nagy előnyére, bonyolult lekérdezéseket megírhatunk kisebb, egyszerűbb részletekben, az EF pedig összevonja, sőt optimalizálhatja is a teljes lekérdezést.
 
 Próbáljuk ki, `var q =` helyett `IEnumerable<Product> q=`-val is, ilyenkor nem fűzi össze a lekérdezést. A `q2` műveletei már memóriában fognak lefutni, hiszen a `q2` adatforrásként csak egy `IEnumerable`-t lát.
 
 Próbáljuk ki, `var q` = helyett `IQueryable<Product> q=` -val is, ilyenkor megint összefűzi a lekérdezést.
 
-TIP: Itt is érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12], vagy jobbklikk _Go To Definition_) a két lekérdezésrészben.
+TIP: Itt is érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12] vagy menu:jobbklikk[Go To Definition]) a két lekérdezésrészben.
 
 WARNING: Nem lehet elégszer hangsúlyozni az `IQueryable` és az `IEnumerable` közti különbségeket. Az `IQueryable` kifejezések SQL-é fordulnak (amikor le tudnak), míg az IEnumerable-en végzett műveletek minden esetben memóriában hajtódnak végre.
 
@@ -417,7 +425,7 @@ TIP: Ha nem akarunk véletlenül memóriabeli kiértékelésre váltani, az impl
 
 == Beszúrás több-többes kapcsolatba
 
-Azokat a termékeket szeretnénk megrendelni, amiknek a nevében van „r”. Használjuk fel újra az előző, hasonló lekérdezésünket.
+Azokat a termékeket szeretnénk megrendelni, amiknek a nevében van egy adott betű. Használjuk fel újra az előző, hasonló lekérdezésünket.
 
 [source,csharp]
 ----
