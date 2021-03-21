@@ -21,9 +21,9 @@ A Code-First módszer lényege, hogy elsőként az OO entitásokat definiáljuk 
 
 Készítsünk egy .NET 5 konzolos alkalmazást, majd a projekten belül hozzunk létre egy _Entities_ nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
 
-* *Product* (`Id`:`int`, `Name`:`string`, `UnitPrice`:`int`)
-* *Order* (`Id`:`int`, `OrderDate`:`DateTime`)
-* *Category* (`Id`:`int`, `Name`:`string`)
+* *Product* (`Id`: `int`, `Name`: `string`, `UnitPrice`: `int`)
+* *Order* (`Id`: `int`, `OrderDate`: `DateTime`)
+* *Category* (`Id`: `int`, `Name`: `string`)
 Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (_prop_ snippet).
 
 === Mapping és egyéb metaadatok megadása I.
@@ -38,7 +38,7 @@ Elsőként azt fogjuk megnézni, hogy mit talál ki az EF, ha semmi plusz adatot
 
 === Relációk
 
-Az entitások közötti kapcsolatokat mutatja az alábbi ábra:
+Az entitások közötti kapcsolatokat mutatja sematikusan az alábbi ábra:
 
 image::images/efcore-rels.png[EF Core példaséma]
 
@@ -50,11 +50,13 @@ TIP: Általánosságban nem kötelező egy kapcsolat mindkét oldalán navigáci
 
 Az `Order`-`Product` több-többes kapcsolatokhoz hozzuk létre a kapcsolótáblának megfelelő entitást is, ami egy-egy Product és Order közötti kapcsolatot reprezentálja.
 
-* *OrderItem* (`Id`:`int`, `ProductId`:`int`, `OrderId`:`int`, `Quantity`:`int`)
+* *OrderItem* (`Id`: `int`, `ProductId`: `int`, `OrderId`: `int`, `Quantity`: `int`)
 
-TIP: Nem kötelező létrehozni osztályt a kapcsolótáblának, konfigurációval is lehet érni, hogy a kapcsolótábla létrejöjjön és az EF megfelelően használja. Ezt a módszert akkor érdemes követni ha a kapcsolótábla csupán technikai tehertétel, de ha például extra adatot is tárol, például esetünkben a rendelt mennyiséget (`Quantity`), akkor jobban követhető kódot eredményez, ha explicit létrehozzuk a kapcsolótáblának megfelelő entitástípust.
+TIP: Nem kötelező létrehozni osztályt a kapcsolótáblának, konfigurációval is lehet érni, hogy a kapcsolótábla létrejöjjön és az EF megfelelően használja. Ezt a módszert akkor érdemes követni ha a kapcsolótábla csupán technikai tehertétel, de ha például extra adatot is tárol,  esetünkben a rendelt mennyiséget (`Quantity`), akkor jobban követhető kódot eredményez, ha explicit létrehozzuk a kapcsolótáblának megfelelő entitástípust.
 
-image::images/efcore-bridgetab.png[Product-Order kapcsolótábla]
+Az így kialakult modell:
+
+image::images/efcore-model.png[EF Core model]
 
 Ezután így néznek ki az entitások:
 
@@ -66,7 +68,7 @@ include::code/efcore-order.cs[]
 
 include::code/efcore-product.cs[]
 
-include::code/efcore-productorder.cs[]
+include::code/efcore-orderitem.cs[]
 ----
 
 Vegyük észre, hogy eddig semmilyen EF specifikus kódot nem írtunk, a modellünk sima ún. https://stackoverflow.com/a/250006/472575[_POCO_] osztályokból áll.
@@ -110,7 +112,7 @@ public class NorthwindContext : DbContext
 
 TIP: A nagyobb rugalmasság érdekében érdemes a connection stringet konfigurációs fájlba helyezni, majd az ASP.NET Core konfigurációs megoldásaival felolvasni. Erre egy későbbi gyakorlaton nézünk példát.
 
-Az első verziós DAL rétegünk ezzel kész is van.
+Az első verziós adatelérési (DAL) rétegünk ezzel kész is van.
 
 == Sémamódosítás
 
@@ -140,7 +142,7 @@ Fordítás után adjuk ki az `Update-Database` parancsot, amivel egy adott migr�
 Update-Database Init
 ----
 
-WARNING: Bizonyos LocalDB verzióknál hibára futhat az adatbázislétrehozás (_CREATE FILE encountered operating system error 5(Access is denied.)_), mert rossz helyen próbálja létrehozni az adatbázisfájlt. Ilyenkor az SQL Server Object Explorer ablakban bontsuk ki a LocalDB példányunk, alatta a menu:_Databases_ mappán jobbklikk[_Add New Database_]. A megjelenő ablakban adjuk meg névként ugyanazt az adatbázisnevet, amit korábban a connection string-ben a _master_ helyett megadtunk.
+WARNING: Bizonyos LocalDB verzióknál hibára futhat az adatbázislétrehozás (_CREATE FILE encountered operating system error 5(Access is denied.)_), mert rossz helyen próbálja létrehozni az adatbázisfájlt. Ilyenkor az SQL Server Object Explorer ablakban bontsuk ki a LocalDB példányunk, alatta a menu:Databases mappán jobbklikk[_Add New Database_]. A megjelenő ablakban adjuk meg névként ugyanazt az adatbázisnevet, amit korábban a connection string-ben a _master_ helyett megadtunk.
 
 Ellenőrizzük le az adatbázis sémáját az _SQL Server Object Explorer_ ablakban. Nézzük meg, hogy pusztán konvenciók alapján milyen tulajdonságokat talált ki az EF.
 
@@ -212,9 +214,7 @@ A következő feladat könnyebb követhetősége érdekében állítsuk be a nap
 
 TIP: Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug kimenetre (Output ablak) is írhatunk. Ehhez a `LogTo`-nak adjuk meg paraméterként a `m => Debug.WriteLine(m)` delegátot.
 
-== Adatbázisműveletek
-
-=== Beszúrás
+== Beszúrás
 
 Írjunk egy egyszerű beszúró kódot a `Program` osztályba. Várjunk paraméterül egy kontext-et, és csak akkor szúrjunk be az adatbázisba bármit, ha még üres.
 
@@ -284,7 +284,7 @@ TIP: a háttérben az EF minden új entitásnak kioszt egy átmeneti azonosító
 
 WARNING: Ha egyszerre több egymásra hivatkozó elemet szúrunk be és azonosító alapján kötjük őket össze, mindig gondoljuk át, hogy a tényleges adatbázisbeli azonosítók biztosan rendelkezésre állnak-e, mert különben futásidejű kivételt kaphatunk, a fordító nem fog figyelmeztetni.
 
-=== Ősfeltöltés (seeding) elvárt adattartalom megadásával
+== Ősfeltöltés (seeding) elvárt adattartalom megadásával
 
 A kontextuskonfiguráció részeként megadhatjuk, hogy milyen adattartalmat szeretnénk az egyes táblákban látni. A kontext `OnModelCreating` függvényének végére:
 
@@ -387,7 +387,7 @@ WARNING: Különösen fontos, hogy lehetőleg minden EF lekérdezésünket ellen
 
 TIP: Másik lehetőség, ha ilyenbe ütközünk, hogy a lekérdezést megpróbáljuk úgy átírni, hogy minél nagyobb része lefuttatható legyen adatbázisban. Ez a konkrét példában egyszerű, csak vissza kell írni az első változatot.
 
-== Lekérdezések összefűzése és címkézése
+=== Lekérdezések összefűzése és címkézése
 
 Kérdezzük le egy bizonyos árnál drágább, bizonyos betűt a nevükben tartalmazó termékek nevét - mindezt két külön lekérdezésben:
 
@@ -436,8 +436,8 @@ var q = from p in ctx.Products
 var order = new Order { OrderDate = DateTime.Now };
 foreach (var p in q)
 {
-    order.ProductOrders.Add(
-        new ProductOrder { Product = p, Order = order }
+    order.OrderItems.Add(
+        new OrderItem { Product = p, Order = order, Quantity=2 }
     );
 }
 
@@ -445,9 +445,9 @@ ctx.Orders.Add(order);
 ctx.SaveChanges();
 ----
 
-Ismét figyeljük, hogy milyen SQL generálódik. Az `Order` létrehozása után nekünk még egy új `ProductOrder` entitást is létre kell hoznunk, amit a több-több kapcsolatra használunk fel. Figyeljük meg, hogy minden `Order` hozzáadásával `ProductOrder` is bekerült a kontextusba, majd el is mentődött az adatbázisba.
+Ismét figyeljük, hogy milyen SQL generálódik. Az `Order` létrehozása után nekünk még egy új `OrderItem` entitást is létre kell hoznunk, amit a több-több kapcsolatra használunk fel. Figyeljük meg, hogy nem kellett minden `OrderItem`-et külön-külön hozzáadnunk a kontextushoz, az `Order` hozzáadásával minden `OrderItem` is bekerült a kontextusba, majd el is mentődött az adatbázisba. 
 
-=== Kapcsolódó entitások betöltése
+== Kapcsolódó entitások betöltése
 
 Írjuk ki minden termék neve mellé a kategóriáját is.
 
@@ -461,7 +461,7 @@ foreach (Product p in products)
 }
 ----
 
-Figyeljük meg, hogy a fenti lekérdezésben a kategória navigációs property `null` értékű és kivétel is keletkezik, pedig biztosan tartozik a termékhez kategória az adatbázisban. Ennek oka, hogy az EF alapból nem tölti be a navigációs property-k értékeit, ezt egy külön `Include` metódushívással tudjuk megtenni az `IQueryable` típuson. Ez az ún. _eager loading_.
+Figyeljük meg, hogy a fenti lekérdezésben a kategória navigációs property `null` értékű és kivétel is keletkezik, pedig biztosan tartozik a termékhez kategória az adatbázisban. Ennek oka, hogy az EF alapból *nem* tölti be a navigációs property-k értékeit, ezt egy külön `Include` metódushívással tudjuk megtenni az `IQueryable` típuson. Ez az ún. _eager loading_.
 
 [source,csharp]
 ----
@@ -471,13 +471,13 @@ Figyeljük meg, hogy a fenti lekérdezésben a kategória navigációs property 
 
 Ismét figyeljük, hogy mikor mi fut le az adatbázisszerveren: ez egy `JOIN` segítségével egy füst alatt beránt minden adatot mindkét táblából.
 
-Ha a kapcsolódó `Order` listát is szeretnénk kitöltetni, akkor ott egyrészt a `ProductOrders` listát is be kell `Include`-olni, másrészt pedig még egy kapcsolattal továbbmenve a `ProductOrder` `Order` tulajdonságát is be kell töltetni. Az ilyen többszintes hivatkozást az `Include` és `ThenInclude` használatával lehet elérni:
+Ha a kapcsolódó `Order` listát is szeretnénk kitöltetni, akkor ott egyrészt a `ProductOrders` listát is be kell `Include`-olni, másrészt pedig még egy kapcsolattal továbbmenve a `OrderItem` `Order` tulajdonságát is be kell töltetni. Az ilyen többszintes hivatkozást az `Include` és `ThenInclude` használatával lehet elérni:
 
 [source,csharp]
 ----
 /**/var products = ctx.Products
 /**/    .Include(p => p.Category)
-        .Include(p => p.ProductOrders)   
+        .Include(p => p.ProductOrders)
         .ThenInclude(po => po.Order);
 
 /**/foreach (var p in products)
@@ -514,7 +514,82 @@ foreach (var p in products)
 }
 ----
 
-=== Módosítás, Find
+Figyeljük meg, hogy a generálódó SELECT projekciós része így jóval rövidebb.
+
+== Több-többes kapcsolat közvetlen navigálása
+
+Lehetőség van több-többes kapcsolat navigálásakor a kapcsolótábla átugrására. Ehhez vegyünk fel ennek megfelelő property-ket a kapcsolat két oldalán. Az `Order`-be:
+
+[source,csharp]
+----
+public ICollection<Product> Products { get; } = new List<Product>();
+----
+
+A `Product`-ba:
+
+[source,csharp]
+----
+public ICollection<Order> Orders { get; } = new List<Order>();
+----
+
+A kontext `OnModelCreating`-jében konfigurálnunk kell a több-többes kapcsolatban részt vevő minden property-t, hogy az EF tudja, hogy ez az összes property ugyanazon kapcsolathoz tartozik:
+
+[source,csharp]
+----
+modelBuilder.Entity<Product>()
+.HasMany(p => p.Orders)
+.WithMany(o => o.Products)
+.UsingEntity<OrderItem>(
+    j => j
+        .HasOne(oi => oi.Order)
+        .WithMany(o => o.OrderItems)
+        .HasForeignKey(oi => oi.OrderId),
+    j => j
+        .HasOne(oi => oi.Product)
+        .WithMany(p => p.ProductOrders)
+        .HasForeignKey(oi => oi.ProductId),
+    j =>
+    {
+        j.HasKey(oi => oi.Id);
+    });
+----
+
+Bonyolultnak tűnik, de inkább csak hosszú, míg mind a 9 érintett property szerepét beállítjuk.
+
+Mindennek nem szabadna adatbázis változást okoznia, hiszen nem lett több kapcsolat, csak egy logikai útrövidítést vettünk fel. Ellenőrizzük le:
+
+[source,powershell]
+----
+Add-Migration NxN
+----
+
+Ha mindent jól csináltunk, ennek egy üres migrációt kell generálnia. Töröljük is.
+
+[source,powershell]
+----
+Remove-Migration
+----
+
+Ezután a korábbi lekérdezésünknél elhagyhatjuk az `OrderItem` betöltését.
+
+[source,csharp]
+----
+var products = ctx.Products
+    .Include(p => p.Category)
+    .Include(p => p.Orders);  
+foreach (var p in products)
+{
+    Console.WriteLine($"{p.Name} ({p.Category.Name})");
+    foreach (var po in p.ProductOrders)
+    {
+        Console.WriteLine($"\tRendelés: {po.Order.OrderDate}");
+    }
+}
+----
+
+WARNING: Ettől nem feltétlenül lesz egyszerűbb vagy gyorsabb a generált lekérdezés, csak a kódunk lesz egyszerűbb.
+
+== Módosítás, Find
 
 Nézzünk példát egyszerű módosításra.
 
@@ -528,34 +603,34 @@ ctx.SaveChanges();
 Console.WriteLine(ctx.Entry(pFirst).State);
 ----
 
-Mutassuk be az EF change tracking működését. A lekérdezések eredménye alapértelmezetten bekerül a változáskövetőbe (change tracker). Figyeljük meg, hogyan kezeli az EF a hozzá tartozó objektumok állapotát.
+Debuggerrel sorra-sorra lépkedve kövessük végig az EF változáskövető működését. A lekérdezések eredménye alapértelmezetten bekerül a változáskövetőbe (change tracker). Ezután az osztályon végezhetünk adatváltoztató műveletet, mindig könnyen eldönthető, hogy volt-e változás, ha összevetjük az aktuális állapotot (current value) a bekerüléskorival (original value). Figyeljük meg, hogyan kezeli az EF a hozzá tartozó objektumok állapotát.
+
+TIP: az `Entry` által adott osztályból megtudhatjuk az aktuális és a bekerüléskori értékeket az `OriginalValues` és `CurrentValues` propertyk által.
 
 A `Find` az elsődleges kulcs alapján keres ki egy entitást. Nem kell ismernünk az elsődleges kulcs property nevét. Ha a változáskövetőbe már korábban bekerült a keresett entitás, akkor onnan kapjuk vissza, ilyenkor adatbázishozzáférés nem történik.
 
-=== Törlés
+== Törlés
 
-Töröljük ki az adatbázisból az előbb létrehozott megrendelések közül az egyiket.
+Töröljük ki az adatbázisból az egyik megrendelést.
 
 [source,csharp]
 ----
-var orderToRemove =
-    (
-      from p in ctx.Orders
-      select p
-    ).First();
+var orderToRemove = ctx.Orders.OrderBy(o=>o.OrderDate).First();  
 
 ctx.Orders.Remove(orderToRemove);
 ctx.SaveChanges();
 ----
 
-Figyeljük meg az adatbázis adatai között, hogy az `Order` törlésével a `ProductOrder` kapcsolódó bejegyzés is törlődött, mivel alapértelmezetten a sémán be van kapcsolva a kaszkád törlés. Ez ebben az esetben indokolt is lenne, de sokszor nem szeretnénk, ha a kapcsolódó rekordok is törlődnének. Ennek megakadályozására vegyük fel explicit a konfigurációban az `Order–ProductOrder` kapcsolatot és kapcsoljuk ki rajta a kaszkád törlést az `OnModelCreating`-ben.
+Figyeljük meg az adatbázis adatai között, hogy az `Order` törlésével a kapcsolódó `OrderItem` bejegyzések is törlődtek, mivel alapértelmezetten a sémán be van kapcsolva a kaszkád törlés. Ez ebben az esetben indokolt is lenne, de sokszor nem szeretnénk, ha a kapcsolódó rekordok is törlődnének. Ennek megakadályozására vegyük fel explicit a konfigurációban az `Order-OrderItem` kapcsolatot és kapcsoljuk ki rajta a kaszkád törlést az `OnModelCreating`-ben.
 
 [source,csharp]
 ----
-modelBuilder.Entity<Order>()
-    .HasMany(o => o.ProductOrders)
-    .WithOne(po => po.Order)
-    .OnDelete(DeleteBehavior.Restrict);
+// a korábbi több-többes konfiguráció
+/**/j => j
+/**/    .HasOne(oi => oi.Order)
+/**/    .WithMany(o => o.OrderItems)
+/**/    .HasForeignKey(oi => oi.OrderId)
+        .OnDelete(DeleteBehavior.Restrict),
 ----
 
 A törölt `Order`-t és a szükséges kapcsoló rekordokat vegyük fel migráció által beszúrt adatként. Az `OnModelCreating` végére:
@@ -566,9 +641,9 @@ modelBuilder.Entity<Order>().HasData(
      new Order {Id = 1, OrderDate = new DateTime(2019, 02, 01)}
 );
 
-modelBuilder.Entity<ProductOrder>().HasData(
-    new ProductOrder { Id = 1, OrderId = 1, ProductId = 1},
-    new ProductOrder { Id = 2, OrderId = 1, ProductId = 2}
+modelBuilder.Entity<OrderItem>().HasData(
+    new OrderItem { Id = 1, OrderId = 1, ProductId = 1 },
+    new OrderItem { Id = 2, OrderId = 1, ProductId = 2 }
 );
 ----
 
@@ -581,13 +656,11 @@ Update-Database 0
 Update-Database
 ----
 
-Szúrjuk be újra a megrendelést, majd próbáljuk meg újra törölni azt. A törlés során kivételt kapunk, mivel a `ProductOrder` rekord nem törlődött kaszkád módon, így az egy már nem létező `Order`-re hivatkozik, viszont ez a külső kulcs kényszert megsérti. Emiatt az egész törlési művelet meghiúsul.
+Futtassuk újra a törlő kódot - kivételt kapunk, mivel az `OrderItem` rekord nem törlődött kaszkád módon, így az egy már nem létező `Order`-re hivatkozik, viszont ez a külső kulcs kényszert megsérti. Emiatt az egész törlési művelet meghiúsul.
 
-TIP: Adatkezelő alkalmazásokban az adatbázisbeli törlés (SQL `DELETE` utasítás) helyett gyakran inkább logikai törlést alkalmaznak. A logikai törlés megvalósításával ezen gyakorlat keretében nem foglalkozunk.
+TIP: Adatkezelő alkalmazásokban az adatbázisbeli törlés (SQL `DELETE` utasítás) helyett gyakran inkább logikai törlést (_soft delete_) alkalmaznak. A logikai törlés megvalósításával ezen gyakorlat keretében nem foglalkozunk.
 
-== Egyéb funkciók
-
-=== Felsorolt típus, értékkonvertálók
+== Felsorolt típus, értékkonvertálók
 
 Az EF alapértelmezetten képes a felsorolt típusokat is leképezni. Hozzunk létre új felsorolt típust a `Product` osztály mellé ShipmentRegion néven.
 
@@ -619,8 +692,8 @@ Módosítsuk és bővítsük a kezdeti `Product`-ok listáját szállítási inf
 /**/modelBuilder.Entity<Product>().HasData(
 /**/    new Product
 /**/    {
-/**/         Id =1, Name = "Sör", UnitPrice = 50, CategoryId = 1,
-             ShipmentRegion = ShipmentRegion.Asia
+/**/         Id =1, Name = "Sör", UnitPrice = 50, CategoryId = 1
+             ,ShipmentRegion = ShipmentRegion.Asia
 /**/    },
 /**/    new Product { Id=2, Name = "Bor", UnitPrice = 550, CategoryId = 1 },
 /**/    new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 },
@@ -679,7 +752,7 @@ Vizsgáljuk meg a tömbben lévő termékeket debuggerrel: látható, hogy a sz�
 
 TIP: Saját https://docs.microsoft.com/en-us/ef/core/modeling/value-conversions#the-valueconverter-class[konvertereket] is írhatunk, ha a beépítettek között nem találunk megfelelőt.
 
-=== Tranzakciók
+== Tranzakciók
 
 Az EF az egyes `SaveChanges` hívásokat egy tranzakcióban futtatja (ha az adatbázis provider támogatja azt). Viszont gyakran megesik az, hogy több `SaveChanges` hívást kellene egy tranzakcióban kezelnünk. Tehát ha az egyik sikertelenül fut le, akkor a többit sem szabad érvényre juttatni.
 
@@ -710,15 +783,11 @@ try
 catch (Exception){}
 ----
 
-A tranzakciók kezdete-végével kapcsolatos események csak a debug szintű naplóban jelennek meg. Állítsuk át a naplózási szintet a `NorthwindContext.GetLoggerFactory` függvényben:
+A tranzakciók kezdete-végével kapcsolatos események csak a debug szintű naplóban jelennek meg. Állítsuk át a naplózási szintet a `LogTo` függvényben:
 
 [source,csharp]
 ----
-/**/public static readonly ILoggerFactory MyLoggerFactory
-/**/    = LoggerFactory.Create(builder => 
-/**/            { builder.AddConsole()
-                    .AddFilter(ll => ll == LogLevel.Debug);
-/**/            });
+/**/.LogTo(Console.WriteLine, LogLevel.Debug); // LogLevel módosítva
 ----
 
 A tranzakción `Commit`-ot hívunk, ha sikeresen lefutott mindegyik `SaveChanges`, ha valamelyik hibára futott, akkor a using blokkból való kilépésig nem fog `Commit` hívódni. Ha bármilyen ok miatt a `Commit` nem hívódik meg, legkésőbb a using blokk vége `Rollback`-el *lezárja a tranzakciót*.
@@ -740,7 +809,7 @@ Teszteljük a hibás ágat is azáltal, hogy a második terméket egy nem létez
 /**/    ctx.Products.Add(new Product
 /**/    {
             Name = "Kőműves KUBU", //a név megváltozott
-            CategoryId = 100,      //nem létező kategória azonosítóra változott
+            CategoryId = 100,     //nem létező kategória azonosítóra változott
 /**/    });
 /**/    ctx.SaveChanges();
 /**/    transaction.Commit();
