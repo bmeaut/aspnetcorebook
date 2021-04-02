@@ -1,8 +1,8 @@
 = Entity Framework Core I-II.
 
-== Az Entity Framework mapping módszerei
+== Az Entity Framework leképezési módszerei
 
-Az objektum-relációs (OR) leképzés két fő részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektummodell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk _Code-First_ mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot __Reverse Engineered Code-First__nek vagy https://docs.microsoft.com/en-us/ef/core/managing-schemas/scaffolding[__scaffolding__nak] hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
+Az objektum-relációs (OR) leképzés (_mapping_) két fő részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektummodell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk _Code-First_ mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot __Reverse Engineered Code-First__nek vagy https://docs.microsoft.com/en-us/ef/core/managing-schemas/scaffolding[__scaffolding__nak] hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
 
 Akárhogy is, az Entity Framework (EF), mint OR leképező eszköz (ORM) használatához az alábbi összetevőkre van szükség:
 
@@ -13,13 +13,13 @@ Akárhogy is, az Entity Framework (EF), mint OR leképező eszköz (ORM) haszná
 - Entity Framework Core kompatibilis adatbázis driver (provider)
 - adatbázis kapcsolódási adatok, connection string formátumban
 
-=== A Code-first mapping módszer
+== A Code-First leképezési módszer
 
 A Code-First módszer lényege, hogy elsőként az OO entitásokat definiáljuk egyszerűen programkódban, majd a leképezést szintén programkódban. A leképezés alapján az EF eszközök képesek az adatbázis létrehozására, inicializálására és a séma változáskövetésére is (lásd lentebb a _Code-First Migrations_ részt).
 
 === Az entitások definiálása
 
-Készítsünk egy .NET 5 konzolos alkalmazást, majd a projekten belül hozzunk létre egy _Entities_ nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
+Készítsünk egy .NET 5 konzolos alkalmazást (csak https://github.com/dotnet/efcore/issues/8035[*ne* EF legyen a neve]), majd a projekten belül hozzunk létre egy _Entities_ nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
 
 * *Product* (`Id`: `int`, `Name`: `string`, `UnitPrice`: `int`)
 * *Order* (`Id`: `int`, `OrderDate`: `DateTime`)
@@ -38,7 +38,7 @@ Elsőként azt fogjuk megnézni, hogy mit talál ki az EF, ha semmi plusz adatot
 
 === Relációk
 
-Az entitások közötti kapcsolatokat mutatja sematikusan az alábbi ábra:
+A fő entitások közötti kapcsolatokat mutatja sematikusan az alábbi ábra:
 
 image::images/efcore-rels.png[EF Core példaséma]
 
@@ -58,7 +58,7 @@ Az így kialakult modell:
 
 image::images/efcore-model.png[EF Core model]
 
-Ezután így néznek ki az entitások:
+Kódként:
 
 [source,csharp]
 ----
