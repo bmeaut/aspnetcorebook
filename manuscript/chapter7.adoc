@@ -478,15 +478,15 @@ Eddig főleg csak a hibamentes ágakat (happy path) néztük. A REST konvenciók
 
 Kezdjük a kliens által küldött nem helyes adatokkal. Ez a hibakód nem összekeverendő a 415-tel, ahol az adat formátuma nem megfelelő (XML vagy JSON): ezt általában nem kell kézzel lekezeljük, mivel ezt az ASP.NET megteszi helyettünk. 400-zal olyan hibákat szoktunk lekezelni, ahol a küldött adat formátuma megfelelő, de valamilyen saját validációs logikának nem felel meg a kapott objektum pl.: egységár nem lehet negatív stb.
 
-Itt használjuk fel a .NET ún. https://docs.microsoft.com/en-us/aspnet/core/mvc/models/validation?view=aspnetcore-3.1#built-in-attributes[_Data Annotation_ attribútumait], amiket a DTO-kon érvényesíthetünk, és az ASP.NET Core figyelembe vesz a művelet végrehajtása során. Vegyük fel a `Product` DTO osztályban néhány megkötést attribútumok formájában.
+Itt használjuk fel a .NET ún. https://docs.microsoft.com/en-us/aspnet/core/mvc/models/validation#built-in-attributes[_Data Annotation_ attribútumait], amiket a DTO-kon érvényesíthetünk, és az ASP.NET Core figyelembe vesz a művelet végrehajtása során. Vegyük fel a `Product` DTO osztályban néhány megkötést attribútumok formájában.
 
 [source,csharp]
 ----
     [Required(ErrorMessage = "Product name is required.", AllowEmptyStrings = false)]
-/**/public string Name { get; set; }
+/**/public string Name { get; init; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Unit price must be higher than 0.")]
-/**/public int UnitPrice { get; set; }
+/**/public int UnitPrice { get; init; }
 ----
 
 Próbáljuk ki egy *POST /api/Products* művelet meghívásával. Paraméterként kiindulhatunk a felület által adott minta JSON-ból, csak töröljük ki a navigációs property-ket és sértsük meg valamelyik (vagy mindkét) fenti szabályt. Egy példa törzs:
@@ -536,7 +536,7 @@ Legegyszerűbb módszer a kontroller műveletben érvényesíteni a konvenciót:
 /**/{
         try
         {
-/**/        return _mapper.Map<Product>(_productService.GetProduct(id));
+/**/        return _productService.GetProduct(id);
         }
         catch (EntityNotFoundException)
         {
@@ -613,7 +613,7 @@ Térjünk vissza a korábbi, nem kivétel-elkapós változatra, az előzőt komm
 [HttpGet("{id}", Name = "Get")]
 public ActionResult<Product> Get(int id)
 {
-    return _mapper.Map<Product>(_productService.GetProduct(id));
+    return _productService.GetProduct(id);
 }
 ----
 
@@ -631,8 +631,9 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
 ----
 /**/public void UpdateProduct(int productId, Product updatedProduct)
 /**/{
-/**/    updatedProduct.Id = productId;
-/**/    var entry = _context.Attach(updatedProduct);
+/**/    var efProduct = _mapper.Map<DAL.Entities.Product>(updatedProduct);
+/**/    efProduct.Id = productId;
+/**/    var entry = _context.Attach(efProduct);
 /**/    entry.State = EntityState.Modified;
         try
         {
@@ -648,7 +649,7 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
 
 /**/public void DeleteProduct(int productId)
 /**/{
-/**/    _context.Products.Remove(new Product { Id = productId });          
+/**/    _context.Products.Remove(new DAL.Entities.Product { Id = productId });     
         try
         {
 /**/        _context.SaveChanges();
@@ -686,6 +687,8 @@ Módosítsuk a hibakezelő MW konfigurációját a `Startup.ConfigureServices` f
 
 WARNING: Az _exception shielding_ elv miatt csak olyan kivételeknél alkalmazzuk, ahol a felhasználók számára hasznos, de nem technikai jellegű információt tartalmaz a kivétel szövege.
 
+Próbáljuk ki, hogy az egy termék lekérdezésénél, a módosításnál és a törlésnél is, a rossz azonosító egységesen működik-e: 404-es hibát ad vissza, a Problem Details-ben a kivétel szövegével.
+
 == Aszinkron műveletek
 
 Aszinkron műveletek alkalmazásával hatékonyságjavulást érhetünk el: nem feltétlenül az egyes műveletink lesznek gyorsabbak, hanem időegység alatt több műveletet tudunk kiszolgálni. Ennek oka, hogy az `await`-nél (például egy adatbázis művelet elküldésekor) a várakozási idejére történő kiugrásnál, ha vissza tudunk ugrálni egészen az ASP.NET engine szintjéig, akkor a végrehajtó környezet a kiszolgáló szálat a várakozás idejére más kérés kiszolgálására felhasználhatja.
@@ -705,8 +708,9 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 
     public async Task UpdateProductAsync(int productId, Product updatedProduct)
 /**/{
-/**/    updatedProduct.Id = productId;
-/**/    var entry = _context.Attach(updatedProduct);
+/**/    var efProduct = _mapper.Map<DAL.Entities.Product>(updatedProduct);
+/**/    efProduct.Id = productId;
+/**/    var entry = _context.Attach(efProduct);
 /**/    entry.State = EntityState.Modified;
 /**/
 /**/    try
@@ -724,22 +728,22 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 /**/}
 
 
-    public async Task<IActionResult> PutAsync(int id, [FromBody] Product product)
+    public async Task<IActionResult> Put(int id, [FromBody] Product product)
 /**/{
 /**/  await _productService.
-        UpdateProductAsync(id, _mapper.Map<Entities.Product>(product));
-           //async változat hívása 
+                .UpdateProductAsync(id, product);
+                //async változat hívása 
 /**/  return NoContent();
 /**/}
 ----
 
 Próbáljuk ki, például küldjünk PUT-ot az `api/products/1` címre, állítsuk be a _Content-Type: application/json_ fejlécet és a POST-nál használt JSON-t küldjük a törzsben. Ezzel az 1-es `id`-jű termék adatait fogjuk felülírni.
 
-TIP: az ASP.NET Core a routing során automatikusan levágja az Async végződést a műveletet megvalósító függvény (`PutAsync` végéről).
+WARNING: bár az `Async` végződés a kontroller függvényeknél alapvetően támogatott, még https://github.com/dotnet/aspnetcore/issues/8998[vannak vele gondok], így most ezt nem alkalmazzuk.
 
 == Végállapot
 
-A többi műveletet aszinkronizálva ez a végállapot (elérhető a kapcsolódó GitHun repo https://github.com/bmeaut/WebApiLab/tree/v3.1[v3.1-es ágán] is):
+A többi műveletet aszinkronizálva az alábbi a végállapot (elérhető a kapcsolódó GitHun repo https://github.com/bmeaut/WebApiLab/tree/net5[net5-ös ágán] is):
 
 [source,csharp]
 ----
@@ -755,60 +759,49 @@ public interface IProductService
 public class ProductService : IProductService
 {
     private readonly NorthwindContext _context;
-
-    public ProductService(NorthwindContext context)
+    private readonly IMapper _mapper;
+    public ProductService(NorthwindContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
-
     public async Task DeleteProductAsync(int productId)
     {
-        _context.Products.Remove(new Product { Id = productId });          
+        _context.Products.Remove(new DAL.Entities.Product { Id = productId });
         try
         {
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
-            if ((await _context.Products
-                .SingleOrDefaultAsync(p=>p.Id == productId)) == null)
+            if (_context.Products.SingleOrDefault(p => p.Id == productId) == null)
                 throw new EntityNotFoundException("Nem található a termék");
             else throw;
         }
     }
-
     public async Task<Product> GetProductAsync(int productId)
     {
-        return (await _context.Products
-           .Include(p => p.Category)
-           .Include(p => p.ProductOrders)
-               .ThenInclude(po => po.Order)
-           .SingleOrDefaultAsync(p => p.Id == productId))
-           ?? throw new EntityNotFoundException("Nem található a termék");
+       return await _mapper.ProjectTo<Product>(_context.Products.Where(p=>p.Id==productId))
+           .SingleOrDefaultAsync() ?? throw new EntityNotFoundException("Nem található a ék"); 
     }
-
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.ProductOrders)
-                .ThenInclude(po => po.Order)
+        return await
+            _mapper.ProjectTo<Product>(_context.Products)
             .ToListAsync();
-
-        return products;
     }
-
     public async Task<Product> InsertProductAsync(Product newProduct)
     {
-        _context.Products.Add(newProduct);
+        var efProduct = _mapper.Map<DAL.Entities.Product>(newProduct);
+        _context.Products.Add(efProduct);
         await _context.SaveChangesAsync();
-        return newProduct;
-    }    
-
+        return await GetProductAsync(efProduct.Id);
+    }
     public async Task UpdateProductAsync(int productId, Product updatedProduct)
     {
-        updatedProduct.Id = productId;
-        var entry = _context.Attach(updatedProduct);
+        var efProduct = _mapper.Map<DAL.Entities.Product>(updatedProduct);
+        efProduct.Id = productId;
+        var entry = _context.Attach(efProduct);
         entry.State = EntityState.Modified;
         try
         {
@@ -816,8 +809,8 @@ public class ProductService : IProductService
         }
         catch (DbUpdateConcurrencyException)
         {
-            if ((await _context.Products
-                    .SingleOrDefaultAsync(p => p.Id == productId)) == null)
+            if (await _context.Products
+                    .SingleOrDefaultAsync(p => p.Id == productId) == null)
                 throw new EntityNotFoundException("Nem található a termék");
             else throw;
         }
@@ -829,45 +822,35 @@ public class ProductService : IProductService
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
-    private readonly IMapper _mapper;
-    public ProductsController(IProductService productService, IMapper mapper)
+    public ProductsController(IProductService productService)
     {
         _productService = productService;
-        _mapper = mapper;
     }
-
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetAsync()
+    public async Task<ActionResult<IEnumerable<Product>>> Get()
     {
-        return _mapper.Map<List<Product>>(await _productService.GetProductsAsync());
+        return (await _productService.GetProductsAsync()).ToList();
     }
-
-    [HttpGet("{id}", Name = "Get")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<Product>> Get(int id)
     {
-        return _mapper.Map<Product>(await _productService.GetProductAsync(id));
+        return await _productService.GetProductAsync(id);
     }
-
     [HttpPost]
     public async Task<ActionResult<Product>> Post([FromBody] Product product)
     {
-        var created = await _productService
-            .InsertProductAsync(_mapper.Map<Entities.Product>(product));
+        var created = await _productService.InsertProductAsync(product);
         return CreatedAtAction(
                     nameof(Get),
                     new { id = created.Id },
-                    _mapper.Map<Product>(created)
-        );
+                    created);
     }
-
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] Product product)
     {
-        await _productService
-            .UpdateProductAsync(id, _mapper.Map<Entities.Product>(product));
+        await _productService.UpdateProductAsync(id, product);
         return NoContent();
     }
-
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
