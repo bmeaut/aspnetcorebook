@@ -18,7 +18,7 @@ A kiinduló solution két .NET 5 osztálykönyvtárat foglal magába, melyek egy
 * *WebApiLab.BLL*: ezt szánjuk az üzleti logikai rétegnek. Fő feladata, hogy a DAL-ra építve végrehajtsa az _Interfaces_ mappában definiált műveleteket.
 ** Interfaces - ez a BLL réteg specifikációja
 ** Services - ide kerülnek majd az üzleti logikát, ill. az interfészeket megvalósító osztály(ok)
-** DTOs - ez majd a fölöttes API rétegnek szükséges, ez a réteg még nem használja
+** DTOs - csak később lesz szerepük, egyelőre nincsenek használva
 ** Exceptions - saját kivétel osztály, egyelőre nincs használva
 
 Adjunk hozzá a solution-höz egy új C# nyelvű web API projektet (ASP.NET Core Web *API*, nem pedig Web App), a neve legyen _WebApiLab.API_.
@@ -211,6 +211,7 @@ Láthattuk, hogy az entitástípusok közvetlen sorosítása gyakran nehézsége
 
 A _BLL_ projektben jelenleg egy nagyon egyszerű DTO modell található a _DTOs_ mappában:
 
+* rekord típusok alkotják a modellt
 * nincs benne minden navigációs property, pl. `Category.Products`
 * nincs benne a kapcsolótáblát reprezentáló entitás
 * a termékből közvetlenül elérhetők a megrendelések
