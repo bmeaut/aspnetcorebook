@@ -3,7 +3,7 @@
 == Kiegészítő anyagok, segédeszközök
 
 * kapcsolódó GitHub repo: https://github.com/bmeaut/WebApiLab
-** elég csak https://github.com/bmeaut/WebApiLab/archive/init2020.zip[zip-ként letölteni], nem kell klónozni 
+** elég csak https://github.com/bmeaut/WebApiLab/archive/init2021.zip[zip-ként letölteni], nem kell klónozni 
 * https://www.getpostman.com/[Postman] vagy https://www.telerik.com/download/fiddler[Fiddler Classic] HTTP kérések küldéséhez
 
 == Kiinduló projektek beüzemelése
@@ -307,8 +307,10 @@ Ahhoz, hogy használhassuk a `ProjectTo`-t először a `Where`-rel szűrünk, am
 ----
 /**/public Product GetProduct(int productId)
 /**/{
-        return _mapper.ProjectTo<Product>(_context.Products.Where(p=>p.Id==productId))
-            .SingleOrDefault() ?? throw new EntityNotFoundException("Nem található a termék");
+        return _mapper.ProjectTo<Product>(
+                _context.Products.Where(p=>p.Id==productId)
+            ).SingleOrDefault() 
+            ?? throw new EntityNotFoundException("Nem található a termék");
 /**/}
 ----
 
@@ -740,7 +742,7 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 
 Próbáljuk ki, például küldjünk PUT-ot az `api/products/1` címre, állítsuk be a _Content-Type: application/json_ fejlécet és a POST-nál használt JSON-t küldjük a törzsben. Ezzel az 1-es `id`-jű termék adatait fogjuk felülírni.
 
-WARNING: bár az `Async` végződés a kontroller függvényeknél alapvetően támogatott, még https://github.com/dotnet/aspnetcore/issues/8998[vannak vele gondok], így most ezt nem alkalmazzuk.
+WARNING: Bár az `Async` végződés a kontroller függvényeknél alapvetően támogatott, még https://github.com/dotnet/aspnetcore/issues/8998[vannak vele gondok], így most ezt nem alkalmazzuk.
 
 == Végállapot
 
@@ -782,8 +784,10 @@ public class ProductService : IProductService
     }
     public async Task<Product> GetProductAsync(int productId)
     {
-       return await _mapper.ProjectTo<Product>(_context.Products.Where(p=>p.Id==productId))
-           .SingleOrDefaultAsync() ?? throw new EntityNotFoundException("Nem található a ék"); 
+       return await _mapper.ProjectTo<Product>(
+                    _context.Products.Where(p=>p.Id==productId)
+            ).SingleOrDefaultAsync() 
+           ?? throw new EntityNotFoundException("Nem található a termék"); 
     }
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
