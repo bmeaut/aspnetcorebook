@@ -132,6 +132,8 @@ Az alkalmazás számára a különböző beállításokat JSON állományokban t
 }
 ----
 
+TIP: A naplózási szintek sorrendje https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging#configure-logging[itt található].
+
 Próbáljuk ki, hogy így az alkalmazásunk futásakor minden böngészőbeli frissítésünk (kbd:[F5]) megjelenik a konzolon.
 
 VS-ből is tudjuk állítani a környezeti változókat, nem kell a *launchsettings.json*-ben kézzel varázsolni. A projekt tulajdonságok _Debug_ lapján tudunk új indítási profilt megadni, illetve a meglévőeket módosítani. Válasszuk ki az aktuálisan használt profilunkat (projektneves), majd írjuk át az _ASPNETCORE_ENVIRONMENT_ környezeti változó értékét az _Environment Variables_ részen mondjuk _Production_-re.
