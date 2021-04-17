@@ -1,4 +1,4 @@
-= ASP.NET Core alapok
+= ASP.NET Core alapszolgáltatások
 
 == Projekt létrehozása
 

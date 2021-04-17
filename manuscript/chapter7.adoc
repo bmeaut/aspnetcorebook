@@ -55,7 +55,7 @@ public NorthwindContext(DbContextOptions<NorthwindContext> options)
 
 Az Entity Framework gyakorlat alapján hozzunk létre egy új LocalDB adatbázist egy választott névvel, pl. neptun kód, northwind, stb. Az SQL Server Object Explorer-ből a connection string-et lopjuk el. (menu:nyissuk le az adatbáziskapcsolatot[jobbklikk az adatbázison > Properties > a Properties ablakból a _Connection String_ értéke]).
 
-Az _appsettings.Development.json_-ba vegyük fel a connection string-et és a generált SQL megfigyeléséhez állítsuk a _Microsoft_ kategóriájú naplók minimum szintjét csökkentsük _Information_-re.
+Az _appsettings.Development.json_-ba vegyük fel a connection string-et és a generált SQL megfigyeléséhez a _Microsoft_ kategóriájú naplók minimum szintjét csökkentsük _Information_-re.
 
 [source,javascript]
 ----
@@ -442,7 +442,7 @@ Próbáljuk ki a műveletet https://www.telerik.com/blogs/how-to-compose-https-r
 }
 ----
 
-Ne felejtsük el a _Content-Type_ fejlécet  application/json-re állítani! Figyeljük meg a kapott választ. A válaszból másoljuk ki a _Location_ fejlécből az URL-t és hívjuk meg böngészőből.
+Ne felejtsük el a _Content-Type_ fejlécet  *application/json*-re állítani! Figyeljük meg a kapott választ. A válaszból másoljuk ki a _Location_ fejlécből az URL-t és hívjuk meg böngészőből.
 
 Fiddler Classic példa POST hívásra:
 
@@ -570,7 +570,7 @@ Ha saját _problem details_-t szeretnénk a 404-es kód mellé, akkor kézzel ö
 
 Így is próbáljuk ki. Az általunk megadott üzenetet kell visszakapjuk.
 
-=== 404 Not Found - globális kivétel leképezéssel
+=== 404 Not Found - globális kivételleképezéssel
 
 A rendhagyó válaszok előállításánál előnyös lehet, ha az alacsonyabb rétegekből specifikus kivételeket dobunk, mert ezeket egy központi helyen szisztematikusan átalakíthatjuk konvenciónak megfelelő HTTP válaszokká. Ez a képesség egyelőre még nem érhető el beépítetten, ezért egy https://github.com/khellang/Middleware[közösségi fejlesztésű NuGet csomagot] használunk fel.
 
