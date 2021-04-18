@@ -4,7 +4,7 @@
 
 * kapcsolódó GitHub repo: https://github.com/bmeaut/WebApiLab
 ** elég csak https://github.com/bmeaut/WebApiLab/archive/v3.1.zip[zip-ként letölteni] a v3.1-es ágat, nem kell klónozni 
-* NSwag studio - itt is elég csak a legfrissebb zip verziót (például https://github.com/RicoSuter/NSwag/releases/download/NSwag-Build-1099/NSwag.zip[ezt]) az *Assets* részről letölteni.
+* NSwag studio - itt is elég csak a legfrissebb zip verziót (például https://github.com/RicoSuter/NSwag/releases/download/NSwag-Build-1130/NSwag.zip[ezt]) az *Assets* részről letölteni.
 * https://www.getpostman.com/[Postman] HTTP kérések küldéséhez
 
 == Kiinduló projektek beüzemelése
@@ -224,12 +224,12 @@ A kliensoldalt az _NSwag Studio_ eszközzel generáltatjuk. Ez a generátor egy 
 Előkészítésként adjuk a projekthez az alábbiakat:
 
 * _Newtonsoft.Json_ NuGet csomagot.
-* a _System.Runtime.Serialization_ és a  _System.ComponentModel.DataAnnotations_ .NET FW szerelvényeket függőségként
+* a _System.Runtime.Serialization_ és a  _System.ComponentModel.DataAnnotations_ .NET FW szerelvényeket függőségként (menu:Client projekten belül References[Add Reference...])
 * egy osztályt `ProductsClient` néven
 
 Indítsuk el a projektünket (a szerveroldalra lesz most szükség) és az NSwag Studio-t és adjuk meg az alábbi beállításokat:
 
-* Input rész (bal oldal): válasszuk a _Swagger Specification_ fület és adjuk meg a swagger leírónk címét. Nyomjuk meg a *Create local Copy* gombot.
+* Input rész (bal oldal): válasszuk az _OpenAPI/Swagger Specification_ fület és adjuk meg a OpenAPI leírónk címét (pl.: http://localhost:5000/swagger/v1/swagger.json). Nyomjuk meg a *Create local Copy* gombot.
 * Input rész (bal oldal) - Runtime: Default
 * Output rész (jobb oldal) - jelöljük be a CSharp Client jelölőt
 * Output rész (jobb oldal) - CSharp Client fül - Settings alfül: fölül a _Namespace_ mezőben adjunk meg egy névteret, pl. _WebApiLab.Client.Api_
@@ -239,7 +239,7 @@ image::images/aspnetcoreclient-nswagstudio.png[NSwag Studio beállítások]
 
 Jobb oldalt alul a _Generate Outputs_ gombbal generáltathatjuk a kliensoldali kódot.
 
-A generált kóddal írjuk felül az _ProductsClient.cs_ tartalmát (ehhez le kell állítani a futtatást). Ezután a projektnek fordulnia kell. Írjunk meg a _Program.cs_-ben a `GetProduct` új változatát:
+A generált kóddal írjuk felül az _ProductsClient.cs_ tartalmát (ehhez le kell állítani a futtatást). Ezután a projektnek fordulnia kell. Írjuk meg a _Program.cs_-ben a `GetProduct` új változatát:
 
 [source,csharp]
 ----
@@ -262,7 +262,7 @@ Használjuk az új változatot a `Main` függvényben.
 /**/    //..
         //await GetProductAsync(Int32.Parse(id));
         var p = await GetProduct2Async(int.Parse(id));
-        Console.WriteLine(p.Name);
+        Console.WriteLine($"{p.Name} {p.UnitPrice}.-");
 /**/    Console.ReadKey();
 /**/}
 ----
@@ -292,17 +292,16 @@ Ehhez vegyünk fel egy `byte[]`-t a `Product` entitás osztályba `RowVersion` n
 /**/}
 ----
 
-Állítsuk be, hogy az EF kontextben (`OnModelCreating`), hogy minden módosításnál frissítse ezt a mezőt és ez legyen a konkurencia token:
+Állítsuk be, hogy az EF kontextben (`OnModelCreating`), hogy minden módosításnál frissítse ezt a mezőt és ez legyen a konkurencia token, az `IsRowVersion` függvény ezt egyben el is intézi:
 
 [source,csharp]
 ----
 modelBuilder.Entity<Product>()
     .Property(p => p.RowVersion)
-    .ValueGeneratedOnAddOrUpdate()
-    .IsConcurrencyToken();
+    .IsRowVersion();
 ----
 
-TIP: A háttérben az EF az update során egy plusz feltételt csempész az SQL utasításba a SaveChanges során, mégpedig, hogy az adatbázisban lévő `RowVersion` mező adatbázisbeli értéke az ugyanaz-e mint, amit ő ismert (a kliens által). Ha ez a feltétel sérül, akkor konkurenciahelyzet áll fent, mivel valaki már megváltoztatta a DB-ben lévő értéket.
+TIP: A háttérben az EF során egy plusz feltételt csempész az UPDATE SQL utasításba, mégpedig, hogy az adatbázisban lévő `RowVersion` mező adatbázisbeli értéke az ugyanaz-e mint, amit ő ismert (a kliens által látott). Ha ez a feltétel sérül, akkor konkurenciahelyzet áll fent, mivel valaki már megváltoztatta a DB-ben lévő értéket.
 
 Migrálnunk kell, mert megjelent egy új mező a `Product` táblánkban. Ne felejtsük el a szokásos módon beállítani az indítandó és a kontextet tartalmazó projekteket!
 
@@ -314,7 +313,7 @@ Update-Database -StartupProject WebApiLab.Api
 
 TIP: A `StartupProject` kapcsolóra csak akkor van szükség, ha több indítandó projekt van beállítva.
 
-Még a Product DTO osztályba is fel kell vegyük a `RowVersion` tulajdonságot és legyen ez is kötelező.
+Még a `Product` DTO osztályba is fel kell vegyük a `RowVersion` tulajdonságot és legyen ez is kötelező.
 
 [source,csharp]
 ----
@@ -328,15 +327,11 @@ Még a Product DTO osztályba is fel kell vegyük a `RowVersion` tulajdonságot 
 
 Konkurenciahelyzet esetén a 409-es hibakóddal szokás visszatérni, illetve *PUT* művelet során a válasz azt is tartalmazhatja, hogy melyek voltak az ütköző mezők. Az ütközés feloldása tipikusan nem feladatunk ilyenkor. 
 
-Készítsünk egy saját `ProblemDetails` leszármazottat. Hozzunk létre egy új mappát ProblemDetails néven az *Api* projektben és bele egy új osztályt `ConcurrencyProblemDetails` néven, az alábbi implementációval:
+Készítsünk egy saját `ProblemDetails` leszármazottat. Hozzunk létre egy új mappát *ProblemDetails* néven az *Api* projektben és bele egy új osztályt `ConcurrencyProblemDetails` néven, az alábbi implementációval:
 
 [source,csharp]
 ----
-public class Conflict
-{
-    public object CurrentValue { get; set; }
-    public object SentValue { get; set; }
-}
+public record Conflict(object CurrentValue, object SentValue);
 
 public class ConcurrencyProblemDetails : StatusCodeProblemDetails
 {
@@ -360,10 +355,10 @@ public class ConcurrencyProblemDetails : StatusCodeProblemDetails
                 Equals(property.CurrentValue))
             {
                 Conflicts[property.Metadata.Name] = new Conflict
-                {
-                    CurrentValue = property.CurrentValue,
-                    SentValue = currentValues[property.Metadata.Name]
-                };
+                (
+                    property.CurrentValue,
+                    currentValues[property.Metadata.Name]
+                );
             }
         }
     }
@@ -382,7 +377,7 @@ A fenti megvalósítás összeszedi az egyes property-khez (a `Dictionary` kulcs
 /**/});
 ----
 
-Ezzel kész is az implementációnk, amit Postmanből fogjuk kipróbálni. A kész kód elérhető a https://github.com/bmeaut/WebApiLab/tree/v3.1client[*v3.1 client*] ágon.
+Ezzel kész is az implementációnk, amit Postmanből fogjuk kipróbálni. A kész kód elérhető a https://github.com/bmeaut/WebApiLab/tree/net5client[_net5client_] ágon.
 
 TIP: A kötelezően kitöltendő konkurencia mező beszúrásnál kellemetlen, hiszen kliensoldalon még nem tudható a token kezdeti értéke. Ilyenkor használhatunk bármilyen értéket, az adatbázis fogja a kezdeti token értéket beállítani.
 
@@ -392,7 +387,7 @@ Postman segítségével összeállítunk egy olyan hívási sorozatot, ami két 
 
 === Kollekció generálás OpenAPI leíró alapján
 
-A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az Import gombot választva, adjuk meg a OpenApi leíró swagger.json URL-jét (ugyanazt, amit az NSwag Studio-nak is megadtunk). A felugró ablakban csak a *Generate a Postman collection* opciót válasszuk. Ezután megjelenik egy új Postman kollekció *My Tite* néven - ezt nevezzük át *WebApiLab*-ra (jobbklikk a néven és *Rename*). 
+A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva, adjuk meg a OpenAPI leíró swagger.json URL-jét (ugyanazt, amit az NSwag Studio-nak is megadtunk). A felugró ablakban csak a *Generate a Postman collection* opciót válasszuk. Ezután megjelenik egy új Postman kollekció *My Tite* néven - ezt nevezzük át *WebApiLab*-ra (jobbklikk a néven és *Rename*). 
 
 TIP: További segítség a https://learning.postman.com/docs/postman/collections/data-formats/#importing-ramlopenapi-schema[dokumentációban].
 
