@@ -387,19 +387,19 @@ Postman segítségével összeállítunk egy olyan hívási sorozatot, ami két 
 
 === Kollekció generálás OpenAPI leíró alapján
 
-A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva, adjuk meg a OpenAPI leíró swagger.json URL-jét (ugyanazt, amit az NSwag Studio-nak is megadtunk). A felugró ablakban csak a *Generate a Postman collection* opciót válasszuk. Ezután megjelenik egy új Postman kollekció *My Tite* néven - ezt nevezzük át *WebApiLab*-ra (jobbklikk a néven és *Rename*). 
+A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva, a *Link* fülön adjuk meg a OpenAPI leíró swagger.json URL-jét (ugyanazt, amit az NSwag Studio-nak is megadtunk). A felugró ablakban csak a *Generate collection from imported APIs* opciót válasszuk. Ezután megjelenik egy új Postman API és egy új kollekció is *My Tite* néven - ezeket nevezzük át *WebApiLab*-ra (menu:jobbklikk a néven[Rename]). 
 
-TIP: További segítség a https://learning.postman.com/docs/postman/collections/data-formats/#importing-ramlopenapi-schema[dokumentációban].
+TIP: További segítség a https://learning.postman.com/docs/getting-started/importing-and-exporting-data/#importing-api-specifications[dokumentációban].
 
-A kollekcióban mind az öt műveletre található példahívás, bár a törzzsel rendelkezőknél (pl. *Products PUT*) csak egy vázat kapunk.
+A kollekcióban mind az öt műveletre található példahívás.
 
 === Változók
 
-A változókat a kéréseken belüli és a kérések közötti adatátadásra használhatjuk. Több szint közül választhatunk, amikor definiálunk egy változót: globális, kollekción belüli, környezeten belüli, kérésen belüli lokális. Sőt, egy adott nevű változót is definiálhatunk több szinten is - ilyenkor a specifikusabb felülírja az általánosabbat. Ebben a példában mi most csak a kollekció szintet fogjuk használni.
+A változókat a kéréseken belüli és a kérések közötti adatátadásra használhatjuk. Több hatókör (scope) közül választhatunk, amikor definiálunk egy változót: globális, kollekción belüli, környezeten belüli, kérésen belüli lokális. Sőt, egy adott nevű változót is definiálhatunk több szinten is - ilyenkor a specifikusabb felülírja az általánosabbat. Ebben a példában mi most csak a kollekció szintet fogjuk használni.
 
 A kollekció extra menüjén (a kollekció neve mellett a *...* ikont megnyomva) belül az *Edit* menüpont felugró ablakában a *Variables* fülön állíthatjuk a változókat, illetve megnézhetjük az aktuális értéküket.
 
-TIP: További segítség a kollekció változók felvételéhez a https://learning.postman.com/docs/postman/variables-and-environments/variables/#defining-collection-variables[dokumentációban].
+TIP: További segítség a kollekció változók felvételéhez a https://learning.postman.com/docs/sending-requests/variables/#defining-collection-variables[dokumentációban].
 
 Vegyük fel az alábbi változókat:
 
@@ -408,13 +408,17 @@ Vegyük fel az alábbi változókat:
 * `u1_tej` - az előbbi azonosító alapján lekérdezett termék adata
 * `u1_tej_deluxe` - az előbbi termék módosított termékadata, amit a felhasználó menteni kíván
 
+Ne felejtsük el elmenteni a kollekció váltásait a *Save* gombbal.
+
+WARNING: A Postman https://github.com/postmanlabs/postman-app-support/issues/3466[nem ment automatikusan], ezért lehetőleg mindig mentsünk (kbd:[CTRL+S]), amikor egy másik hívás, kollekció szerkesztésére térünk át.
+
 === Mappák
 
 A kéréseinket külön mappákba szervezve elkülöníthetjük a kollekción belül az egyes (rész)folyamatokat. Mappákat a kollekció extra menüjén (a kollekció neve mellett a *...* ikont megnyomva) belül az *Add Folder* menüpont segítségével vehetünk fel.
 
 Vegyük fel a kollekciónkba egy új mappát *Update Tej* néven.
 
-TIP: További segítség új könyvtár felvételéhez a https://learning.postman.com/docs/postman/collections/managing-collections/#adding-folders[dokumentációban].
+TIP: További segítség új mappa felvételéhez a https://learning.postman.com/docs/sending-requests/intro-to-collections/#managing-collections[dokumentációban].
 
 === Egy felhasználó folyamata
 
@@ -427,7 +431,7 @@ Egy tipikus módosító folyamat felhasználói szempontból az alábbi lépése
 * mentés - API: adott termék módosítása
 * aktuális (frissített) állapot megjelenítése - API: összes termék lekérdezése
 
-A négy API hívást klónozzuk (kbd:[CTRL]+kbd:[D]) a generált példahívásokból. Egy adott hívásra csináljunk egy klónt (jobbklikk -> *Duplicate*), drag-and-drop-pal húzzuk rá az új mappánkra, végül nevezzük át (kbd:[CTRL]+kbd:[E]). Ezekre a hívásokra csináljuk meg:
+A négy API hívást klónozzuk (kbd:[CTRL+D]) a generált példahívásokból. Egy adott hívásra csináljunk egy klónt (jobbklikk -> *Duplicate*), drag-and-drop-pal húzzuk rá az új mappánkra, végül nevezzük át (kbd:[CTRL+E]). Ezekre a hívásokra csináljuk meg:
 
 * összes termék lekérdezése (módosítás előtt), azaz **Products Get All** példahívás, nevezzük át erre: **[U1]GetAllProductsBefore**
 * egy termék adatainak lekérdezése, azaz az `{id}` mappán belüli **Get a specific product with the given identifier** példahívás, nevezzük át erre **[U1]GetTejDetails**
@@ -437,13 +441,13 @@ A négy API hívást klónozzuk (kbd:[CTRL]+kbd:[D]) a generált példahívások
 .Postman hívások - egy felhasználó folyamata
 image::images/aspnetcoreclient-postman-reqs1user.png[Postman hívások - egy felhasználó]
 
-TIP: Vegyük észre, hogy az elnevezések az OpenAPI leíró alapján generálódnak, tehát ha máshogy dokumentáltuk az API-nkat, akkor más lesz a példahívások neve is.
+WARNING: Vegyük észre, hogy az elnevezések az OpenAPI leíró alapján generálódnak, tehát ha máshogy dokumentáltuk az API-nkat, akkor más lesz a példahívások neve is.
 
 === Összes termék lekérdezése, saját vizualizáció és adattárolás változóba
 
-Az **[U1]GetAllProductsBefore** hívás már most is kipróbálható külön a https://learning.postman.com/docs/postman/launching-postman/sending-the-first-request/#sending-a-request[*Send* gombbal] és az alsó *Body* részen látható az eredmény formázott (*Pretty*) és nyers (*Raw*) nézetben.
+Az **[U1]GetAllProductsBefore** hívás már most is kipróbálható külön a https://learning.postman.com/docs/getting-started/sending-the-first-request/#sending-a-request[*Send* gombbal] és az alsó *Body* részen látható az eredmény formázott (*Pretty*) és nyers (*Raw*) nézetben.
 
-Saját vizualizációt is írhatunk, ehhez a kérés *Tests* fülét használhatjuk az ide írt *javascript* nyelvű kód a kérés után fog lefutni. Általában a válaszra vonatkozó teszteket szoktuk ide írni.
+Saját vizualizációt is írhatunk, ehhez a kérés *Tests* fülét használhatjuk. Az ide írt _javascript_ nyelvű kód a kérés után fog lefutni. Általában a válaszra vonatkozó teszteket szoktuk ide írni.
 
 Írjuk be a kérés **Tests** fülén lévő szövegdobozba az alábbi kódot, ami egy táblázatos formába formázza a válasz JSON fontosabb adatait:
 
@@ -472,7 +476,7 @@ pm.visualizer.set(template, {
 });
 ----
 
-TIP: További segítség a vizualizációkhoz a https://learning.postman.com/docs/postman/sending-api-requests/visualizer/[dokumentációban].
+TIP: További segítség a vizualizációkhoz a https://learning.postman.com/docs/sending-requests/visualizer/[dokumentációban].
 
 A visszakapott adatokra a későbbi lépéseknek is szükségük lesz, ezért mentsük el az `u1_allprods` változóba.
 
@@ -489,9 +493,9 @@ WARNING: Változóba mindig sorosított (pl. egyszerű szöveg típusú) adatot 
 
 Próbáljuk ki így a kérést, alul a *Body* fül *Visualize* alfülén táblázatos megjelenítésnek kell megjelennie, illetve a kollekció változókezelő felületén az `u1_allprods` értékbe be kellett íródnia a teljes válasz törzsnek.
 
-TIP: További segítség szkriptek írásához a https://learning.postman.com/docs/postman/scripts/intro-to-scripts/[dokumentációban].
+TIP: További segítség szkriptek írásához a https://learning.postman.com/docs/writing-scripts/intro-to-scripts/[dokumentációban].
 
-WARNING: A Postman https://github.com/postmanlabs/postman-app-support/issues/3466[nem ment automatikusan], ezért lehetőleg mindig mentsünk (kbd:[CTRL]+kbd:[S]), amikor egy másik hívás szerkesztésére térünk át.
+TIP: Nem kötelező előzetesen felvenni a változókat, a `set` hívás hatására létrejön, ha még nem létezik.
 
 === Egy termék részletes adatainak lekérdezése, változók felhasználása
 
@@ -504,7 +508,7 @@ var tejid=allProds.find(({ name }) => name.startsWith('Tej')).id;
 pm.collectionVariables.set("u1_tejid",tejid);
 ----
 
-Tehát kiolvassuk az elmentett terméklistát, kikeressük a Tej nevű elemet, vesszük annak azonosítóját, amit elmentünk a `u1_tejid` változóba. Ezt a változót már fel is használjuk a kérés paramétereként: a *Params* fülön az `id` nevű URL paraméter (*Path Variable*) értéke legyen `{{u1_tejid}}`
+Tehát kiolvassuk az elmentett terméklistát, kikeressük a „Tej” nevű elemet, vesszük annak azonosítóját, amit elmentünk a `u1_tejid` változóba. Ezt a változót már fel is használjuk a kérés paramétereként: a *Params* fülön az `id` nevű URL paraméter (*Path Variable*) értéke legyen `{{u1_tejid}}`
 
 A kérés lefutása után mentsük el a válasz törzsét az `u1_tej` változóba. A *Tests* fülön lévő szövegdobozba:
 
@@ -532,11 +536,11 @@ Látható, hogy a módosított termékadatot egy új változóba (`u1_tej_deluxe
 
 Az utolsó folyamatlépésnél már nincs sok teendő, ha akarunk vizualizációt, akkor a *Tests* fül szövegdobozába másoljuk át a fentebbi vizualizációs szkriptet.
 
-Egy kéréssorozat futtatásához használható a *Collection Runner* funkció, ami felül a *Runner* gombra nyomva hozható elő. A megjelenő ablak bal oldalán kiválasztható egy kollekció vagy egy mappa. A jobb oldalon megjelennek a választott kollekció/mappa alatti hívások, amiket szűrhetünk (a hívások előtti jelölődobozzal), illetve sorrendezhetünk (a sor elején lévő fogantyúval). 
+Egy kéréssorozat futtatásához használható a *Collection Runner* funkció, ami felül a *Save* melletti *Run* gombra nyomva hozható elő. A megjelenő ablak bal oldalán megjelennek a választott kollekció/mappa alatti hívások, amiket szűrhetünk (a hívások előtti jelölődobozzal), illetve sorrendezhetünk (a sor legelején lévő fogantyúval). 
 
-TIP: További segítség kollekciók futtatásához a https://learning.postman.com/docs/postman/collection-runs/starting-a-collection-run/[dokumentációban].
+TIP: További segítség kollekciók futtatásához a https://learning.postman.com/docs/running-collections/intro-to-collection-runs/#starting-a-collection-run[dokumentációban].
 
-Az eddig elkészült folyamatunk futtatásához válasszuk ki az *Update Tej* mappát. Érdemes már a mappában a hívások sorrendjét a folyamatnak megfelelően beállítani, mert így sem szűrni sem sorrendezni nem kell. Szintén érdemes beállítani a bal alsó részen a *Save responses* jelölőt, így a lefutás után megvizsgálhatjuk az egyes kérésekre jött válaszokat. 
+Az eddig elkészült folyamatunk futtatásához válasszuk ki az *Update Tej* mappát. Érdemes beállítani a jobb részen a *Save responses* jelölőt, így a lefutás után megvizsgálhatjuk az egyes kérésekre jött válaszokat. 
 
 .Postman Runner konfigurálása egy felhasználó folyamatának futtatásához
 image::images/aspnetcoreclient-postman-run1user.png[Postman futtatás - egy felhasználó]
@@ -553,10 +557,9 @@ Az alábbi lépésekkel állítsuk elő a második felhasználó folyamatát:
 * vegyünk fel minden `u1` változó alapján új változót `u2` névkezdettel
 * duplikáljuk minden *[U1]* hívást, a klónok neve legyen ugyanaz, mint az eredetié, de kezdődjön *[U2]*-vel
 * a klónok minden szkriptjében, illetve paraméterében írjunk át **minden** `u1`-es változónevet `u2`-esre
-** az [U2]GetAllProductsBefore hívásban a *Tests* fülön egy helyen
-** az [U2]GetTejDetails hívásban a **Pre-request Script*  fülön két helyen, a Tests fülön egy helyen, illetve a paramétereknél egy helyen
-** az [U2]UpdateTej hívásban a **Pre-request Script*  fülön helyen, a *Body* fülön egy helyen, illetve a paramétereknél egy helyen
-** az [U2]GetAllProductsAfter hívásban a *Tests* fülön egy helyen
+** az *[U2]GetAllProductsBefore* hívásban a *Tests* fülön egy helyen
+** az *[U2]GetTejDetails* hívásban a **Pre-request Script*  fülön két helyen, a *Tests* fülön egy helyen, illetve a *Params* fülön egy helyen
+** az *[U2]UpdateTej* hívásban a **Pre-request Script*  fülön helyen, a *Body* fülön egy helyen, illetve a *Params* fülön egy helyen
 * az *[U2]UpdateTej* hívás *Pre-request Script* módosító utasítását írjuk át erre: `tej.name='Tej ' +new Date().getTime();`. A termék nevét módosítjuk, nem az árát, a konkurenciahelyzetet ugyanis akkor is érzékelni kell, ha a két felhasználó nem ugyanazt az adatmezőt módosítja (ugyanazon terméken belül).
 
 .Postman hívások - mindkét felhasználó folyamata
@@ -594,6 +597,6 @@ TIP: Érdemes megvizsgálni a 409-es hibakódú válasz törzsét, és benne a v
 
 WARNING: Ha igazi klienst írunk, figyeljünk arra, hogy a konkurencia tokent mindig küldjük le a kliensre, a kliens változatlanul küldje vissza a szerverre, és a szerver pedig a módosítás során **a klienstől kapott** tokent szerepeltesse a módosítandó entitásban. A legtöbb hibás implementáció arra vezethető vissza, hogy nem követjük ezeket az elveket.
 
-TIP: Hívásokból álló folyamatokat nem csak *Runnerben* állíthatunk össze, hanem https://learning.postman.com/docs/postman/collection-runs/building-workflows/[szkriptből is].
+TIP: Hívásokból álló folyamatokat nem csak *Runnerben* állíthatunk össze, hanem https://learning.postman.com/docs/running-collections/building-workflows/[szkriptből is].
 
-Az elkészült teljes Postman kollekció importálható https://www.getpostman.com/collections/ae74016ec0be4a7da277[erről a linkről] az OpenAPI importálással megegyező módon.
+Az elkészült teljes Postman kollekció importálható https://www.getpostman.com/collections/ae74016ec0be4a7da277[erről a linkről] az OpenAPI importáláshoz hasonló módon.
