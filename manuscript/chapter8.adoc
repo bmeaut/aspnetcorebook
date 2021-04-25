@@ -3,13 +3,13 @@
 == Kiegészítő anyagok, segédeszközök
 
 * kapcsolódó GitHub repo: https://github.com/bmeaut/WebApiLab
-** elég csak https://github.com/bmeaut/WebApiLab/archive/v3.1.zip[zip-ként letölteni] a v3.1-es ágat, nem kell klónozni 
+** elég csak https://github.com/bmeaut/WebApiLab/archive/refs/heads/net5.zip[zip-ként letölteni] a net5-ös ágat, nem kell klónozni 
 * NSwag studio - itt is elég csak a legfrissebb zip verziót (például https://github.com/RicoSuter/NSwag/releases/download/NSwag-Build-1130/NSwag.zip[ezt]) az *Assets* részről letölteni.
 * https://www.getpostman.com/[Postman] HTTP kérések küldéséhez
 
 == Kiinduló projektek beüzemelése
 
-Csak ki kell csomagolni, ez az előző gyakorlat folytatása - a kódot ismerjük.
+Csak ki kell csomagolni a zip-et, ez az előző gyakorlat folytatása - a kódot ismerjük.
 Ha nincs már meg az adatbázisunk, akkor az előző gyakorlat alapján hozzuk létre az adatbázist Code-First migrációval (`Update-Database`).
 
 == Egyszerű kliens
@@ -22,6 +22,7 @@ A tárgy tematikájának ugyan nem része a kliensoldal, de demonstrációs cél
 A fentiekhez szinte minden manapság használt kliensoldali technológia ad támogatást. Mi most egy sima, klasszikus .NET Framework alapú konzol alkalmazást írunk kliens gyanánt.
 
 A két képességet könnyen lefedhetjük:
+
 * a *System.Net.Http* függőséget a kiinduló projektben megkapjuk, ez adja a HTTP kommunikáció alapjait
 * a legmodernebb JSON kezelő könyvárat, a *System.Text.Json*-t NuGet csomagként szerezhetjük be
 
@@ -558,9 +559,14 @@ Az alábbi lépésekkel állítsuk elő a második felhasználó folyamatát:
 * duplikáljuk minden *[U1]* hívást, a klónok neve legyen ugyanaz, mint az eredetié, de kezdődjön *[U2]*-vel
 * a klónok minden szkriptjében, illetve paraméterében írjunk át **minden** `u1`-es változónevet `u2`-esre
 ** az *[U2]GetAllProductsBefore* hívásban a *Tests* fülön egy helyen
-** az *[U2]GetTejDetails* hívásban a **Pre-request Script*  fülön két helyen, a *Tests* fülön egy helyen, illetve a *Params* fülön egy helyen
-** az *[U2]UpdateTej* hívásban a **Pre-request Script*  fülön helyen, a *Body* fülön egy helyen, illetve a *Params* fülön egy helyen
-* az *[U2]UpdateTej* hívás *Pre-request Script* módosító utasítását írjuk át erre: `tej.name='Tej ' +new Date().getTime();`. A termék nevét módosítjuk, nem az árát, a konkurenciahelyzetet ugyanis akkor is érzékelni kell, ha a két felhasználó nem ugyanazt az adatmezőt módosítja (ugyanazon terméken belül).
+** az *[U2]GetTejDetails* hívásban a *Pre-request Script*  fülön két helyen, a *Tests* fülön egy helyen, illetve a *Params* fülön egy helyen
+** az *[U2]UpdateTej* hívásban a *Pre-request Script*  fülön helyen, a *Body* fülön egy helyen, illetve a *Params* fülön egy helyen
+* az *[U2]UpdateTej* hívás *Pre-request Script* módosító utasítását írjuk át a lenti kódra. A termék nevét módosítjuk, nem az árát, a konkurenciahelyzetet ugyanis akkor is érzékelni kell, ha a két felhasználó nem ugyanazt az adatmezőt módosítja (ugyanazon terméken belül).
+
+[source,javascript]
+----
+tej.name='Tej ' +new Date().getTime();
+----
 
 .Postman hívások - mindkét felhasználó folyamata
 image::images/aspnetcoreclient-postman-reqs2users.png[Postman hívások - két felhasználó]
@@ -599,4 +605,4 @@ WARNING: Ha igazi klienst írunk, figyeljünk arra, hogy a konkurencia tokent mi
 
 TIP: Hívásokból álló folyamatokat nem csak *Runnerben* állíthatunk össze, hanem https://learning.postman.com/docs/running-collections/building-workflows/[szkriptből is].
 
-Az elkészült teljes Postman kollekció importálható https://www.getpostman.com/collections/ae74016ec0be4a7da277[erről a linkről] az OpenAPI importáláshoz hasonló módon.
+Az elkészült teljes Postman kollekció importálható https://www.getpostman.com/collections/bf6157ad59c75b592f20[erről a linkről] az OpenAPI importáláshoz hasonló módon.
