@@ -4,7 +4,7 @@
 
 * kapcsolódó GitHub repo: https://github.com/bmeaut/WebApiLab
 ** elég csak https://github.com/bmeaut/WebApiLab/archive/refs/heads/net5.zip[zip-ként letölteni] a net5-ös ágat, nem kell klónozni 
-* NSwag studio - itt is elég csak a legfrissebb zip verziót (például https://github.com/RicoSuter/NSwag/releases/download/NSwag-Build-1130/NSwag.zip[ezt]) az *Assets* részről letölteni.
+* https://github.com/RicoSuter/NSwag/wiki/NSwagStudio[NSwag Studio] - itt is elég csak a legfrissebb zip verziót (például https://github.com/RicoSuter/NSwag/releases/download/NSwag-Build-1130/NSwag.zip[ezt]) az *Assets* részről letölteni.
 * https://www.getpostman.com/[Postman] HTTP kérések küldéséhez
 
 == Kiinduló projektek beüzemelése
@@ -546,7 +546,7 @@ Az eddig elkészült folyamatunk futtatásához válasszuk ki az *Update Tej* ma
 .Postman Runner konfigurálása egy felhasználó folyamatának futtatásához
 image::images/aspnetcoreclient-postman-run1user.png[Postman futtatás - egy felhasználó]
 
-Próbáljuk lefuttatni a folyamatot, a lefutás után a válaszokban ellenőrizzük a termékadatokat (kattintsuk meg a hívást, majd a felugró ablakocskában válasszuk a *Response Body* részt), különösen az utolsó hívás utánit - a tej árának meg kellett változnia az első híváshoz képest.
+Próbáljuk lefuttatni a folyamatot, a lefutás után a válaszokban ellenőrizzük a termékadatokat (kattintsuk meg a hívást, majd a felugró ablakocskában https://learning.postman.com/docs/running-collections/intro-to-collection-runs/#running-your-collections[válasszuk a *Response Body* részt]), különösen az utolsó hívás utánit - a tej árának meg kellett változnia az első híváshoz képest.
 
 .Postman Runner - egy felhasználó folyamatának lefutása
 image::images/aspnetcoreclient-postman-runres1user.png[Postman futtatási eredmény - egy felhasználó]

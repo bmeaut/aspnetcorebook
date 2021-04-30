@@ -272,8 +272,8 @@ A `ProductsController`-ben, az `IProductService`-ben és a `ProductService`-ben 
 
 [source,csharp]
 ----
-//using WebApiLab.Entities;
-using WebApiLab.API.DTO;
+//using WebApiLab.DAL.Entities;
+using WebApiLab.BLL.DTO;
 ----
 
 Írjuk át a lekérdezést a `ProductService`-ben a leképzőt alkalmazva:
@@ -372,7 +372,7 @@ Az eddig megírt `Get()` függvényünk most is *200 (OK)*-ot ad, ezt le is elle
 
 TIP: A HTTP kommunikáció megfigyelésére használhatjuk a böngészők beépített eszközeit, minta amilyen a https://developer.mozilla.org/en-US/docs/Tools[Firefox Developer Tools], illetve https://developers.google.com/web/tools/chrome-devtools/[Chrome DevTools]. Általában az kbd:[F12] billentyűvel aktiválhatók. Emellett, ha egy teljesértékű HTTP kliensre van szükségünk, amivel például könnyen tudunk nem csak GET kéréseket küldeni, akkor a https://www.getpostman.com/[Postman] és a https://www.telerik.com/download/fiddler[Fiddler Classic] külön telepítendő eszközök ajánlhatók. A Fiddler, mint proxy megoldás, egy Windows gépen folyó HTTP kommunikáció megfigyelésére is alkalmas.
 
-Első körben a két lekérdező függvényt írjuk át úgy, hogy a HTTP válaszkódokat explicit megadjuk. A jelenlegi legmodernebb mód ehhez az `AsyncResult<>` használata. Elég `T`-t visszaadnunk a függvényben, automatikusan `AsyncResult<T>` típussá konvertálódik. Tehát elvileg írhatnánk ezt:
+Első körben a két lekérdező függvényt írjuk át úgy, hogy a HTTP válaszkódokat explicit megadjuk. A jelenlegi legmodernebb mód ehhez az `ActionResult<>` használata. Elég `T`-t visszaadnunk a függvényben, automatikusan `ActionResult<T>` típussá konvertálódik. Tehát elvileg írhatnánk ezt:
 
 [source,csharp]
 ----
