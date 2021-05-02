@@ -50,7 +50,7 @@ Jelenleg (2021. tavasz) az ASP.NET Core projektsablonok a következő IDP techni
 * ASP.NET Core Web API: https://github.com/AzureAD/microsoft-identity-web/blob/master/tools/app-provisioning-tool/vs2019-16.9-how-to-use.md[Microsoft Identity Platform]
 * ASP.NET Core with Angular/React.js: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization?view=aspnetcore-5.0[IdentityServer4]
 
-WARNING: Az IdentityServer4 támogatása 2022. végén megszűnik. Az új verzió (_Duende IdentityServer_) licenszelése https://leastprivilege.com/2020/10/01/the-future-of-identityserver/[alapvetően más], mint az IdentityServer4-é. Emiatt kétséges, hogy a https://github.com/dotnet/aspnetcore/issues/27887[.NET 6-ban marad-e] az IdentityServer alapú megoldás.
+WARNING: Az IdentityServer4 támogatása 2022. végén megszűnik. Az új verzió (_Duende IdentityServer_) licenszelése https://leastprivilege.com/2020/10/01/the-future-of-identityserver/[alapvetően más], mint az IdentityServer4-é. Emiatt kétséges, hogy a https://github.com/dotnet/aspnetcore/issues/27887[.NET 6-os projektsablonokban marad-e] az IdentityServer alapú megoldás.
 
 Az IDP feladatok elég jól leválaszthatók, így megjelentek azok a szolgáltatások, melyek segítségével gyakorlatilag minden IDP feladatot kiszervezhetünk, beleértve a fentebb felsorolt képességeket is. Ezek az ún. _IDentity as a Service (IDaaS)_ vagy _Authentication as a Service_ szolgáltatások. Néhány példa: https://www.okta.com/[_Okta_], https://auth0.com/[_Auth0_] (2021. tavaszán felvásárolta az Okta), _Azure AD B2C_. Ezek alapvetően nem ingyenes szolgáltatások, bár többnyire bizonyos méret/felhasználószám/tokenmennyiség alatt ingyenesen használhatóak. Ezen gyakorlat során az Azure AD B2C szolgáltatást fogjuk használni, amivel az utolsó kivételével *minden fenti komponenst kiváltunk*.
 
@@ -73,7 +73,7 @@ Hozzunk létre új Azure AD B2C fiókot a hivatalos https://docs.microsoft.com/h
 
 == A RP regisztrálása Azure B2C-be
 
-Bár még nincs meg az RP alkalmazásunkból semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga[útmutatót] ebben is. Az útmutató ezen szakaszának végén az _implicit grant flowt_ is engedélyezhetjük, ezt is tegyük meg. Az alkalmazásregisztráció neve legyen _B2CWebApi_, a _Redirect URI_ pedig legyen ez: https://jwt.ms
+Bár még nincs meg az RP alkalmazásunkból semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga[útmutatót] ebben is. Csak az első szakaszt csináljuk végig, a szakasz végén az _implicit grant flowt_ is engedélyezhetjük, ezt is tegyük még meg. Az alkalmazásregisztráció neve legyen _B2CWebApi_, a _Redirect URI_ pedig legyen ez: https://jwt.ms
 
 TIP: A https://jwt.ms[jwt.ms] oldalon dekódolhatjuk a JWT tokenjeinket.
 
@@ -247,7 +247,7 @@ Most már a művelet által visszaadott eredményt kell kapjuk.
 
 Ha egy kliensalkalmazás hozzáférését szeretnénk szabályozni, akkor a korábban beállított és elkért scope-okat használhatjuk. Jelenleg a WPF alkalmazás elkéri a `demo.read` scope-ot (jogosultságot), és az Azure B2C-ben engedélyeztük is, hogy megkapja (API permissions beállítás), tehát a tokenbe belekerül.
 
-WARNING: Az authentikációs rendszer szempontjából az alkalmazást az _Application ID/ Client ID_ azonosítja. Ha két különböző alkalmazás ugyanazt az _Application ID_-t használja, akkor az ugyanazon alkalmazásnak számít.
+WARNING: Az authentikációs rendszer szempontjából az alkalmazást az _Application ID / Client ID_ azonosítja. Ha két különböző alkalmazás ugyanazt az _Application ID_-t használja, akkor az ugyanazon alkalmazásnak számít.
 
 Az ASP.NET Core alkalmazást szigorítsuk, hogy bármilyen kontrollerfüggvényt csak `demo.read` jogosultsággal bíró alkalmazások tudják hívni. A `Startup.ConfigureServices`-ben konfiguráljuk az authorizációs szolgáltatást, adjunk meg egy új házirendet (policy). A házirendet akkor teljesíti a kliens, ha a `demo.read` scope-pal rendelkezik.
 
@@ -366,7 +366,7 @@ A B2C számos külső identitásszolgáltatóval (IDP) képes együttműködni, 
 
 Az integrációhoz szükségünk lesz egy felhasználói/fejlesztői fiókra a kiválasztott identitásszolgáltatónál. Az integrációhoz kövessük a hivatalos útmutatót, például a https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/active-directory-b2c-setup-msa-app[Microsoft Account-ra (MSA) vonatkozót].
 
-WARNING: Az MSA integráció nehézsége, hogy első lépésben egy ún. https://docs.microsoft.com/en-us/azure/active-directory-b2c/identity-provider-microsoft-account?pivots=b2c-user-flow#create-a-microsoft-account-application[Microsoft account application-t] kell létrehozni, de ehhez a B2C-s tenant nem jó, egyetemi, céges tenantoknál pedig körülményes, mert a szükséges felületeket gyakran letiltják. Megoldás lehet, ha a privát MS fiókkal (@hotmail.com, @outlook.com) lépünk be az Azure portálra és így a saját tenantunkban hozzuk létre az MS account application-t.
+WARNING: Az MSA integráció nehézsége, hogy első lépésben egy ún. https://docs.microsoft.com/en-us/azure/active-directory-b2c/identity-provider-microsoft-account?pivots=b2c-user-flow#create-a-microsoft-account-application[Microsoft account application-t] kell létrehozni, de ehhez a B2C-s tenant nem jó, egyetemi, céges tenantoknál pedig körülményes, mert a szükséges Azure AD felületeket gyakran letiltják. Megoldás lehet, ha a privát MS fiókkal (@hotmail.com, @outlook.com) lépünk be az Azure portálra és így a saját tenantunkban hozzuk létre az MS account application-t.
 
 Az integrációt követően a folyamatainkban felhasználhatjuk a külső IDP-t, ehhez a folyamat beállításainál lévő _Identity providers_ menüpontban válasszuk ki az adott folyamatban engedélyezni kívánt IDP-ket. Ezután a regisztrációs, belépés felületeken megjelennek az engedélyezett IDP-khez tartozó felület(elem)ek.
 
