@@ -25,36 +25,45 @@ A felhasználókezelés az utóbbi években igen összetetté vált. Egy modern 
 
 Ez a bonyolódás maga után vonta a kapcsolódó technológiák bonyolódását is. Megjelentek  különböző típusú alkalmazáskörnyezetekre (webes, mobil) különböző szabványos authorizációs folyamatok (https://medium.com/@darutk/diagrams-and-movies-of-all-the-oauth-2-0-flows-194f3c3ade85[OAuth flow-k]) és ezekre épülő kiterjesztések, például az https://openid.net/developers/specs/[OpenID].
 
-{empty}.NET környezetben elérhetőek ezen szabványok implementációi, azonban a magasabb szintű támogatás (pl. Visual Studio projektsablonok, generátorok, varázslók) többnyire az egyszerűbb esetekre, a webes alkalmazásokra, azon belül is a szerver oldali rendereléssel dolgozókra (ASP.NET Core MVC) korlátozódott. Az MVC-s Identity template süti alapú authentikációt használ. Szélesebb körben (pl. mobilkliensek) használhatóak a token alapú (pl. JWT token), OAuth/OpenID megoldások.
+{empty}.NET környezetben elérhetőek ezen szabványok implementációi, azonban a magasabb szintű támogatás (pl. Visual Studio projektsablonok, generátorok, varázslók) többnyire az egyszerűbb esetekre, a webes alkalmazásokra, azon belül is a szerver oldali rendereléssel dolgozókra (ASP.NET Core MVC) korlátozódott. Az MVC-s Identity template _süti alapú_ authentikációt használ. Szélesebb körben (pl. mobilkliensek) használhatóak a _token alapú_ (pl. JWT token), OAuth/OpenID megoldások, így a továbbiakban csak erre koncentrálunk.
 
-Tipikus az ilyen rendszerekben, hogy egy kitüntetett entitás az ún. *identity provider/authorization server* tokeneket állít elő, amelyeket az alkalmazás, ahová a kliensalkalmazás előtt ülő felhasználó be akar lépni (relying party, resource server) ellenőriz. A felhasználó a kliensprogramján keresztül az azonosítás alatt az identity provider-rel is kommunikál, neki adja meg a jelszavát például. Így tehát alapvetően három szereplő van: a kliensprogram (egy böngésző is lehet), a relying party (RP/RS) és az identity provider (IDP/AS). Egy IDP több RP-t is kiszolgálhat, így sokszor az IDP telepítési szempontból is egy külön komponens.
+=== Token alapú felhasználókezelés
 
-Ezen szabványokat implementálták a fejlettebb platformokra, így ASP.NET Core-ra is. A Microsoft alapvetően csak a tokenek ellenőrzésére (RP feladat) biztosít API-t ASP.NET Core-ban, tokenek előállítására nem (IDP feladat). Az IdentityServer4 egy nyílt forráskódú OpenID/OAuth keretrendszer, mely lefedi ezen protokollokkal kapcsolatos szinte minden feladatot, tehát a tokenelőállítást is. A kliensek képességei alapján többféle authorizációs folyamatot is támogatnak az OAuth/OpenID szabványok, illetve az IdentityServer.
+Tipikus az ilyen rendszerekben, hogy egy kitüntetett entitás az ún. *identity provider/authorization server* tokeneket állít elő, amelyeket az alkalmazás, ahová a kliensalkalmazás előtt ülő felhasználó be akar lépni (_relying party_, _resource server_) ellenőriz. A felhasználó a kliensprogramján keresztül az azonosítás alatt kizárólag az _identity provider_-rel kommunikál, neki adja meg a jelszavát például. Így tehát alapvetően három szereplő van: a kliensprogram (egy böngésző is lehet), a _relying party_ (RP/RS) és az _identity provider_ (IDP/AS). Egy IDP több RP-t is kiszolgálhat, így sokszor az IDP telepítési szempontból is egy külön komponens.
 
-ASP.NET Core-ban tipikusan az alábbi technológiákat/komponenseket alkalmazhatjuk:
+Ezen szabványokat implementálták a fejlettebb platformokra, így ASP.NET Core-ra is, tipikusan az alábbi technológiákat/komponenseket alkalmazhatjuk:
 
-* https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-3.1&tabs=visual-studio[ASP.NET Core Identity] (a Shared Framework része)
+* https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity[ASP.NET Core Identity] (a Shared Framework része)
 ** adatelérési és üzleti logikai réteg a felhasználói adatok kezelésére
 ** JWT Bearer token middleware, ASP.NET Core authorizációs rendszer - RP feladatokhoz
 * https://www.nuget.org/packages/Microsoft.AspNetCore.Identity.UI[Identity UI] - az Identity Core-hoz tartozó felület (ASP.NET Core Razor alapú)
-* http://docs.identityserver.io/en/stable/[IdentityServer4] - széleskörű támogatás tokenkezelési, IDP, RP feladatokhoz
+* http://docs.identityserver.io/en/stable/[IdentityServer4] - nyílt forráskódú IDP, széleskörű támogatás tokenkezelési, IDP feladatokhoz
 * https://github.com/IdentityServer/IdentityServer4.Quickstart.UI[IdentityServer4 QuickStart UI] - ASP.NET MVC alapú felület az IdentityServer4 funkciókhoz
 * https://github.com/skoruba/IdentityServer4.Admin[IdentityServer4 Admin UI] - adminisztrációs felület az IdentityServer4-hez
+* https://docs.microsoft.com/en-us/azure/active-directory/develop/[Microsoft identity platform] - komponensek Microsoft IDP szolgáltatások (Azure AD, Azure AD B2C - lásd lentebb) igénybe vételéhez szerver- és kliensoldalhoz is. Nem önálló IDP megoldás, önmagában nem használható. Nem csak .NET-es platformokat támogat.
 
+Látható, hogy maga a Microsoft alapvetően csak a tokenek ellenőrzésére (RP feladat) biztosít magasszintű API-t, komponenst ASP.NET Core-ban, tokenek előállítására nem (IDP feladat). Ez utóbbira lehet jó az _IdentityServer4_, de ezen felül alternatívák is https://docs.microsoft.com/en-us/aspnet/core/security/authentication/community[elérhetők].
 
-Ezen felül alternatívák is https://docs.microsoft.com/en-us/aspnet/core/security/authentication/community[elérhetők].
+Jelenleg (2021. tavasz) az ASP.NET Core projektsablonok a következő IDP technikákat használják:
 
-Az IDP feladatok elég jól leválaszthatók, így megjelentek azok a szolgáltatások, melyek segítségével gyakorlatilag minden IDP feladatot kiszervezhetünk, beleértve a fentebb felsorolt képességeket is. Ezek az ún. _IDentity as a Service (IDaaS)_ vagy _Authentication as a Service_ szolgáltatások. Néhány példa: https://www.okta.com/[_Okta_], https://auth0.com/[_Auth0_], _Azure AD B2C_. Ezek alapvetően nem ingyenes szolgáltatások, bár többnyire bizonyos méret/felhasználószám/tokenmennyiség alatt ingyenesen használhatóak. Ezen gyakorlat során az Azure AD B2C szolgáltatást fogjuk használni, amivel az utolsó kivételével *minden fenti komponenst kiváltunk*.
+* ASP.NET Core Web App: semmilyet, mert nem token, hanem süti alapú!
+* ASP.NET Core Web API: https://github.com/AzureAD/microsoft-identity-web/blob/master/tools/app-provisioning-tool/vs2019-16.9-how-to-use.md[Microsoft Identity Platform]
+* ASP.NET Core with Angular/React.js: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization?view=aspnetcore-5.0[IdentityServer4]
+
+WARNING: Az IdentityServer4 támogatása 2022. végén megszűnik. Az új verzió (_Duende IdentityServer_) licenszelése https://leastprivilege.com/2020/10/01/the-future-of-identityserver/[alapvetően más], mint az IdentityServer4-é. Emiatt kétséges, hogy a https://github.com/dotnet/aspnetcore/issues/27887[.NET 6-ban marad-e] az IdentityServer alapú megoldás.
+
+Az IDP feladatok elég jól leválaszthatók, így megjelentek azok a szolgáltatások, melyek segítségével gyakorlatilag minden IDP feladatot kiszervezhetünk, beleértve a fentebb felsorolt képességeket is. Ezek az ún. _IDentity as a Service (IDaaS)_ vagy _Authentication as a Service_ szolgáltatások. Néhány példa: https://www.okta.com/[_Okta_], https://auth0.com/[_Auth0_] (2021. tavaszán felvásárolta az Okta), _Azure AD B2C_. Ezek alapvetően nem ingyenes szolgáltatások, bár többnyire bizonyos méret/felhasználószám/tokenmennyiség alatt ingyenesen használhatóak. Ezen gyakorlat során az Azure AD B2C szolgáltatást fogjuk használni, amivel az utolsó kivételével *minden fenti komponenst kiváltunk*.
 
 A megvalósítandó rendszerben:
 
 * az Azure B2C lesz az IDP/Authorization Server
 * egy általunk írt ASP.NET Core alkalmazás lesz a RP/Resource Server
- ** az alkalmazásból publikált webes API-t csak authentikált felhasználók érhetik el
+ ** az alkalmazásból publikált webes API-t csak autentikált felhasználók érhetik el
+ ** Microsoft Identity Platform komponenseket használunk a B2C specifikus feladatok megoldásához
 * egy minta WPF klienst fogunk használni kliensként, mely
  ** felelős az IDP felületek megjelenítéséért
  ** az ASP.NET Core alkalmazásunk API-ját hívja
-* az OAuth https://medium.com/@darutk/diagrams-and-movies-of-all-the-oauth-2-0-flows-194f3c3ade85[*Authorization Code Flow*] folyamatot fogjuk követni
+* az OAuth https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-diagram[*Authorization Code Flow*] folyamatot fogjuk követni
 
 Az Azure B2C-ben az első 50000 aktív felhasználó kiszolgálása https://azure.microsoft.com/en-us/pricing/details/active-directory-b2c/[ingyenes] minden hónapban.
 
@@ -64,9 +73,11 @@ Hozzunk létre új Azure AD B2C fiókot a hivatalos https://docs.microsoft.com/h
 
 == A RP regisztrálása Azure B2C-be
 
-Bár még nincs meg az RP alkalmazásunkból semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/tutorial-register-applications[útmutatót] ebben is. A Reply URL legyen: https://jwt.ms
+Bár még nincs meg az RP alkalmazásunkból semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga[útmutatót] ebben is. Az útmutató ezen szakaszának végén az _implicit grant flowt_ is engedélyezhetjük, ezt is tegyük meg. Az alkalmazásregisztráció neve legyen _B2CWebApi_, a _Redirect URI_ pedig legyen ez: https://jwt.ms
 
-TIP: A jwt.ms oldalon dekódolhatjuk a JWT tokenjeinket.
+TIP: A https://jwt.ms[jwt.ms] oldalon dekódolhatjuk a JWT tokenjeinket.
+
+WARNING: Az https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow#protocol-diagram[implicit grant flowt] csak azért engedélyezzük, hogy a _jwt.ms_ oldalon történő tesztelés majd működjön (lásd a következő szakasz), de ez már egy elavult folyamat (ezért nincs is alapból engedélyezve) - csak tesztelési célból kapcsoljuk be.
 
 == User flow / policy létrehozása, kipróbálása
 
@@ -78,13 +89,13 @@ Ezeket az extra adatokat gyűjtsük be a felhasználókról (Collect attribute):
 * vezetéknév (Surname)
 * felhasználónév (Display Name)
 
-Ezeket az extra adatokat kódoljuk a tokenbe (Return claim):
+Ezeket az extra adatokat kódoltassuk bele a tokenbe (Return claim):
 
 * keresztnév (Given name)
 * vezetéknév (Surname)
 * email címek (Email addresses)
 
-Vegyünk fel egy új scope-ot az alkalmazás *Published Scopes* nevű oldalán: a scope legyen `demo.read`, leírása `demoing a read scenario`. Ezzel lényegében egy jogosultságot definiáltunk, amit kioszthatunk majd az egyes kliensalkalmazásoknak.
+Vegyünk fel egy új scope-ot az alkalmazás *Expose an API* nevű oldalán https://docs.microsoft.com/en-us/azure/active-directory-b2c/tutorial-desktop-app-webapi?tabs=app-reg-ga#configure-scopes[ezen útmutató] alapján. Elég csak a `demo.read` scope-ot felvennünk.
 
 Próbáljuk ki az új folyamatot ugyanezen útmutató alapján (_Test the user flow_ alcím), regisztráljunk és lépjünk be. Ellenőrizzük a https://jwt.ms[JWT dekóder oldalon] a tokenbe kerülő claim-eket.
 
@@ -92,17 +103,17 @@ Derítsük fel a B2C _Users_ oldalát. Ez egy adminisztratív felület, a regisz
 
 == A kliensalkalmazás regisztrálása Azure B2C-be
 
-Bár még nincs meg a kliensalkalmazásunkból sem semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/add-native-application[útmutatót] ebben is. Saját _Redirect URI_-t ne adjunk meg, elég a generált.
+Bár még nincs meg a kliensalkalmazásunkból sem semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/add-native-application[útmutatót] ebben is. Saját _Redirect URI_-t itt ne adjunk meg még, hanem létrehozás után az alkalmazás https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#configure-platform-settings[platform specifikus beállításainál] válasszuk ki mindkét felajánlott URI-t.
 
-Osszuk ki az engedélyt az alkalmazás *API Access* nevű oldalán. Az _Add_ művelet beállításainál válasszuk ki az RP alkalmazást és az ő `demo.read` scope-ját.
+Osszuk ki az engedélyt az alkalmazás *API permissions* nevű oldalán. Kövessük itt is az https://docs.microsoft.com/en-us/azure/active-directory-b2c/tutorial-desktop-app-webapi?tabs=app-reg-ga#grant-permissions[útmutatót]. Ne felejtsük el a kiosztás végén megadni az _admin consent_-et a *Grant admin consent for...* gombbal. Ez azt jelenti, hogy adminisztrátorként engedélyezzük a WPF alkalmazásnak a `demo.read` jog automatikus megszerzését.
 
 == WPF alkalmazás beüzemelése
 
-Nyissuk meg a https://github.com/bmeaut/active-directory-b2c-dotnet-desktop/tree/msalv3[vastagkliens mintaprojektet]. Ez egy WPF alkalmazás, hozzáférést tud adni a B2C folyamat felületeihez, kezeli a tokeneket és képes egy egyszerű GET kérést küldeni megadott címre, a tokent mellékelve.
+Nyissuk meg a https://github.com/bmeaut/active-directory-b2c-dotnet-desktop/tree/msalv3[vastagkliens mintaprojektet]. Ez egy WPF alkalmazás, hozzáférést tud adni a B2C folyamat felületeihez, kezeli a tokeneket és képes egy egyszerű GET kérést küldeni megadott címre, a tokent mellékelve. A tokenkezeléshez NuGet függőségként hivatkozza az MSAL nevű komponenst, mely a _Windows identity platform_ része.
 
 TIP: Egy demo B2C tenanttal is https://github.com/bmeaut/active-directory-b2c-dotnet-desktop#using-the-demo-environment[ki lehet próbálni] a WPF alkalmazást, ehhez nem is kell Azure előfizetés.
 
-TIP: Az Azure B2C kommunikáció szabványokra épül, így szinte bármilyen (nem csak .NET alapú) klienstechnológiát használhatunk. Számos https://docs.microsoft.com/en-us/azure/active-directory-b2c/code-samples[mintaprojekt] elérhető különböző technológiákhoz.
+TIP: Az Azure B2C kommunikáció szabványokra épül, így szinte bármilyen (nem csak .NET alapú) klienstechnológiát használhatunk. Számos https://docs.microsoft.com/en-us/azure/active-directory-b2c/code-samples[mintaprojekt] elérhető különböző technológiákhoz. Az MSAL komponens is számos fejlesztői platformra https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview[elérhető]. 
 
 Az _App.xaml.cs_-ben adjuk meg az alábbi beállításokat az osztályváltozók felülírásával.
 
@@ -110,21 +121,27 @@ WARNING: A megadandó értékek eltérhetnek, attól függően, hogy az előző 
 
 [source,csharp]
 ----
-/*Tenant teljes neve*/
-private static string Tenant = "valami.onmicrosoft.com";
+/*Tenant neve*/
+private static readonly string TenantName = "valami";
 
-/*az előbbinek a végét cseréljük le b2clogin.com-ra*/
-private static readonly string AzureAdB2CHostname = "valami.b2clogin.com";
+/*Kliensalkalmazás Application ID-je, 
+az alkalkalmazásregisztráció Overview oldaláról*/
+private static readonly string ClientId =
+        "e9f2bd6c-14bc-45b3-a0f5-30144a0ff00e";
 
-/*Kliensalkalmazás Application ID-je*/
-private static string ClientId = "00000000-0000-0000-0000-000000000000";
+/*Elvileg nem kell megváltoztatni, de ellenőrizzük, 
+hogy a WPF alkalmazásregisztráció redirect URI-jai szerepel-e ez az URI*/
+private static readonly string RedirectUri =
+        $"https://{TenantName}.b2clogin.com/oauth2/nativeclient";
 
 /*Regisztrációs-belépési folyamat neve*/
-public static string PolicySignUpSignIn = "B2C_1_SignUp";
+public static string PolicySignUpSignIn = "B2C_1_signupsignin1";
 
-/*Kért engedélyek a webapp Published Scopes oldaláról - Full Scope Value*/
-public static string[] ApiScopes =
-    { "https://valami.onmicrosoft.com/labapp/demo.read" };
+/*A WPF alkalmazásregisztráció API permissions oldaláról 
+a demo.read scope-ot kiválasztva látható a scope teljes URI-ja. 
+Azzal kell egyeznie.*/
+public static string[] ApiScopes = 
+    { $"https://{Tenant}/api/demo.read" };
 
 /*A hívandó API végpont címe - legyen az alábbi érték*/
 public static string ApiEndpoint = "https://localhost:5001/weatherforecast";
@@ -134,23 +151,47 @@ Egyelőre így már működnie kell a loginnak, a *Sign In* gombra kattintva reg
 
 == RP létrehozása és beüzemelése
 
-Hozzunk létre egy új API projektet (ASP.NET Core Web Application) - kattintsuk be a HTTPS támogatást és az authentikációs opciók közül válasszuk az _Individual User Accounts_-t, azon belül a _Connect to an existing user store in the cloud_ opciót.
-
-Töltsük ki az opcióhoz tartozó beállításokat:
-
-* *Domain*: tenant teljes neve (*valami.onmicrosoft.com*)
-* *Application ID*: a webalkalmazás Application ID-je
-* *Sign-up or Sign-in policy*: a regisztrációs-belépési folyamat neve
+Hozzunk létre egy új API projektet (ASP.NET Core Web Application, .NET 5) - kattintsuk be a HTTPS támogatást és az authentikációs opciók közül válasszuk a _Microsoft identity platform_-ot.
 
 A generált projektben figyeljük meg az alábbiakat:
 
-* bekerült egy _Microsoft.AspNetCore.Authentication.AzureADB2C.UI_ nevű NuGet csomag - ez tartalmazza függőségként többek között az Azure B2C specifikus authentikációs middleware kiegészítéseket.
-* az _appsettings.json_-ba az előbbi MW-hez kapcsolódó beállítások (_AzureAdB2C_ szekció) kerültek
-* a `Startup.ConfigureServices` függvényben történik az authentikációs szolgáltatás felkonfigurálása (`AddAuthentication`) a fenti beállítások alapján. Két fontos beállításfázis van: megadjuk, hogy egy token-t várunk a HTTP kérésben (ún. _bearer tokent_), a tokennel kapcsolatos elvárásokat adja meg a fenti _AzureAdB2C_ szekció.
+* bekerült egy _Microsoft.Identity.Web_ nevű NuGet csomag - ez tartalmazza függőségként többek között az ASP.NET Core-os MSAL csomagot, leegyszerűsíti az MSAL és az általános ASP.NET Core authentikáció integrálását
+* a `Startup.ConfigureServices` függvényben történik az authentikációs szolgáltatás felkonfigurálása (`AddAuthentication`) az appsettings.json beállítások alapján. Két fontos beállításfázis van: megadjuk, hogy egy token-t várunk a HTTP kérésben (ún. _bearer tokent_), a tokennel kapcsolatos elvárásokat adja meg az appsettings.json  _AzureAd_ szekciója.
 * az authentikációs és az authorizációs MW beillesztése szokás szerint a `Configure` függvényben történik (`UseAuthentication`, `UseAuthorization`)
 * a kontrollerünk egy `Authorize` attribútumot kapott. Ezzel jelezzük, hogy a kontroller műveleteihez csak az előbb megadott konfigurációnak megfelelő, érvényes token birtokában lehet hozzáférni
 
-TIP: Az ASP.NET Core authentikációs MW-e elég általános ahhoz, hogy gyakorlatilag bármilyen bearer token alapú OAuth/OpenID folyamatban részt tudjon venni RP-ként. A fenti NuGet csomag csak egyszerűsíti az Azure B2C-re történő testreszabást.
+TIP: Az ASP.NET Core authentikációs MW-e elég általános ahhoz, hogy gyakorlatilag bármilyen bearer token alapú OAuth/OpenID folyamatban részt tudjon venni RP-ként. A _Microsoft.Identity.Web_ csomag csak egyszerűsíti az Azure B2C-re történő testreszabást.
+
+Az appsettings.json-ben adjuk meg az Azure AD B2C-hez tartozó beállításokat. Az _AzureAd_ szekciót cseréljük le az alábbival:
+
+[source,javascript]
+----
+  "AzureAdB2C": {
+    //tenantnev-et írjuk át a sajátunkra
+    "Instance": "https://tenantnev.b2clogin.com", 
+    //írjuk át a webes appregisztráció client id-jára
+    "ClientId": "d5090c69-a7a1-4e64-84d4-817e84e0487f",
+    //tenantnev-et írjuk át a sajátunkra
+    "Domain": "tenantnev.onmicrosoft.com",
+    //írjuk át a regisztrációs-belépési folyamat nevére
+    "SignUpSignInPolicyId": "B2C_1_signupsignin1"    
+  },
+----
+
+WARNING: Az értékek szinte ugyanazok, mint a WPF alkalmazásnál, de figyeljünk rá, hogy a Client ID-knek különbözniük kell, hiszen másik alkalmazásregisztrációra hivatkozunk.
+
+Módosítsuk a `ConfigureServices`-t, hogy egyezzen a szekciónév.
+
+[source,csharp]
+----
+/**/public void ConfigureServices(IServiceCollection services)
+/**/{
+/**/    services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddMicrosoftIdentityWebApi(Configuration.GetSection("AzureAdB2C"));
+/**/
+/**/    services.AddControllers();
+/**/}
+----
 
 Az *Appsettings.Development.json*-ben állítsuk át minden naplózási küszöböt `Information`-re:
 
@@ -159,8 +200,8 @@ Az *Appsettings.Development.json*-ben állítsuk át minden naplózási küszöb
 /**/{
 /**/  "Logging": {
 /**/    "LogLevel": {
-          "Default": "Information",
-/**/      "Microsoft": "Information",
+/**/      "Default": "Information",
+          "Microsoft": "Information",
 /**/      "Microsoft.Hosting.Lifetime": "Information"
 /**/    }
 /**/  }
@@ -169,35 +210,46 @@ Az *Appsettings.Development.json*-ben állítsuk át minden naplózási küszöb
 
 Állítsuk be, hogy parancssorból induljon a projekt (a projekt nevét viselő indítási konfiguráció), majd figyeljük meg, hogy indítás után a *401 (Forbidden)* státuszkódú választ kapunk, hiszen tokent nem küldtünk a kéréshez. A naplózási beállítás miatt a konzolos naplóban is meg kell jelennie a kérés elutasításának.
 
-Kipróbálhatjuk úgy is, hogy *egy próba erejéig* az `Authorize` attribútumot kikommentezzük. Ilyenkor a kérés sikeres, a műveletekhez authentikáció nélkül hozzá lehet férni.
-
-== Teljes OAuth folyamat összeállítása
-
-A kliensalkalmazás beállításainál ellenőrizzük, hogy az `ApiEndpoint` beállítás megfelelő-e. Ugyanaz az URL legyen, mint amivel az előbb teszteltünk. A szerveroldalon ellenőrizzük, hogy az `Authorize` attribútum a kontrolleren van-e.
-
-Az ASP.NET Core webszerver ma már igencsak szigorú a HTTPS kommunikáció paramétereivel kapcsolatban, ezért a WPF kliens `App` konstruktorban csak az újabb protokollverziókat engedélyezzük:
+Kipróbálhatjuk úgy is, hogy *egy próba erejéig* a kontrolleren `Authorize` attribútumot és az imperatív jogosultságellenőrzést (`HttpContext.VerifyUserHasAnyAcceptedScope`) kikommentezzük.
 
 [source,csharp]
 ----
-/**/static App()
+    //[Authorize]
+/**/[ApiController]
+/**/[Route("[controller]")]
+/**/public class WeatherForecastController : ControllerBase
 /**/{
-/**/    //..
-        ServicePointManager.SecurityProtocol =
-                    SecurityProtocolType.Tls12 |
-                    SecurityProtocolType.Tls11 |
-                    SecurityProtocolType.Tls;
+/**/    public IEnumerable<WeatherForecast> Get()
+/**/    {
+            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+/**/        //...
+/**/    }
+/**/    //...
 /**/}
 ----
 
-Próbáljuk ki. Lépjünk be és nyomjuk meg az API hívást indító gombot (_Call API_). A művelet által visszaadott eredményt kell kapjuk.
+ Ilyenkor a kérés sikeres, a műveletekhez authentikáció nélkül hozzá lehet férni.
 
-== Kliensalkalmazás szintű hozzáférés-szabályozás
+== Teljes OAuth folyamat összeállítása
 
-Ha egy kliensalkalmazás hozzáférését szeretnénk szabályozni, akkor a korábban beállított és elkért scope-okat használhatjuk. Jelenleg a WPF alkalmazás elkéri a `demo.read` scope-ot (jogosultságot), és az Azure B2C-ben engedélyeztük is, hogy megkapja (API Access beállítás), tehát a tokenbe belekerül.
+A kliensalkalmazás beállításainál ellenőrizzük, hogy az `ApiEndpoint` beállítás megfelelő-e.  Ugyanaz az URL legyen, mint amivel az előbb teszteltünk - a `WeatherForecastController` `Get` függvényét szeretnénk meghívni. A szerveroldalon ellenőrizzük, hogy az `Authorize` attribútum a kontrolleren van-e és a `VerifyUserHasAnyAcceptedScope`-os sor is aktív-e.
 
-WARNING: Az authentikációs rendszer szempontjából az alkalmazást az _Application ID_ azonosítja. Ha két különböző alkalmazás ugyanazt az _Application ID_-t használja, akkor az ugyanazon alkalmazásnak számít.
+Próbáljuk ki. Lépjünk be és nyomjuk meg az API hívást indító gombot (_Call API_). A `VerifyUserHasAnyAcceptedScope` ellenőrzés fogja meg. A felhasználó azonosítása sikeres, de a felhasználónak nincs meg az elvárt jogosultsága. Korábban beállítottuk, hogy a `demo.read` scope-ot automatikusan kapja meg mindenki, aki a WPF alkalmazást használja. Várjuk el ezt a jogot,  a kontrollerben írjuk át a `scopeRequiredByApi` tömböt.
 
-Az ASP.NET Core alkalmazást szigorítsuk, hogy csak `demo.read` jogosultsággal bíró alkalmazások tudják hívni a kontrollert. A `Startup.ConfigureServices`-ben konfiguráljuk az authorizációs szolgáltatást, adjunk meg egy új házirendet (policy). A házirendet akkor teljesíti a kliens, ha a `demo.read` scope-pal rendelkezik.
+[source,csharp]
+----
+ static readonly string[] scopeRequiredByApi = new string[] { "demo.read" };
+----
+
+Most már a művelet által visszaadott eredményt kell kapjuk.
+
+== Kliensalkalmazás szintű hozzáférés-szabályozás házirenddel
+
+Ha egy kliensalkalmazás hozzáférését szeretnénk szabályozni, akkor a korábban beállított és elkért scope-okat használhatjuk. Jelenleg a WPF alkalmazás elkéri a `demo.read` scope-ot (jogosultságot), és az Azure B2C-ben engedélyeztük is, hogy megkapja (API permissions beállítás), tehát a tokenbe belekerül.
+
+WARNING: Az authentikációs rendszer szempontjából az alkalmazást az _Application ID/ Client ID_ azonosítja. Ha két különböző alkalmazás ugyanazt az _Application ID_-t használja, akkor az ugyanazon alkalmazásnak számít.
+
+Az ASP.NET Core alkalmazást szigorítsuk, hogy bármilyen kontrollerfüggvényt csak `demo.read` jogosultsággal bíró alkalmazások tudják hívni. A `Startup.ConfigureServices`-ben konfiguráljuk az authorizációs szolgáltatást, adjunk meg egy új házirendet (policy). A házirendet akkor teljesíti a kliens, ha a `demo.read` scope-pal rendelkezik.
 
 [source,csharp]
 ----
@@ -212,29 +264,49 @@ services.AddAuthorization(options =>
 });
 ----
 
-A kontroller-en állítsuk be, hogy csak a `DemoRead` nevű házirendet teljesítők hívhatják a műveleteit.
+A kontroller-en állítsuk be, hogy csak a `DemoRead` nevű házirendet érvényesítse. A `VerifyUserHasAnyAcceptedScope` hívásra már nincs szükség.
 
 [source,csharp]
 ----
-[Authorize(Policy = "DemoRead")] //Policy beállítás bekerült
-/**/
+    [Authorize(Policy = "DemoRead")] //Policy beállítás bekerült
+/**/[ApiController]
+/**/[Route("[controller]")]
 /**/public class WeatherForecastController : ControllerBase
-/**/{/**/}
+/**/{
+        //static readonly string[] scopeRequiredByApi = new string[] { "demo.read" };
+/**/    public IEnumerable<WeatherForecast> Get()
+/**/    {
+            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+/**/        //...
+/**/    }
+/**/    //...
+/**/}
 ----
 
-Próbáljuk ki! Mivel `demo.read` engedélyt mindenhol átvezettük, így változást nem tapasztalunk. Csináljunk ellenpróbát! Az Azure B2C felületen a kliensalkalmazás *API Access* menüpontjában állítsuk be, hogy a webalkalmazásunkhoz kapcsolódó `demo.read` scope-ot ne szolgáltassa a WPF kliensnek. A WPF kliensben lépjünk ki, majd újra be, végül hívjuk az API-t.Ekkor már nem kapjuk meg az eddigi választ - az eredményt megjelenítő szövegdoboz üres lesz. A szerveralkalmazás konzolján ellenőrizhetjük, hogy a kérés elutasításra került.
+Próbáljuk ki! Mivel `demo.read` engedélyt mindenhol átvezettük, így változást nem tapasztalunk. Csináljunk ellenpróbát! Adjunk meg egy nem létező jogot (pl. `demo.dummy`) a házirendben.
+
+[source,csharp]
+----
+/**/services.AddAuthorization(options =>
+/**/{
+/**/    options.AddPolicy("DemoRead", policy =>
+/**/        policy.RequireClaim(
+/**/            "http://schemas.microsoft.com/identity/claims/scope",
+                "demo.dummy"
+/**/        )
+/**/    );
+/**/});
+----
 
 WARNING: Fontos, hogy ha megkapjuk a kívánt választ (átjutottunk az ellenőrzésen), mindig teszteljünk ellenpróbával is, azaz valamilyen szükséges feltételt, házirendet sértsünk meg és nézzük meg, hogy úgy hibát (például 401-es választ) kapunk-e. Ha nem, akkor az ellenőrzői oldalon (RP) hiba van.
 
-TIP: Másik lehetőség ellenpróbára, hogy egy másik scope-ot szolgáltatunk a `demo.read` helyett, pl. `demo.dummy`-t. Ilyenkor is vissza kell utasítania a kérést a kliensalkalmazásnak.
-
-Végül állítsuk vissza az engedélyt.
+Végül állítsuk vissza az engedélyt a `demo.read`-re.
 
 == Felhasználó/csoport szintű hozzáférés-szabályozás
 
-A felhasználókat tipikusan csoportokba soroljuk és az egyes csoportokra nézve osztjuk ki a hozzáférést. Az Azure AD B2C rendelkezik csoportadminisztrációs képességgel, fel lehet venni csoportokat, a felhasználók csoportba rendezhetők, kivehetők stb. Sajnos azonban jelenleg a felhasználóval kapcsolatos csoportinformációk https://feedback.azure.com/forums/169401-azure-active-directory/suggestions/10123836-get-user-membership-groups-in-the-claims-with-ad-b[nem kerülnek be a tokenbe]. Az ajánlott megkerülő megoldás, hogy az https://docs.microsoft.com/en-us/azure/active-directory-b2c/manage-user-accounts-graph-api[Azure AD B2C Graph API]-ját használva a RP kérdezze le a bejelentkezett felhasználó csoporttagságát. Ez a megoldás a gyakorlat keretében túl sok adminisztrációval járna, így egyszerűbb modellt alkalmazunk.
+A felhasználókat tipikusan csoportokba soroljuk és az egyes csoportokra nézve osztjuk ki a hozzáférést. Az Azure AD B2C nem rendelkezik csoportadminisztrációs képességgel, azonban a kapcsolódó Azure AD-ba fel lehetne venni csoportokat, a felhasználók csoportba rendezhetnénk, kivehetnénk stb. Ehhez egyrészt az Azure AD-ban is magas szintű jogok kellenének, másrészt saját https://docs.microsoft.com/en-us/azure/active-directory-b2c/custom-policy-overview[B2C-beli policy-t] (nem ugyanaz, mint az ASP.NET Core authentikációs házirend) kellene implementálni, amivel a tokenelőállítást tudnánk testre szabni, hogy az AD csoporttagság is bekerüljön a tokenbe. Ez elég macerás, még úgy is, hogy van rá https://github.com/azure-ad-b2c/samples/tree/master/policies/relying-party-rbac[hivatalos példaimplementáció], ezért egy sokkal fapadosabb megoldást követünk.
 
-Küldjük le a tokenben a felhasználó B2C-beli azonosítóját. A regisztrációs-belépési folyamat beállításai között az _Application claims_ menüpontban jelöljük ki az *User's Object ID* claim-et.
+Küldjük le a tokenben a felhasználó B2C-beli azonosítóját. A regisztrációs-belépési folyamat (_User flows_) beállításai között az _Application claims_ menüpontban jelöljük ki az *User's Object ID* claim-et. Mentsünk.
 
 Vegyünk fel egy új házirendet a `Startup.ConfigureServices`-ben úgy, hogy azt csak konkrét B2C-beli azonosítóval rendelkező felhasználók teljesítsék. A már regisztrált felhasználók adatait, többek között az Object ID-ját is megnézhetjük a B2C _Users_ nevű oldalán, a kívánt felhasználót kiválasztva. Válogassunk össze pár olyan *Object ID*-t, aminek a felhasználójának ismerjük a belépési adatait.
 
@@ -268,27 +340,34 @@ A WPF alkalmazásban lépjünk ki, majd be, végül próbáljuk ki az API hívá
 
 Az alábbi funkciók nem kapcsolódnak közvetlenül az ASP.NET Core fejlesztéshez, csak a teljesség kedvéért szerepelnek.
 
-=== Profil szerkesztési és jelszó visszaállítási folyamat
+=== Profil szerkesztési folyamat
 
 Folytassuk a folyamatok létrehozását a https://docs.microsoft.com/en-us/azure/active-directory-b2c/tutorial-create-user-flows#create-a-profile-editing-user-flow[hivatalos útmutatónak] megfelelően. A profil szerkesztési folyamatnál kiválaszthatunk azon attribútumokat, melyek megjelennek megadható mezőként a profil szerkesztésekor. Ezek lehetnek olyan attribútumok is, melyeket nem adtunk meg a regisztrációs folyamat során bekérendő mezőnek, azaz utólag adhatja meg a felhasználó.
 
-Végül egy profil szerkesztő és egy jelszó visszaállítási folyamattal leszünk gazdagabbak. Regisztráljuk ezeket a WPF alkalmazásba:
+Végül egy profil szerkesztő folyamattal leszünk gazdagabbak. Regisztráljuk a WPF alkalmazásba:
 
 [source,csharp]
 ----
 //Az értékeket cseréljük le a saját folyamatneveinkre.
 public static string PolicyEditProfile = "B2C_1_PE";
-public static string PolicyResetPassword = "B2C_1_PR";
 ----
 
-Próbáljuk ki az új folyamatokat a kliensalkalmazásban - a profilszerkesztéshez van külön gomb a felületen, illetve kezdeményezzünk jelszóvisszaállítást a belépési oldal _Elfelejtettem a jelszavam_ funkciójával.
+Próbáljuk ki az új folyamatokat a kliensalkalmazásban - a profilszerkesztéshez van külön gomb a felületen.
+
+=== Elfelejtett jelszó funkció
+
+Ezt egyszerűen csak https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended[be kell kattintani] a regisztrációs folyamat beállításai között. Próbáljuk ki a bejelentkező felületen a _Forgot your password?_ link aktiválásával. 
+
+TIP: Korábban egy külön folyamat volt (ezért van rá külön beállítás a WPF alkalmazásban), de https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#password-reset-policy-legacy[elég macerás volt használni].
 
 === Social login
 
 A B2C számos külső identitásszolgáltatóval (IDP) képes együttműködni, például Google, Twitter, GitHub, Facebook, stb. És persze Microsoft.
 
-Az integrációhoz szükségünk lesz egy felhasználói/fejlesztői fiókra a kiválasztott identitásszolgáltatónál. Az integrációhoz kövessük a hivatalos útmutatót, például a https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/active-directory-b2c-setup-msa-app[Microsoft Account-ra vonatkozót].
+Az integrációhoz szükségünk lesz egy felhasználói/fejlesztői fiókra a kiválasztott identitásszolgáltatónál. Az integrációhoz kövessük a hivatalos útmutatót, például a https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/active-directory-b2c-setup-msa-app[Microsoft Account-ra (MSA) vonatkozót].
 
-Az integrációt követően a folyamatainkban felhasználhatjuk a külső IDP-t, ehhez a folyamat beállításainál az _Identity providers_ blade-en válasszuk ki az adott folyamatban engedélyezni kívánt IDP-ket. Ezután a regisztrációs, belépés felületeken megjelennek az engedélyezett IDP-khez tartozó felület(elem)ek.
+WARNING: Az MSA integráció nehézsége, hogy első lépésben egy ún. https://docs.microsoft.com/en-us/azure/active-directory-b2c/identity-provider-microsoft-account?pivots=b2c-user-flow#create-a-microsoft-account-application[Microsoft account application-t] kell létrehozni, de ehhez a B2C-s tenant nem jó, egyetemi, céges tenantoknál pedig körülményes, mert a szükséges felületeket gyakran letiltják. Megoldás lehet, ha a privát MS fiókkal (@hotmail.com, @outlook.com) lépünk be az Azure portálra és így a saját tenantunkban hozzuk létre az MS account application-t.
+
+Az integrációt követően a folyamatainkban felhasználhatjuk a külső IDP-t, ehhez a folyamat beállításainál lévő _Identity providers_ menüpontban válasszuk ki az adott folyamatban engedélyezni kívánt IDP-ket. Ezután a regisztrációs, belépés felületeken megjelennek az engedélyezett IDP-khez tartozó felület(elem)ek.
 
 A kliensalkalmazás és a RP módosítására nincs szükség.
