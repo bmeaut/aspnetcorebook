@@ -516,6 +516,8 @@ foreach (var p in products)
 
 Figyeljük meg, hogy a generálódó SELECT projekciós része így jóval rövidebb.
 
+TIP: További ritkábban alkalmazott / korábbi verziókban elterjedt módszerek: https://docs.microsoft.com/en-us/ef/core/querying/related-data/explicit[_explicit loading_], https://docs.microsoft.com/en-us/ef/core/querying/related-data/lazy[_lazy loading_].
+
 == Több-többes kapcsolat közvetlen navigálása
 
 Lehetőség van több-többes kapcsolat navigálásakor a kapcsolótábla átugrására. Ehhez vegyünk fel ennek megfelelő property-ket a kapcsolat két oldalán. Az `Order`-be:

@@ -47,7 +47,7 @@ Látható, hogy maga a Microsoft alapvetően csak a tokenek ellenőrzésére (RP
 Jelenleg (2021. tavasz) az ASP.NET Core projektsablonok a következő IDP technikákat használják:
 
 * ASP.NET Core Web App: semmilyet, mert nem token, hanem süti alapú!
-* ASP.NET Core Web API: https://github.com/AzureAD/microsoft-identity-web/blob/master/tools/app-provisioning-tool/vs2019-16.9-how-to-use.md[Microsoft Identity Platform]
+* ASP.NET Core Web API: https://github.com/AzureAD/microsoft-identity-web/blob/master/tools/app-provisioning-tool/vs2019-16.9-how-to-use.md[Microsoft identity platform]
 * ASP.NET Core with Angular/React.js: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization?view=aspnetcore-5.0[IdentityServer4]
 
 WARNING: Az IdentityServer4 támogatása 2022. végén megszűnik. Az új verzió (_Duende IdentityServer_) licenszelése https://leastprivilege.com/2020/10/01/the-future-of-identityserver/[alapvetően más], mint az IdentityServer4-é. Emiatt kétséges, hogy a https://github.com/dotnet/aspnetcore/issues/27887[.NET 6-os projektsablonokban marad-e] az IdentityServer alapú megoldás.
@@ -59,7 +59,7 @@ A megvalósítandó rendszerben:
 * az Azure B2C lesz az IDP/Authorization Server
 * egy általunk írt ASP.NET Core alkalmazás lesz a RP/Resource Server
  ** az alkalmazásból publikált webes API-t csak autentikált felhasználók érhetik el
- ** Microsoft Identity Platform komponenseket használunk a B2C specifikus feladatok megoldásához
+ ** Microsoft identity platform komponenseket használunk a B2C specifikus feladatok megoldásához
 * egy minta WPF klienst fogunk használni kliensként, mely
  ** felelős az IDP felületek megjelenítéséért
  ** az ASP.NET Core alkalmazásunk API-ját hívja
