@@ -71,6 +71,10 @@ Az Azure B2C-ben az első 50000 aktív felhasználó kiszolgálása https://azur
 
 Hozzunk létre új Azure AD B2C fiókot a hivatalos https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/tutorial-create-tenant[útmutató] alapján.
 
+TIP: Érdemes https://docs.microsoft.com/en-us/azure/azure-portal/set-preferences#change-language-and-regional-settings[angolra állítani] az Azure portál nyelvét, értelmesebb hibaüzeneteket kaphatunk.
+
+WARNING: Az erőforrások létrehozása, kezelése a portálról indítva is API hívásokkal történik. Számos ilyen API van, ezeket _resource provider_-eknek hívjuk. A B2C-hez kapcsolódó _resource provider_ gyakran le van tiltva alapértelmezésben. Ilyenkor a létrehozás hibára fut (_The subscription is not registered to use namespace 'Microsoft.AzureActiveDirectory'_). A javításhoz https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider-1[engedélyezzük (regisztráljuk)] a hibaüzenetben jelzett _providert_.
+
 == A RP regisztrálása Azure B2C-be
 
 Bár még nincs meg az RP alkalmazásunkból semmi, a regisztrációját elkészíthetjük. Kövessük a hivatalos https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga[útmutatót] ebben is. Csak az első szakaszt csináljuk végig, a szakasz végén az _implicit grant flowt_ is engedélyezhetjük, ezt is tegyük még meg. Az alkalmazásregisztráció neve legyen _B2CWebApi_, a _Redirect URI_ pedig legyen ez: https://jwt.ms
