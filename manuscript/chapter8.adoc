@@ -560,7 +560,7 @@ Az alábbi lépésekkel állítsuk elő a második felhasználó folyamatát:
 * a klónok minden szkriptjében, illetve paraméterében írjunk át **minden** `u1`-es változónevet `u2`-esre
 ** az *[U2]GetAllProductsBefore* hívásban a *Tests* fülön egy helyen
 ** az *[U2]GetTejDetails* hívásban a *Pre-request Script*  fülön két helyen, a *Tests* fülön egy helyen, illetve a *Params* fülön egy helyen
-** az *[U2]UpdateTej* hívásban a *Pre-request Script*  fülön helyen, a *Body* fülön egy helyen, illetve a *Params* fülön egy helyen
+** az *[U2]UpdateTej* hívásban a *Pre-request Script*  fülön két helyen, a *Body* fülön egy helyen, illetve a *Params* fülön egy helyen
 * az *[U2]UpdateTej* hívás *Pre-request Script* módosító utasítását írjuk át a lenti kódra. A termék nevét módosítjuk, nem az árát, a konkurenciahelyzetet ugyanis akkor is érzékelni kell, ha a két felhasználó nem ugyanazt az adatmezőt módosítja (ugyanazon terméken belül).
 
 [source,javascript]
