@@ -332,8 +332,8 @@ Követeljük meg az új házirendet a kontrolleren.
 
 [source,csharp]
 ----
-    [Authorize(Policy = "DemoRead")]
-/**/[Authorize(Policy = "Admin")]
+/**/[Authorize(Policy = "DemoRead")]
+    [Authorize(Policy = "Admin")]
 ----
 
 TIP: Műveleteken is elhelyezhetünk `Authorize` attribútumot. Minden elemre (kontroller, művelet) nézve a lefutásának feltétele, hogy az összes szülőelemen megkövetelt minden házirend teljesüljön.
