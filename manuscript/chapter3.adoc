@@ -3,7 +3,7 @@
 
 == Előkészítés
 
-A labor kezdetén töltsük le a kóddarabkák lelőhelyéül szolgáló git repositoryt zip-ként. Miután kitömörítettük a fájlokat, töltsük be Visual Studio-ba a _HelloLinq_ mappából a _HelloLinq.sln_ solution fájlt.
+A labor kezdetén töltsük le a [kiinduló projektet](https://github.com/bmeaut/dotnet/archive/refs/heads/master.zip) zip-ként. Miután kitömörítettük a fájlokat, töltsük be Visual Studio-ba a _HelloLinq_ mappából a _HelloLinq.sln_ solution fájlt.
 
 Megnyitás után tekintsük át a kiinduló projektben levő fájlokat:
 
