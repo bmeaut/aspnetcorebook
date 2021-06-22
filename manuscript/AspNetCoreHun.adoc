@@ -1,6 +1,6 @@
 = ASP.NET Core 5 gyakorlatok
 Simon Gábor <simon.gabor@aut.bme.hu>; Szabó Gábor <szabo.gabor@aut.bme.hu>; Tóth Tibor <toth.tibor@aut.bme.hu>
-v0.94, 2021. június 22.
+v0.95, 2021. június 22.
 :doctype: book
 :source-highlighter: rouge
 :icons: font
@@ -8,7 +8,7 @@ v0.94, 2021. június 22.
 :!figure-caption:
 :title-logo-image: image:images/bme_logo.svg[pdfwidth=4.25in,align=center]
 
-//include::colophon.adoc[]
+include::colophon.adoc[]
 
 ifndef::ebook-format[:leveloffset: 1]
 
