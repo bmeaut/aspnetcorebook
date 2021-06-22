@@ -110,7 +110,7 @@ Ismerkedjünk meg a `Func` és `Action` általános delegáttípusokkal. Ezzel a
 
 [source,csharp]
 ----
-Func<Dog,bool> predicate =
+Func<Dog, bool> predicate =
     p => p.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
 ----
 

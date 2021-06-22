@@ -43,20 +43,21 @@ Ahogyan a fenti verziók változnak, úgy avulhatnak el a jegyzetben mutatott el
 A gyakorlatok az alábbi szoftverekből álló környezethez készültek:
 
 * Windows 10 operációs rendszer
-* https://visualstudio.microsoft.com/downloads/[Visual Studio 2019 v16.8+] (az ingyenes Community edition is elég) az alábbi _Workload_-okat telepítve:
+* https://visualstudio.microsoft.com/downloads/[Visual Studio 2019 v16.8+] (az ingyenes Community verzió elég) az alábbi _workload_-okkal:
  ** .NET desktop development
  ** Data storage and processing
- ** .NET Core cross-platform development
+ ** .NET Core cross-platform development 
+// Üzenet a jövőből: VS 2022-től nincsen .NET Core workload.
  ** ASP.NET and web development
  ** Azure Development
 * https://www.telerik.com/fiddler[Telerik Fiddler]
 * https://www.postman.com/[Postman]
 
-A .NET Core széleskörű platformtámogatása miatt bizonyos nem Windows platformokon is elvégezhetők a gyakorlatok Visual Studio helyett https://code.visualstudio.com/[Visual Studio Code] használatával - azonban a gyakorlatok szövege a Visual Studio használatát feltételezi.
+A .NET (korábban .NET Core) széleskörű platformtámogatása miatt bizonyos nem Windows platformokon is elvégezhetők a gyakorlatok Visual Studio helyett https://code.visualstudio.com/[Visual Studio Code] használatával - azonban a gyakorlatok szövege a Visual Studio használatát feltételezi.
 
 == Kódrészletek változáskövetése
 
-Az egyes gyakorlatok során gyakori eset, hogy a C# kód egy részét továbbfejlesztjük, megváltoztatjuk. Ilyen esetben a nem változó sorokat üres kommenttel (`/**/`) kezdődnek, míg az előző verzióhoz képest kikerülő kódrészletek kommentként jelennek meg. Ha egyik előbbi jelölés sincs, és egyéb komment sem jelzi másként, akkor az új kódrészletnek számít.
+Az egyes gyakorlatok során gyakori eset, hogy a C# kód egy részét továbbfejlesztjük, megváltoztatjuk. Ilyen esetben a nem változó sorok a jegyzetben üres kommenttel (`/**/`) kezdődnek, míg az előző verzióhoz képest kikerülő kódrészletek kommentként jelennek meg. Ha egyik előbbi jelölés sincs, és egyéb komment sem jelzi másként, akkor az új kódrészletnek számít.
 
 [source,csharp]
 ----
@@ -69,4 +70,4 @@ Az egyes gyakorlatok során gyakori eset, hogy a C# kód egy részét továbbfej
     /* Console.*/ReadLine();     //ez a sor megváltozott, az elejéről kód törlődött
 ----
 
-WARNING: A JSON formátum alapértelmezésben nem támogatja a kommenteket, így ha JSON kódrészletet másolunk, győződjünk meg arról, hogy nem maradt-e a beillesztett kódban komment.
+WARNING: A JSON formátum alapértelmezésben (a szabvány szerint) nem támogatja a kommenteket, így ha JSON kódrészletet másolunk, győződjünk meg arról, hogy nem maradt-e a beillesztett kódban komment, mert problémát okozhat.

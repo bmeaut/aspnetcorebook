@@ -12,7 +12,7 @@ Próbáljuk ki a generált projektet mindenféle változtatás nélkül, fordít
 dotnet <projektnév.dll>
 ----
 
-TIP:  A dotnet parancshoz a dll könyvtárában kell lennünk. Ehhez a legegyszerűbb, ha a Windows fájlkezelőben a megfelelő könyvtárban állva az elérési útvonal mezőt átírjuk a `cmd` szövegre, majd kbd:[ENTER]-t nyomunk.
+TIP:  A dotnet parancshoz a dll könyvtárában kell lennünk. Ehhez a legegyszerűbb, ha a Windows fájlkezelőben a megfelelő könyvtárban állva az elérési útvonal mezőt átírjuk a `cmd` szövegre, majd kbd:[ENTER]-t nyomunk. A Shift+jobb egérklikk kombinációval a mappában nyithatunk ugyanígy parancssort (vagy PowerShell ablakot).
 
 Adjunk a létrejövő projekthez egy `Dog` osztályt _Dog.cs_ néven, ez lesz az adatmodellünk:
 
@@ -433,7 +433,7 @@ Klónozzunk tovább, aztán próbáljunk mutációt végrehajtani a `Metadata` s
 [source,csharp]
 ----
 /**/var watson6 = watson4 with { Name = "Sherlock"
-/**/                               , Metadata= new Dictionary<string, object>() };
+/**/                               , Metadata = new Dictionary<string, object>() };
 var watson7 = watson6 with { Name = "Watson" };
 watson7.Metadata.Add("Chip azonosító", "12345QQ");
 /**/WriteLine(watson4);
@@ -475,7 +475,7 @@ public record DogRecExt
 }
 ----
 
-NOTE: a `ToString` implementációját elhagytuk, valamint a szótár alapértelmezett inicializációját is, az előző szakaszban említettek miatt.
+NOTE: A `ToString` implementációját elhagytuk, valamint a szótár alapértelmezett inicializációját is, az előző szakaszban említettek miatt.
 
 A `Main` függvénybe:
 
@@ -491,7 +491,6 @@ A `Main` függvénybe:
 
 Ellenőrizzük le a rekord tulajdonságokat:
 
-- A konzol kimeneten mutáció működését, azaz a `watson8` születési dátuma a beállított lesz. Ez nem csoda, hiszen a property deklarációban engedtük a mutációt.
+- A konzol kimeneten a formázást, továbbá a mutáció működését, azaz a `watson8` születési dátuma a beállított lesz. Ez nem csoda, hiszen a property deklarációban engedtük a mutációt.
 - A konzol kimeneten megfigyelt példányadatokon a klónozó kifejezés működését. Semmi különös, ugyanúgy működik, mint a tömör formánál.
-- A *Watch* ablakban `watson8 == watson9` egyenlőséget. Egyezés lesz, hiszen minden alapadatuk egyezik.
-- A konzol kimeneten a formázott kiírást.
+- A *Watch* ablakban `watson8 == watson9` egyenlőséget. Ez igaz, mert minden adattagjuk egyezik.
