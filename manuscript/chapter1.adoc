@@ -118,7 +118,7 @@ A `Main` függvénybe írhatjuk például:
 
 [source,csharp]
 ----
-Person p= new Person("Eric Lippert");
+Person p = new Person("Eric Lippert");
 p.Name = "Mads Torgersen";
 Console.WriteLine(p.Name);
 ----
@@ -280,6 +280,6 @@ List<Person> people = new List<Person>
 
 Nem kell az `Add` függvényhívást és a lista referenciát kiírni, egyértelmű, hogy melyik listához adunk hozzá.
 
-TIP: Ez a forma is ugyanolyan az `Add` függvényhívásokra fordul, mint az eredeti változatban.
+TIP: Ez a forma is ugyanolyan `Add` függvényhívásokra fordul, mint az eredeti változatban.
 
 Próbáljuk ki az alkalmazást így is!

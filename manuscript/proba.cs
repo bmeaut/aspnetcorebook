@@ -1,3 +1,0 @@
-    public DateTime DateOfBirth { get; }
-
-/
