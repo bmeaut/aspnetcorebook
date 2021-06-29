@@ -10,7 +10,34 @@ Automatizálási és Alkalmazott Informatikai Tanszék +
 1117 Budapest, Magyar tudósok körútja 2. (Q épület)
 
 [.text-center]
-https://www.aut.bme.hu
+https://bme.hu +
+https://www.vik.bme.hu +
+https://www.aut.bme.hu +
+ +
+ +
+[.text-center]
+{author} +
+{email} +
+
+[.text-center]
+{author_2} +
+{email_2} +
+
+[.text-center]
+{author_3} +
+{email_3} +
+ +
+ +
+[.text-center]
+_Hibajelentések, közreműködők_ +
+https://github.com/bmeaut/aspnetcorebook
+
+[.text-center]
+_Külső konzultáns_ +
+Kovács Dániel +
+AutSoft Zrt. +
+ +
+ +
  +
  +
  +

@@ -1,7 +1,8 @@
 = ASP.NET Core 5 gyakorlatok
-Simon Gábor <simon.gabor@aut.bme.hu>; Szabó Gábor <szabo.gabor@aut.bme.hu>; Tóth Tibor <toth.tibor@aut.bme.hu>
-v0.96, 2021. június 22.
+Simon Gábor <simon.gabor@vik.bme.hu>; Szabó Gábor <szabo.gabor@vik.bme.hu>; Tóth Tibor <toth.tibor@vik.bme.hu>
+v1.0 - első kiadás, 2021. június
 :doctype: book
+:!version-label:
 :source-highlighter: rouge
 :icons: font
 :experimental:
