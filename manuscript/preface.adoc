@@ -43,11 +43,10 @@ Ahogyan a fenti verziók változnak, úgy avulhatnak el a jegyzetben mutatott el
 A gyakorlatok az alábbi szoftverekből álló környezethez készültek:
 
 * Windows 10 operációs rendszer
-* https://visualstudio.microsoft.com/downloads/[Visual Studio 2019 v16.8+] (az ingyenes Community verzió elég) az alábbi _workload_-okkal:
+* https://visualstudio.microsoft.com/downloads/[Visual Studio 2019 v16.8+] (az ingyenes Community verzió elég) az alábbi workloadokkal:
  ** .NET desktop development
  ** Data storage and processing
- ** .NET Core cross-platform development 
-// Üzenet a jövőből: VS 2022-től nincsen .NET Core workload.
+ ** .NET Core cross-platform development
  ** ASP.NET and web development
  ** Azure Development
 * https://www.telerik.com/fiddler[Telerik Fiddler]
@@ -70,4 +69,4 @@ Az egyes gyakorlatok során gyakori eset, hogy a C# kód egy részét továbbfej
     /* Console.*/ReadLine();     //ez a sor megváltozott, az elejéről kód törlődött
 ----
 
-WARNING: A JSON formátum alapértelmezésben (a szabvány szerint) nem támogatja a kommenteket, így ha JSON kódrészletet másolunk, győződjünk meg arról, hogy nem maradt-e a beillesztett kódban komment, mert problémát okozhat.
+WARNING: A JSON formátum alapértelmezésben (RFC szerint) nem támogatja a kommenteket, így ha JSON kódrészletet másolunk, győződjünk meg arról, hogy nem maradt-e a beillesztett kódban komment, mert problémát okozhat.

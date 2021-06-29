@@ -12,7 +12,7 @@ Próbáljuk ki a generált projektet mindenféle változtatás nélkül, fordít
 dotnet <projektnév.dll>
 ----
 
-TIP:  A dotnet parancshoz a dll könyvtárában kell lennünk. Ehhez a legegyszerűbb, ha a Windows fájlkezelőben a megfelelő könyvtárban állva az elérési útvonal mezőt átírjuk a `cmd` szövegre, majd kbd:[ENTER]-t nyomunk. A Shift+jobb egérklikk kombinációval a mappában nyithatunk ugyanígy parancssort (vagy PowerShell ablakot).
+TIP:  A dotnet parancshoz a dll könyvtárában kell lennünk. Ehhez a legegyszerűbb, ha a Windows fájlkezelőben a megfelelő könyvtárban állva az elérési útvonal mezőt átírjuk a `cmd` szövegre, majd kbd:[ENTER]-t nyomunk. A kbd:[SHIFT+jobb egérklikk] kombinációval a mappában nyithatunk ugyanígy parancssort (vagy PowerShell ablakot).
 
 Adjunk a létrejövő projekthez egy `Dog` osztályt _Dog.cs_ néven, ez lesz az adatmodellünk:
 
