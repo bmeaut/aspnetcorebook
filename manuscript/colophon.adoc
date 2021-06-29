@@ -1,10 +1,10 @@
 [colophon]
-== ASP.NET Core 5 gyakorlatok
+== {nbsp}
 
 [.text-center]
-Budapesti Műszaki és Gazdaságtudományi Egyetem
-Villamosmérnöki és Informatikai Kar
-Automatizálási és Alkalmazott Informatikai Tanszék
+Budapesti Műszaki és Gazdaságtudományi Egyetem +
+Villamosmérnöki és Informatikai Kar +
+Automatizálási és Alkalmazott Informatikai Tanszék +
 
 [.text-center]
 1117 Budapest, Magyar tudósok körútja 2. (Q épület)
@@ -15,4 +15,4 @@ https://www.aut.bme.hu
  +
  +
 [.text-center]
-ISBN 123-456-784-901-2
+ISBN 978-963-421-854-8
