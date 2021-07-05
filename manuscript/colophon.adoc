@@ -10,7 +10,7 @@ Automatizálási és Alkalmazott Informatikai Tanszék +
 1117 Budapest, Magyar tudósok körútja 2. (Q épület)
 
 [.text-center]
-https://bme.hu +
+https://www.bme.hu +
 https://www.vik.bme.hu +
 https://www.aut.bme.hu +
  +
