@@ -48,7 +48,7 @@ class Build : NukeBuild
 
     Target Compile => _ => _
         .DependsOn(Restore)
-        .Produces(Path.Combine(RootDirectory, @"assets/*"))
+        .Produces(RootDirectory / "assets/*")
         .Executes(() =>
         {
             DockerRun(v => v
