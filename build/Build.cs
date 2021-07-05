@@ -14,8 +14,6 @@ using static Nuke.Common.Tools.Docker.DockerTasks;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.Tools.Docker;
 using System.IO;
-using Octokit;
-using MimeTypes;
 using Nuke.Common.Tools.NuGet;
 
 [GitHubActions(
