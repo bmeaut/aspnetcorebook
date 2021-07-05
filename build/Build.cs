@@ -48,14 +48,14 @@ class Build : NukeBuild
 
     Target Compile => _ => _
         .DependsOn(Restore)
-        .Produces(RootDirectory / "assets/*")
+        .Produces(RootDirectory / "manuscript/assets/*")
         .Executes(() =>
         {
             DockerRun(v => v
                 .SetRm(true)
                 .SetImage("asciidoctor/docker-asciidoctor")
                 .SetName("asciidoc")
-                .SetVolume($"\"{Path.Combine(RootDirectory,"manuscript")}\":/documents")
+                .SetVolume($"\"{RootDirectory / "manuscript"}\":/documents")
                 .SetCommand("sh").SetArgs("/documents/publish.sh"));
         });
 
