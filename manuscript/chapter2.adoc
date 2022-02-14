@@ -3,9 +3,33 @@
 
 == Előkészítés
 
-Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: a projektsablon szűrőben válasszuk a C# nyelv - Windows platform - _Console_ projekttípust. A szűrt listában válasszuk _Console App_ sablont (most már *ne* a .NET Framework-ös legyen). A neve legyen _HelloCSharp2_. A solutiont ne tegyük külön mappába (_Place solution and project in the same directory_ legyen bekapcsolva). A megcélzott framework verzió legyen .NET 5.
+Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: a projektsablon szűrőben válasszuk a C# nyelv - Windows platform - _Console_ projekttípust. A szűrt listában válasszuk _Console App_ sablont (most már *ne* a .NET Framework-ös legyen). A neve legyen _HelloCSharp2_. A solutiont ne tegyük külön mappába (_Place solution and project in the same directory_ legyen bekapcsolva). A megcélzott framework verzió legyen .NET 6.
 
-Próbáljuk ki a generált projektet mindenféle változtatás nélkül, fordítás (menu:projekten jobbklikk[Build]) után. Nézzünk bele a kimeneti könyvtárba (menu:projekten jobbklikk[Open Folder in File Explorer], majd menu:bin[Debug > net5.0]): látható, hogy az alkalmazásunkból a fordítás során egy cross-platform bináris (<projektnév>.dll) és .NET Core v3 óta egy platform specifikus futtatható állomány (Windows esetén <projektnév>.exe) is generálódik. Kipróbálhatjuk, hogy az exe a szokott módon indítható (pl. duplaklikkel), míg a dll a `dotnet` paranccsal. 
+=== Legfelső szintű utasítások, implicit globális névtér-hivatkozások
+
+Csodálkozzunk rá, hogy a generált projekt mindössze egyetlen érdemi sort tartalmaz.
+
+[source, csharp]
+----
+Console.WriteLine("Hello, World!");
+----
+
+C# 10-ben a program belépési pontját adó forrásfájlt jelentősen lerövidíthetjük:
+
+- a fájl tetején lévő using-okat elhagyhatjuk, ha azok implicit hivatkozva vannak. Az implicit hivatkozott using-ok projekttípustól függenek és a https://docs.microsoft.com/en-us/dotnet/core/project-sdk/overview#implicit-using-directives[dokumentációból] olvashatjuk ki
+- a `Main` függvényt tartalmazó osztály deklarációját (`namespace` blokk, `class` blokk) elhagyhatjuk, ezt a fordító generálja nekünk
+- a `Main` függvény deklarációját szintén generálja a fordító. A metódus neve nem definiált, nem (biztos, hogy) `Main`. A metódus szignatúrája attól függ, milyen utasításokat adunk meg a forrásfájlban. Például, ha nincs return, akkor `void` visszatérési értékű. A paramétere viszont mindig `string[] args`.
+- a függvény blokkba nem foglalt kód a generált belépési pont függvény belsejébe kerül. Függvényt is írhatunk, az a belépési pontot tartalmazó generált osztály tagfüggvénye lesz.
+
+Akadályozzuk meg a program azonnali lefutását egy blokkoló hívással.
+
+[source, csharp]
+----
+/**/Console.WriteLine("Hello, World!");
+    Console.ReadLine();
+----
+
+Próbáljuk ki a generált projektet mindenféle egyéb változtatás nélkül, fordítás (menu:projekten jobbklikk[Build]) után. Nézzünk bele a kimeneti könyvtárba (menu:projekten jobbklikk[Open Folder in File Explorer], majd menu:bin[Debug > net6.0]): látható, hogy az alkalmazásunkból a fordítás során egy cross-platform bináris (<projektnév>.dll) és .NET Core v3 óta egy platform specifikus futtatható állomány (Windows esetén <projektnév>.exe) is generálódik. Kipróbálhatjuk, hogy az exe a szokott módon indítható (pl. duplaklikkel), míg a dll a `dotnet` paranccsal. 
 
 [source]
 ----
@@ -33,49 +57,20 @@ public class Dog
 
 Az adatmodell az előző órán létrehozotthoz nagyon hasonlít, ennek viszont nincsen explicit konstruktora és a `Name` és `DateOfBirth` tulajdonságok publikusan is állíthatók.
 
-== Objektum inicializálók
-
-Az _object initializer_ segítségével az objektum létrehozását (konstruktor hívás) és a property setterek meghívásával történő inicializálását intézhetjük egy füst alatt. Az objektum inicializáló csak konstruktorhívás esetén használható, így pl. factory metódus által gyártott objektumpéldány esetén nem. 
-
-A `Main` metódusban írhatjuk az alábbi példát:
+Hozzunk létre egy `Dog` példányt objektum inicializációs szintaxissal, majd írjuk ki ezt a példányt a kezdeti köszöntő szöveg helyett:
 
 [source,csharp]
 ----
-/**/static void Main(string[] args)
-/**/{
-        Dog banan = new Dog
-        {
-                Name = "Banán",
-                DateOfBirth = new DateTime(2014, 06, 10)
-        };
-        Console.WriteLine(banan);
-        Console.ReadLine();
-/**/}
+    Dog banan = new Dog
+    {
+        Name = "Banán",
+        DateOfBirth = new DateTime(2014, 06, 10)
+    };
+    Console.WriteLine(banan);
+/**/Console.ReadLine();
 ----
 
-TIP:  Paraméter nélküli konstruktor esetén a `()` is elhagyható.
-
-TIP:  Általában 1-2 tulajdonság esetén lehet egy sorba is írni az inicializációt, több esetén viszont általában több sorba érdemes tördelni az olvashatóság érdekében.
-
-Láthatjuk, hogy csak az aktuális kontextusban egyébként is látható és beállítható tulajdonságokat állíthatjuk be, egyik így beállított tulajdonság sem kötelező jellegű.
-
-Az object initializer valóban csak az egyes tulajdonságokat állítja be, tehát csak szintaktikailag különbözik az első definíció az alábbitól:
-
-[source,csharp]
-----
-var _banan = new Dog();
-_banan.Name = "Banán";
-_banan.DateOfBirth = new DateTime(2014, 06, 10);
-var banan = _banan;
-----
-
-TIP: Ebből látszik az objektum inicializáló elsődleges haszna, mégpedig, hogy nem kell állandóan kiírogatni, hogy melyik példányra gondolunk (így elrontani sem tudjuk).
-
-NOTE:  Elég, ha bemutatjuk, nem kell beírni
-
-A háttérben tényleg egy (számunkra nem látható) temporális változóban fog történni az inicializáció, ugyanis, ha az object initializer kivételt dob (az egyik setter által), az objektumunk nem veszi fel a kívánt értéket.
-
-Az object initializer hasznos lehet abban az esetben is, ha át szeretnénk adni egy paramétert egy metódusnak, de az adott objektumnak sokféle tulajdonsága lehet, így nem feltétlenül érdemes a sokparaméteres konstruktorhívásokkal pepecselni; sőt, lehetséges, hogy nem is férünk hozzá a szükséges implementációhoz.
+Ezzel kész a kiinduló projektünk.
 
 == Implicit típusdeklaráció
 

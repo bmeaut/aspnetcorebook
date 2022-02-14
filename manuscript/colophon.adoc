@@ -32,10 +32,9 @@ https://www.aut.bme.hu +
 _Hibajelentések, közreműködők_ +
 https://github.com/bmeaut/aspnetcorebook
 
-[.text-center]
-_Külső konzultáns_ +
-Kovács Dániel +
-AutSoft Zrt. +
+ +
+ +
+ +
  +
  +
  +

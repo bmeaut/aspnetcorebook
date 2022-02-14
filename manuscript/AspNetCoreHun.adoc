@@ -9,7 +9,9 @@ v1.1 - előzetes verzió, 2022.
 :!figure-caption:
 :title-logo-image: image:images/bme_logo.svg[pdfwidth=4.25in,align=center]
 
+////
 include::colophon.adoc[]
+////
 
 ifndef::ebook-format[:leveloffset: 1]
 
@@ -17,6 +19,7 @@ include::preface.adoc[]
 
 include::chapter1.adoc[]
 
+////
 include::chapter2.adoc[]
 
 include::chapter3.adoc[]
@@ -34,5 +37,6 @@ include::chapter8.adoc[]
 include::chapter9.adoc[]
 
 include::afterword.adoc[]
+////
 
 ifndef::ebook-format[:leveloffset: -1]

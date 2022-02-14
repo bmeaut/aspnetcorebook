@@ -7,7 +7,7 @@ A labor során a hallgatók elkezdenek megismerkedni a C# nyelv alapjaival, mond
 
 Ezen a laboron célunk, hogy a hallgatók legalább részben megértsék és ráérezzenek a C# szintaktikájára, megismerkedjenek alapvető nyelvi elemekkel és konstrukciókkal.
 
-Bár a fő platformunk a későbbiekben a .NET 5 lesz, ezen a gyakorlaton még a klasszikus .NET Framework-öt használjuk.
+Bár a fő platformunk a későbbiekben a .NET 6 lesz, ezen a gyakorlaton még a klasszikus .NET Framework-öt használjuk.
 
 == Hello C#!
 
@@ -24,11 +24,11 @@ TIP: A kikereséshez használhatjuk felül a szövegdobozos szűrőt, illetve a 
 
 A sablon konfigurációjánál adjunk meg egy olyan helyet, ahová van írási jogunk. A _Place solution and project in the same directory_ opciót kapcsoljuk be, így nem fog létrejönni egy felesleges mappa a könyvtárszerkezetben. A .NET Framework verziót állítsuk legalább 4.7-esre.
 
-Észrevehetjük, hogy az alkalmazás sablonok között sima és (.NET Framework) jelölésűek is vannak. A simák alapvetően a modernebb .NET Core/.NET 5 platformot célozzák, a _.NET Framework_ ezekhez képest egy régebbi platform.
+Észrevehetjük, hogy az alkalmazás sablonok között sima és (.NET Framework) jelölésűek is vannak. A simák alapvetően a modernebb .NET Core/.NET 5,6 platformot célozzák, a _.NET Framework_ ezekhez képest egy régebbi platform.
 
 * *.NET Core*: a .NET Framework modularizált, modernizált, cross-platform és nyílt forráskódú megvalósítása. Kisebb NuGet csomagokban érhető el a teljes .NET Framework funkcionalitása (Collections, Reflection, XML feldolgozás, stb.).
 * *.NET Framework*: a „klasszikus”, teljesértékű .NET keretrendszer, out-of-the-box támogatja a legelterjedtebb alkalmazásfejlesztési lehetőségeket. A .NET Core megjelenését követően is támogatott, enterprise környezetekben használatos, ugyanis néhány enterprise technológia elsődlegesen csak ebben támogatott (pl. szerver oldali WCF). Csak Windows-ra telepíthető.
-* *.NET 5*: A .NET Core 3.1 utáni fő verziója. Már elnevezésében is jelzi, hogy ez egyben a korábbi .NET Core és .NET Framework verzióknak is utódja.
+* *.NET 5 és fölötte*: A .NET Core 3.1 utáni fő verziói. Már elnevezésében is jelzi, hogy ez egyben a korábbi .NET Core és .NET Framework verzióknak is utódja.
 
 Az alábbi elemeket ismertethetjük, mielőtt a kódírásba belekezdünk:
 
@@ -143,7 +143,7 @@ A láthatóság miatt a `Main` függvényünkben a setter hívás már nem fordu
 
 Említsük meg a _prop_ code snippetet is, ami mindkét módosítószót publikusan hagyja. Láthatósági módosítószót a `get` és `set` közül csak az egyik elé tehetünk ki, és az is csak szigoríthat a külső láthatóságon (ekkor a másik a külsőt kapja meg).
 
-Ez a megoldás az előzővel teljes mértékben ekvivalens (csak nem látjuk a generált backing fieldet, de valójában ott van). Ha van időnk, akkor megmutathatjuk decompilerben (pl. Telerik JustDecompile), hogy valóban így van.
+Ez a megoldás az előzővel teljes mértékben ekvivalens (csak nem látjuk a generált backing fieldet, de valójában ott van). Ha van időnk, akkor megmutathatjuk decompilerben (pl. https://www.telerik.com/products/decompiler.aspx[Telerik JustDecompile]), hogy valóban így van.
 
 Az előzőhöz hasonlóan vegyük fel a születési dátumot is. A születési dátum nem változhat, gyakorlatilag `readonly` mezőről van szó. Ha egy tulajdonság értékét az objektum is csak a konstruktorban tudja megadni, akkor a setter teljes mértékben elhagyható:
 
@@ -207,11 +207,11 @@ static void Main(string[] args)
 }
 ----
 
-Indítsuk el az alkalmazást, és nézzük meg, mi történik!
+Indítsuk el az alkalmazást, és nézzük meg, mi történik! Annyiszor íródik ki a `Person` osztályunk teljes neve (_fully qualified type name_), ahány elem van a listában.
 
 == Leszármazás, string interpoláció
 
-Ha a `WriteLine` fölé visszük az egeret, látható, hogy az overload-ok közül az hívódik meg, amelyik objektumot vár paraméterül. Ebben az esetben a paraméter `ToString` metódusát hívja meg a `WriteLine`, ami alapértelmezés szerint az objektum _fully qualified_ típusának nevét adják vissza. Tegyük szebbé a kiírást, definiáljuk felül az alapértelmezett `ToString` implementációt a `Person` osztályban:
+Ha a `WriteLine` fölé visszük az egeret, látható, hogy az overload-ok közül az hívódik meg, amelyik objektumot vár paraméterül. Ebben az esetben a paraméter `ToString` metódusát hívja meg a `WriteLine`, ami alapértelmezés szerint az objektum típusának teljes nevét adják vissza. Tegyük szebbé a kiírást, definiáljuk felül az alapértelmezett `ToString` implementációt a `Person` osztályban:
 
 [source,csharp]
 ----
@@ -230,7 +230,7 @@ A `ToString` implementációjára más szintaktikai édesítőszereket is haszn�
 public override string ToString() => $"{Name} ({Age}) [ID: {Id}]";
 ----
 
-A két implementáció ekvivalens, először az elsőt, majd a másodikat mutassuk meg. A második implementáció az ún. _expression bodied method_ és a _string interpoláció_ kombinálásából adódik.
+A két implementáció ekvivalens, a második implementáció az ún. _expression bodied method_ és a _string interpoláció_ kombinálásából adódik.
 
 Próbáljuk ki az alkalmazást!
 
@@ -241,45 +241,85 @@ Hozzuk létre a `Student` osztályt, ami származik a `Person` osztályból!
 public class Student : Person
 {
     public string Neptun { get; set; }
-    public Student(string name, DateTime dateOfBirth, string neptun)
+
+    public string Major { get; set; }
+
+    public Student(string name, DateTime dateOfBirth)
         : base(name, dateOfBirth)
-    {
-        Neptun = neptun;
-    }
-    public override string ToString() => $"{base.ToString()} Neptun: {Neptun}";
+    {  }
+
+    public override string ToString() => $"{base.ToString()} Neptun: {Neptun} Major: {Major}";
 }
 ----
 
+Ez az osztály más megközelítéssel készült, mint a szülője, az állapota nem a konstruktor meghívásakor töltődik fel, utólag lehet megadni setter hívásokkal. Ez egyrészt kényelmes, mert nem kell sokparaméteres konstruktorokkal küzdeni, másrészt fel kell készülnünk arra, hogy bizonyos adatokat nem töltenek ki.
+
+WARNING: Ha az ősosztálynak nincs paraméter nélküli konstruktora (a `Person` osztálynak nincs), akkor kötelesek vagyunk a gyerek konstruktorban az ősosztály valamelyik konstruktorát meghívni a `base` kulcsszóval.
+
+== Objektum inicializálók
+
+Az _object initializer_ segítségével az objektum létrehozását (konstruktor hívás) és a property setterek meghívásával történő inicializálását intézhetjük egy füst alatt. Az objektum inicializáló csak konstruktorhívás esetén használható, így pl. factory metódus által gyártott objektumpéldány esetén nem. 
+
+A `Main` metódusban írhatjuk az alábbi példát:
+
+[source,csharp]
+----
+/**/static void Main(string[] args)
+/**/{
+/**/    /*...*/
+/**/    people.Add(new Person("Kovács Géza", new DateTime(1998, 03, 16)));
+        Student elek = new Student("Fel Elek", new DateTime(2002, 06, 10))
+        {
+                Neptun = "ABC123", 
+                Major = "Info BSc"       
+        };
+        /*...*/
+/**/}
+----
+
+TIP: Paraméter nélküli konstruktor esetén a `()` is elhagyható.
+
+TIP: Általában 1-2 tulajdonság esetén lehet egy sorba is írni az inicializációt, több esetén viszont általában több sorba érdemes tördelni az olvashatóság érdekében.
+
+Láthatjuk, hogy csak az aktuális kontextusban egyébként is látható és beállítható tulajdonságokat állíthatjuk be, egyik így beállított tulajdonság sem kötelező jellegű.
+
+Az object initializer valóban csak az egyes tulajdonságokat állítja be, tehát csak szintaktikailag különbözik az első definíció az alábbitól:
+
+[source,csharp]
+----
+Student _elek = new Student("Fel Elek", new DateTime(2002, 06, 10));
+_elek.Neptun = "ABC123";
+_elek.Major = "Info BSc";
+Student elek = _elek;
+----
+
+NOTE: Nem kell beírni, csak szemléltetés.
+
+A háttérben tényleg egy (számunkra nem látható) temporális változóban fog történni az inicializáció, ugyanis, ha az object initializer kivételt dob (az egyik setter által), az objektumunk nem veszi fel a kívánt értéket.
+
+TIP: Ebből látszik az objektum inicializáló elsődleges haszna, mégpedig, hogy nem kell állandóan kiírogatni, hogy melyik példányra gondolunk (így elrontani sem tudjuk).
 
 == Kollekció inicializáció
-A `Main` metódusban vegyünk fel néhány hallgatót is. A három `Person` felvétele után írjuk:
+
+Az egyszerűsített kollekció inicializáció szintaxissal a lista teljes feltöltése jóval kevesebb kóddal és jóval olvashatóbban megadható. Ráadásul a kollekció elemeit létrehozhatjuk az objektum inicializációs szintaxissal is.
+A teljes lista létrehozást és -feltöltés részt cseréljük le az alábbira.
 
 [source,csharp]
-----
-people.Add(new Student("Nagy Sándor", new DateTime(1995, 11, 23), "RHSSDR"));
-people.Add(new Student("Nagy Sándor", new DateTime(1994, 7, 3), "HSSWG4"));
-people.Add(new Student("Horváth Géza", new DateTime(1994, 7, 3), "ASYF2K"));
-----
-
-Próbáljuk ki az alkalmazást!
-
-Az egyszerűsített kollekció inicializáció szintaxissal a lista teljes feltöltése jóval kevesebb kóddal és jóval olvashatóbban megadható.
-
-[source,csharp]
-----
-List<Person> people = new List<Person>
-{
-    new Person("Horváth Aladár", new DateTime(1991, 06, 10)),
-    new Person("Kovács István", new DateTime(1994, 04, 22)),
-    new Person("Kovács Géza", new DateTime(1998, 03, 16)),
-    new Student("Nagy Sándor", new DateTime(1995, 11, 23), "RHSSDR"),
-    new Student("Nagy Sándor", new DateTime(1994, 7, 3), "HSSWG4"),
-    new Student("Horváth Géza", new DateTime(1994, 7, 3), "ASYF2K")
-};
+----    
+    List<Person> people = new List<Person>
+    {
+        new Person("Horváth Aladár", new DateTime(1991, 06, 10)),
+        new Person("Kovács István", new DateTime(1994, 04, 22)),
+        new Person("Kovács Géza", new DateTime(1998, 03, 16)),
+        new Student("Fel Elek", new DateTime(2002, 06, 10))
+                    { Neptun = "ABC123", Major="Info BSc"},
+        new Student("Hiány Áron", new DateTime(2000, 02, 13))                   
+    };
+/**/ /* foreach */
 ----
 
 Nem kell az `Add` függvényhívást és a lista referenciát kiírni, egyértelmű, hogy melyik listához adunk hozzá.
 
 TIP: Ez a forma is ugyanolyan `Add` függvényhívásokra fordul, mint az eredeti változatban.
 
-Próbáljuk ki az alkalmazást így is!
+Próbáljuk ki az alkalmazást! Láthatjuk, hogy a konstruktoron keresztül teljesen inicializálható `Person` példányok esetében a kiírás teljes, viszont vannak olyan `Student` példányok, ahol a kiírás üres értékeket talál. Ezzel a jelenséggel a következő gyakorlatokon tovább foglalkozunk.
