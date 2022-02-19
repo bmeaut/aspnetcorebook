@@ -21,6 +21,8 @@ C# 10-ben a program belépési pontját adó forrásfájlt jelentősen lerövid�
 - a `Main` függvény deklarációját szintén generálja a fordító. A metódus neve nem definiált, nem (biztos, hogy) `Main`. A metódus szignatúrája attól függ, milyen utasításokat adunk meg a forrásfájlban. Például, ha nincs return, akkor `void` visszatérési értékű. A paramétere viszont mindig `string[] args`.
 - a függvény blokkba nem foglalt kód a generált belépési pont függvény belsejébe kerül. Függvényt is írhatunk, az a belépési pontot tartalmazó generált osztály tagfüggvénye lesz.
 
+WARNING: Fontos észrevétel a fentiekből: ezen képesség nem változtatja meg a C# semmilyen alapvető jellemzőjét, például ugyanúgy minden függvénynek osztályon belül kell lennie. A fordítás során a legfelső szintű utasítások kódja úgy egészül ki, ami már minden szabálynak megfelel.
+
 Akadályozzuk meg a program azonnali lefutását egy blokkoló hívással.
 
 [source, csharp]
@@ -36,7 +38,7 @@ Próbáljuk ki a generált projektet mindenféle egyéb változtatás nélkül, 
 dotnet <projektnév.dll>
 ----
 
-TIP:  A dotnet parancshoz a dll könyvtárában kell lennünk. Ehhez a legegyszerűbb, ha a Windows fájlkezelőben a megfelelő könyvtárban állva az elérési útvonal mezőt átírjuk a `cmd` szövegre, majd kbd:[ENTER]-t nyomunk. A kbd:[SHIFT+jobb egérklikk] kombinációval a mappában nyithatunk ugyanígy parancssort (vagy PowerShell ablakot).
+TIP:  A dotnet parancshoz a dll könyvtárában kell lennünk. Ehhez a legegyszerűbb, ha a Windows fájlkezelőben a megfelelő könyvtárban állva az elérési útvonal mezőt átírjuk a `cmd` szövegre, majd kbd:[ENTER]-t nyomunk.
 
 Adjunk a létrejövő projekthez egy `Dog` osztályt _Dog.cs_ néven, ez lesz az adatmodellünk:
 
@@ -87,16 +89,24 @@ A `var` kulcsszó jelentősége: ha a fordító ki tudja találni a kontextusbó
 
     var unnamed = new Dog { DateOfBirth = new DateTime(2017, 02, 10) };
     var unknown = new Dog { };
-    //watson = 3; //<= compiler error!
-    //var error; //<= compiler error!
+    //watson = 3; // <1>
+    //var error;  // <2>
 
 /**/Console.WriteLine(banan);
 /**/Console.ReadLine();
 ----
+<1> Fordítási hiba: a `watson` deklarációjakor eldőlt, hogy ő `Dog` típus, utólag nem lehet megváltoztatni és például számértéket értékül adni. Ez nem JavaScript.
+<2> Fordítási hiba: implicit típust csak úgy lehet deklarálni, ha egyúttal inicializáljuk is. Az inicializációs kifejezés alapján dől el (implicit) a példány típusa.
 
 TIP: Próbáljuk ki a nem forduló sorokat, nézzük meg a fordító hibaüzeneteit.
 
-WARNING: A `var` nem a gyenge típusosság jele a C#-ban, nem úgy, mint pl. JavaScript-ben. Az inicializációs sor után a típus egyértelműen eldől, utána már csak ennek a típusnak megfelelő műveletek végezhetők, például egy értékadással nem változtathatjuk meg a típust. A fenti nem forduló `watson=3;` értékadással nem tudjuk az implicit `Dog` típusú változó típusát `int`-re változtatni.
+WARNING: A `var` nem a gyenge típusosság jele a C#-ban, nem úgy, mint pl. JavaScript-ben. Az inicializációs sor után a típus egyértelműen eldől, utána már csak ennek a típusnak megfelelő műveletek végezhetők, például egy értékadással nem változtathatjuk meg a típust.
+
+A `var`-t tipikusan akkor alkalmazzuk, ha:
+
+- hosszú típusneveket nem akarunk kiírni
+- feleslegesnek tartjuk az inicializáció mindkét oldalán kiírni ugyanazt a típust
+- anonim típusokat használunk (később)
 
 == Init-only setter
 
@@ -142,7 +152,7 @@ Tegyük fel, hogy egy kutyához bármilyen, üzleti logikában nem felhasznált 
 /**/public class Dog
 /**/{
         //...
-        public Dictionary<string, object>  Metadata { get; } = new ();
+        public Dictionary<string, object>  Metadata { get; } = new (); //<1>
     
         public object this[string key]
         {
@@ -151,10 +161,9 @@ Tegyük fel, hogy egy kutyához bármilyen, üzleti logikában nem felhasznált 
         }
 /**/}
 ----
+<1> A `new` operátor utáni konstruktorhívás sok esetben elhagyható, ha a bal oldal alapján amúgy is tudható a típus.
 
-TIP: A .NET 5 projektsablon sokkal kevesebb névtérdeklarációt (`using`) generál alapból. Ha kell vegyük fel a szükségeseket a fel nem oldott néven állva gyorsművelet (villanykörte) eszközzel (kbd:[CTRL+.])
-
-TIP: a `new` operátor utáni konstruktorhívás sok esetben elhagyható, ha a bal oldal alapján amúgy is tudható a típus.
+TIP: Az újabb projektsablonok sokkal kevesebb névtérdeklarációt (`using`) generálnak alapból. Ha kell vegyük fel a szükségeseket a fel nem oldott néven állva gyorsművelet (villanykörte) eszközzel (kbd:[CTRL+.])
 
 Az objektum inicializáló és az index inicializáló vegyíthető, így az alábbi módon tudunk felvenni további tulajdonságokat a kutyákhoz a `Main` függvénybe:
 
@@ -219,6 +228,8 @@ var dogs = new Dictionary<string, Dog>
 
 Ez a változat már nem fog kivételt okozni.
 
+A `nameof` operátor sokfajta nyelvi elemet támogat, vissza tudja adni egy változó, egy típus, egy property vagy egy függvény nevét is.
+
 A szótár feltöltését megírhatjuk kollekció inicializációval is. Ehhez kihasználjuk, hogy a szótár típus rendelkezik egy `Add` metódussal, amelyik egyszerűen egy kulcsot és egy hozzátartozó értéket vár:
 
 [source,csharp]
@@ -245,9 +256,9 @@ Ha egy osztály statikus tagjait vagy egy statikus osztályt szeretnénk haszná
     using static System.Console;
     //..
 /**/foreach (var dog in dogs)
-/**/    /*Console.*/WriteLine($"{dog.Key} - {dog.Value}");
-/**//*Console.*/WriteLine(banan);
-/**//*Console.*/ReadLine();
+        /*Console.*/WriteLine($"{dog.Key} - {dog.Value}");
+    /*Console.*/WriteLine(banan);
+    /*Console.*/ReadLine();
 ----
 
 TIP:  Az általános névfeloldási szabály továbbra is él: ha egyértelműen feloldható a hivatkozás, akkor nem szükséges kitenni a megkülönböztető előtagot (itt: osztály), különben igen.
@@ -256,7 +267,7 @@ TIP:  Az általános névfeloldási szabály továbbra is él: ha egyértelműen
 
 Természetesen a referenciatípusok mind olyan típusok, melyek vehetnek fel `null` értéket, viszont esetenként jó volna, ha a `null` értéket egyébként felvenni nem képes típusok is lehetének ilyen értékűek, ezzel pl. jelezvén, hogy egy érték be van-e állítva vagy sem. Pl. egy szám esetén a 0 egy konkrét, helyes érték lehet a domain modellünkben, a `null` viszont azt jelenthetné, hogy nem vett fel értéket.
 
-Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz az aktuális év Watson kutya életkora! Valamelyik `Console.WriteLine` sorhoz vegyünk fel egy töréspontot (kbd:[F9]), majd debuggolás közben a *Locals* ablakban (debuggolás közben menu:Debug[Windows > Locals]) figyeljük meg az egyes példányok adatait. Watsont kinyitva láthatjuk, hogy a turpisság abból fakad, hogy a `DateOfBirth` adat típusa, a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéket veszi fel, ami `0001. 01. 01. 00:00:00` - hiszen nem állítottunk be mást.
+Vizsgáljuk meg, hogy a konzolra történő kiíráskor miért lesz az aktuális év *Watson* kutya életkora! Valamelyik `Console.WriteLine` sorhoz vegyünk fel egy töréspontot (kbd:[F9]), majd debuggolás közben a *Locals* ablakban (debuggolás közben menu:Debug[Windows > Locals]) figyeljük meg az egyes példányok adatait. Watsont kinyitva láthatjuk, hogy a turpisság abból fakad, hogy a `DateOfBirth` adat típusa, a `DateTime` nem referenciatípus, és alapértelmezés szerinti értéket veszi fel, ami *0001. 01. 01. 00:00:00* - hiszen nem állítottunk be mást.
 
 Ismeretlen születési dátumú, korú egyedek helyes tárolásához az `Age` tulajdonság típusát változtassuk `int?`-re! Az `int?` szintaktikai édesítőszere a `Nullable<int>`-nek, egy olyan struktúrának, ami egy `int` értéket tárol, és tárolja, hogy az be van-e állítva vagy sem. A `Nullable<int>` szignatúráit megmutathatjuk, hogyha a kurzort a típusra helyezve kbd:[F12]-t nyomunk.
 
@@ -284,13 +295,13 @@ TIP: Örvendezzünk, hogy az alap aritmetikai operátorok pont úgy működnek, 
 
 Az `AgeInDays` akkor ad vissza `null` értéket, ha a `DateOfBirth` maga is `null` volt. Tehát ha nincs megadva születési dátumunk, nem tudunk életkort sem számítani. Ennek kifejezésére használhatjuk a `?.` (Elvis, magyarban *Kozsó* - `null` conditional operator) operátort: a kiértékelendő érték jobb oldalát adja vissza, ha a bal oldal nem `null`, különben `null`-t. A kifejezést meg kellett változtatnunk, hogy a `DateOfBirth`-ből vonjuk ki a jelenlegi dátumot és ezt negáljuk, ugyanis a `null` vizsgálandó érték a bináris operátor bal oldalán kell, hogy elhelyezkedjen.
 
-NOTE:  Az Elvis operátor nevének eredetére több magyarázatot is lehet találni, a források annyiban nagyrészt megegyeznek, hogy a kérdőjel tekeredő része az énekes jellegzetes bodorodó hajviseletére emlékeztet, a pontok pedig a szemeket jelölik, így végülis a ?. egy Elvis emotikonként fogható fel. Ezen logika mentén adódik a magyar megfelelő, a Kozsó operátor, hiszen a szem körül tekergőző legikonikusabb hajtincs a magyar zenei kultúrában Kozsó nevéhez köthető.
+NOTE:  Az Elvis operátor nevének eredetére több magyarázatot is lehet találni, a források annyiban nagyrészt megegyeznek, hogy a kérdőjel tekeredő része az énekes jellegzetes bodorodó hajviseletére emlékeztet, a pontok pedig a szemeket jelölik, így végülis a ?. egy Elvis emotikonként fogható fel. Ezen logika mentén adódik a magyar megfelelő, a Kozsó operátor, hiszen a szem körül tekergőző legikonikusabb hajtincs a magyar zenei kultúrában https://hu.wikipedia.org/wiki/Kozso[Kozsó] nevéhez köthető.
 
 Ha így futtatjuk az alkalmazást, az `AgeInDays` és a származtatott tulajdonságok értéke `null` (vagy kiírva üres) lesz, ha a születési dátum nincs megadva.
 
 == Rekord típus
 
-A rekord típusok speciális referencia típusok, melyek
+A rekord típusok speciális típusok, melyek
 
 - egyenlőségvizsgálat során érték típusokra jellemző logikát követnek, azaz két példány akkor egyenlő, ha adataik egyenlőek
 - könnyen immutábilissá tehetők, könnyen kezelhetők immutábilis típusként
@@ -304,7 +315,7 @@ Az automatikusan generálódó egyedi azonosítót iktassuk ki a `Dog` osztályb
 
 [source,csharp]
 ----
-/**/public Guid Id { get; } = Guid/*.NewGuid()*/.Empty;
+public Guid Id { get; } = Guid/*.NewGuid()*/.Empty;
 ----
 
 Vegyünk fel egy logikailag megegyező példányt.
@@ -319,17 +330,19 @@ Ismét álljunk meg debug során valamelyik `WriteLine` soron. A *Locals* ablakb
 
 === Pozíció alapú megadás
 
-Vegyünk fel a `Dog` típus adatainak megfelelő rekord típust, mindössze egy kifejezésként.
+Vegyünk fel a `Dog` típus adatainak megfelelő rekord típust, mindössze egy kifejezésként. A `Dog` típus alá:
 
 [source,csharp]
 ----
-public record DogRec(
+public record class DogRec(
     Guid Id,
     string Name,
     DateTime? DateOfBirth=null, 
     Dictionary<string, object> Metadata=null
 );
 ----
+
+NOTE: A `record class` jelölőből a `class` elhagyható.
 
 Ez az ún. pozíció alapú megadási forma, ami a leginkább rövidített megadási formája a rekord típusnak. Ebből a rövid formából, mindenfajta extra kód írása nélkül a fordító számos dolgot generál:
 
@@ -456,7 +469,7 @@ public record DogRecExt
     public string Name { get; init; }
     public Guid Id { get; } = Guid.Empty;
     public DateTime? DateOfBirth { get; set; }
-    public Dictionary<string, object> Metadata { get; init; }
+    public Dictionary<string, object> Metadata { get; } = new();
 
     private int? AgeInDays => (-DateOfBirth?.Subtract(DateTime.Now))?.Days;
     public int? Age => AgeInDays / 365;
@@ -470,7 +483,7 @@ public record DogRecExt
 }
 ----
 
-NOTE: A `ToString` implementációját elhagytuk, valamint a szótár alapértelmezett inicializációját is, az előző szakaszban említettek miatt.
+NOTE: A `ToString` implementációját elhagytuk az előző szakaszban említettek miatt.
 
 A `Main` függvénybe:
 
@@ -479,7 +492,7 @@ A `Main` függvénybe:
 /**/WriteLine(watson6);
     var watson8 = new DogRecExt { Name = "Watson" };
     watson8.DateOfBirth = DateTime.Now.AddYears(-15);
-    var watson9 = watson8 with { };            
+    var watson9 = watson8 with { };
     WriteLine(watson8);
     WriteLine(watson9);
 ----
@@ -489,3 +502,5 @@ Ellenőrizzük le a rekord tulajdonságokat:
 - A konzol kimeneten a formázást, továbbá a mutáció működését, azaz a `watson8` születési dátuma a beállított lesz. Ez nem csoda, hiszen a property deklarációban engedtük a mutációt.
 - A konzol kimeneten megfigyelt példányadatokon a klónozó kifejezés működését. Semmi különös, ugyanúgy működik, mint a tömör formánál.
 - A *Watch* ablakban `watson8 == watson9` egyenlőséget. Ez igaz, mert minden adattagjuk egyezik.
+
+TIP: A rekordoknak további válfajai vannak, ugyanis struktúra is lehet rekord, ilyenkor a `record struct` kulcsszó párt használjuk a típus deklarációjánál. Sőt, a `readonly record struct` egy immutábilis `record struct`. Ezen válfajok nyilván különbözőképpen viselkednek, mely viselkedéseket itt most nem részletezünk, de a https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record[dokumentációban] megtalálhatók.
