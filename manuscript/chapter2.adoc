@@ -165,7 +165,7 @@ Tegyük fel, hogy egy kutyához bármilyen, üzleti logikában nem felhasznált 
 
 TIP: Az újabb projektsablonok sokkal kevesebb névtérdeklarációt (`using`) generálnak alapból. Ha kell vegyük fel a szükségeseket a fel nem oldott néven állva gyorsművelet (villanykörte) eszközzel (kbd:[CTRL+.])
 
-Az objektum inicializáló és az index inicializáló vegyíthető, így az alábbi módon tudunk felvenni további tulajdonságokat a kutyákhoz a `Main` függvénybe:
+Az objektum inicializáló és az index inicializáló vegyíthető, így az alábbi módon tudunk felvenni további tulajdonságokat a kutyákhoz a legfelső szintű kódba:
 
 [source,csharp]
 ----
@@ -485,7 +485,7 @@ public record DogRecExt
 
 NOTE: A `ToString` implementációját elhagytuk az előző szakaszban említettek miatt.
 
-A `Main` függvénybe:
+A legfelső szintű kódba:
 
 [source,csharp]
 ----

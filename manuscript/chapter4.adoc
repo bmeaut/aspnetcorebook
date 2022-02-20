@@ -7,11 +7,9 @@ Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegye
 
 Enumerátorok használata esetén két alapvető problémába ütközünk: az egyik a mögöttes kollekció módosulása bejárás során, a másik pedig a késleltetett kiértékelésből adódó mellékhatások kezelése.
 
-=== Kollekció módosulása bejárása során, legfelső szintű utasítások
+=== Kollekció módosulása bejárása során
 
 Szűrjünk le egy szám-szám szótárat csak azokra az elemekre, amik megfelelnek egy feltételnek, és ezeket távolítsuk el a szótárból!
-
-Ehhez *mindent* töröljünk vagy kommentezzünk ki a _Program.cs_ fájlból és cseréljük az alábbira:
 
 [source,csharp]
 ----
@@ -28,8 +26,6 @@ foreach (var p in numbers)
 }
 numbers.ForEach(Console.WriteLine);
 ----
-
-Ez egy fura szintaxis egy objektumorientált nyelvtől, hiszen ez a kód látszólag nincs osztályon belül. A projektünkben egy fájlban, amit a program belépési pontjaként szeretnénk, elhagyhatjuk a ceremóniát, nem kell névtér- és osztálydeklaráció, valamint a `Main` függvény fejlécét sem kell megírni. Minden ilyesmi fordítás során generálódik. Általában akkor használjuk, ha egyszerűbb, nem Visual Studio környezetben kipróbálós jellegű programokat szeretnénk írni.
 
 Futtatáskor kivételt kapunk, mi a probléma? A kollekciót bejárás közben szerettük volna módosítani, viszont ez könnyen nem várt működést (túlcímzést, nemdeterminisztikus bejárást) tenne lehetővé, ezért kivételt kapunk. Oldjuk meg a problémát: nem módosíthatjuk a forrás objektumot bejárás közben, tehát ne azt a kollekciót járjuk be, másoljuk le!
 
