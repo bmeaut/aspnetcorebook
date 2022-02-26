@@ -1,7 +1,7 @@
 [#csharp4]
 = C# alapok IV.
 
-Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesfelvágott jelleggel. Az egyes fő témaköröket külön projektként dolgozzuk ki. A projekteket hozzáadhatjuk az elsőként létrehozott projekt solutionjéhez (menu:jobbklikk a projekten[Add > New project]). Hozzáadás után ne felejtsük el átállítani a futtatandó projektet: menu:jobbklikk a projekten[Set as Startup Project]
+Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesfelvágott jelleggel. Az egyes fő témaköröket külön projektként dolgozzuk ki. A projekteket hozzáadhatjuk az elsőként létrehozott projekt solutionjéhez (menu:jobbklikk a projekten[Add > New project]). Hozzáadás után ne felejtsük el átállítani a futtatandó projektet: menu:jobbklikk a projekten[Set as Startup Project].
 
 == Bejárási problémák
 
@@ -13,9 +13,6 @@ Szűrjünk le egy szám-szám szótárat csak azokra az elemekre, amik megfeleln
 
 [source,csharp]
 ----
-using System;
-using System.Linq;
-
 var numbers = Enumerable.Range(1, 8).ToList();
 foreach (var p in numbers)
 {
@@ -27,7 +24,7 @@ foreach (var p in numbers)
 numbers.ForEach(Console.WriteLine);
 ----
 
-Futtatáskor kivételt kapunk, mi a probléma? A kollekciót bejárás közben szerettük volna módosítani, viszont ez könnyen nem várt működést (túlcímzést, nemdeterminisztikus bejárást) tenne lehetővé, ezért kivételt kapunk. Oldjuk meg a problémát: nem módosíthatjuk a forrás objektumot bejárás közben, tehát ne azt a kollekciót járjuk be, másoljuk le!
+Futtatáskor kivételt kapunk. Mi a probléma? A kollekciót bejárás közben szerettük volna módosítani, viszont ez könnyen nem várt működést (túlcímzést, nemdeterminisztikus bejárást) tenne lehetővé, ezért kivételt kapunk. Oldjuk meg a problémát: nem módosíthatjuk a forrás objektumot bejárás közben, tehát ne azt a kollekciót járjuk be, másoljuk le!
 
 [source,csharp]
 ----
@@ -37,11 +34,11 @@ Futtatáskor kivételt kapunk, mi a probléma? A kollekciót bejárás közben s
 
 Ez megoldja a problémát, sikerül eltávolítani az elemeket a kollekcióból. De miért? A `ToList` `IEnumerable` bővítő, tehát bejárhatja a kollekciót, ezután pedig egy **másik ** `List<>` objektumban tárolja az elemeket. Így tehát két listánk lesz (a `numbers` és a `numbers.ToList` visszatérési értéke), amik kezdetben egymás klónjai, menet közben az egyikből veszünk ki, a másikon pedig iterálunk.
 
-TIP: Bár a fenti az általános szabály, bizonyos kollekciók bizonyos módosító műveletei mégsem dobnak kivételt, ilyen például .NET Core 3.0 óta a `Dictionary<,>` `Remove` és `Clear` műveletei.
+TIP: Bár a fenti az általános szabály, bizonyos kollekciók bizonyos módosító műveletei mégsem dobnak kivételt, ilyen például a `Dictionary<,>` `Remove` és `Clear` műveletei.
 
 === Azonnali és késleltetett kiértékelés
 
-Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<T>` visszatérési értékű), az egyes elemeken történő iteráció a generátorok egymásba ágyazását jelenti, azaz az egyes generátorokban a `yield return` által visszaadott értéket fogja az enumerátor `MoveNext` metódusa visszaadni. Amíg az `IEnumerable`-re van referenciánk, és nem járjuk azt közvetlenül be, addig _késleltetett kiértékelésről_ beszélünk.
+Amennyiben egy metódus generátor (`IEnumerable` vagy `IEnumerable<>` visszatérési értékű), az egyes elemeken történő iteráció a generátorok egymásba ágyazását jelenti, azaz az egyes generátorokban a `yield return` által visszaadott értéket fogja az enumerátor `MoveNext` metódusa visszaadni. Amíg az `IEnumerable`-re van referenciánk, és nem járjuk azt közvetlenül be, addig _késleltetett kiértékelésről_ beszélünk.
 
 Az eddigiek alá:
 
@@ -84,15 +81,11 @@ Vegyünk fel egy új metódust és hívjuk meg a `Main` metódusban. A megírt m
 
 [source,csharp]
 ----
-static void Main(string[] args)
-{
-    LoadWebPageAsync();
+LoadWebPageAsync();
+Console.WriteLine("Ez a vége");
+Console.ReadKey();
 
-    Console.WriteLine("Ez a vége");
-    Console.ReadKey();
-}
-
-public static async void LoadWebPageAsync()
+static async void LoadWebPageAsync()
 {
     using (var client = new HttpClient())
     {
@@ -111,7 +104,7 @@ public static async void LoadWebPageAsync()
 
 Debuggoljuk ki! Minden `Console`, `async` sorra tegyünk töréspontot, debuggolás során (kbd:[F5]) kövessük végig milyen sorrendben éri el őket a végrehajtás. Nézzük meg melyik rész milyen szálon fut le (debug közben menu:Debug[Windows > Threads]). A `LoadWebPageAsync` utáni rész előbb fog lefutni, mint az első `await` utáni rész. Az `await` utáni rész nem a _Main Thread_-en fut. Figyeljük meg azt is, hogy az _Ez a vége_ szöveg hamarabb kiíródik, mit a HTML oldal letöltése.
 
-Próbáljuk ki a `Console.ReadKey` nélkül is, ilyenkor jó eséllyel hamarabb leáll a process, minthogy a `Task` befejeződne. Az ilyen fire-and-forget típusú hívásoknál nem figyel arra senki, hogy itt még valami háttérművelet folyik.
+Próbáljuk ki a `Console.ReadKey`-t kikommentezve is, ilyenkor jó eséllyel hamarabb leáll a process, minthogy a `Task` befejeződne. Az ilyen fire-and-forget típusú hívásoknál nem figyel arra senki, hogy itt még valami háttérművelet folyik.
 
 WARNING:  Az async void általában helytelen kód, mert nem lehet bevárni a háttérművelet végét. Az `async Task` máris jobb a bevárhatóság és a hibakezelés miatt, és alig kell módosítani a kódot. Kivétel, amikor valamiért kötelező a `void`, például, ha esemény vagy interfész előírja.
 
@@ -126,24 +119,31 @@ Módosítsuk a `LoadWebPageAsync` fejlécét, hogy taszkot adjon vissza:
 /**/public static async Task LoadWebPageAsync() //void helyett Task
 ----
 
-Várjuk be az szinkron művelet végét a `Main` függvényben. Ehhez viszont a `Main` függvénynek is async-nak kell lennie. Ez csak a C# 7.1 óta támogatott.
-
-TIP: A Visual Studio 2019-ben a nyelv alapértelmezett verzióját a projekt futtatókörnyezete határozza meg. Ha ez az alapértelmezett verzió nem megfelelő, akkor például a projektfájlban tudjuk átírni - bizonyos korlátok között. Bővebben https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/configure-language-version[itt].
+Várjuk be az szinkron művelet végét a legfelső szintű kódban.
 
 [source,csharp]
 ----
-/**/static async Task Main(string[] args) //void helyett async Task bekerült
-/**/{
-/**/    await LoadWebPageAsync(); //await bekerült
-/**/
-/**/    Console.WriteLine("Ez a vége");
-/**/    Console.ReadKey();
-/**/}
+    await LoadWebPageAsync(); //await bekerült
+
+/**/Console.WriteLine("Ez a vége");
+/**//*Console.ReadKey();*/
 ----
 
 Figyeljük meg, hogy így már az _Ez a vége_ felirat már a letöltés után jelenik meg.
 
-TIP:  Az `async Main` háttere: a fordító egy saját (nem `async`-os) `Main`-t generál, ez lesz az igazi belépési pont. Annyit csinál, hogy meghívja és bevárja a mi `Main`-ünket.
+`await`-et használtunk a legfelső szintű kódban, ilyenkor automatikusan `async` kulcsszóval ellátott `Main` generálódik - valami hasonló, mint az alábbi kódrészlet.
+
+[source,csharp]
+----
+static async Task Main(string[] args) //void helyett async Task
+{
+    await LoadWebPageAsync();
+    Console.WriteLine("Ez a vége");
+    //Console.ReadKey();
+}
+----
+
+TIP:  Az `async Main` háttere: a fordító még egy saját (nem `async`-os) `Main`-t is generál, ez lesz az igazi belépési pont. Annyit csinál, hogy meghívja és bevárja a mi `Main`-ünket.
 
 === Háttérművelet eredményének visszaadása
 
@@ -151,16 +151,13 @@ Alakítsuk át, hogy a weboldal tartalmának kiíratása a `Main`-ben történje
 
 [source,csharp]
 ----
-/**/static async Task Main(string[] args)
-/**/{
-        var content = await LoadWebPageAsync();
-        Console.WriteLine(content);
+    var content = await LoadWebPageAsync();
+    Console.WriteLine(content);
 
-/**/    Console.WriteLine("Ez a vége");
-/**/    Console.ReadKey();
-/**/}
+/**/Console.WriteLine("Ez a vége");
+    Console.ReadKey();
 
-/**/public static async Task<string> LoadWebPageAsync() //generikus paraméter
+    static async Task<string> LoadWebPageAsync() //generikus paraméter
 /**/{
 /**/    using (var client = new HttpClient())
 /**/    {
@@ -175,9 +172,9 @@ Alakítsuk át, hogy a weboldal tartalmának kiíratása a `Main`-ben történje
 
 A `return` valójában ezen `Task` eredményét állítja be `async` metódusok esetében, és nem egy nemgenerikus `Task` objektummal kell visszatérjünk.
 
-== Nem nullozható referencia típusok
+== Nem(igazán) nullozható referencia típusok
 
-Korábban láttuk, hogy hogyan lehet egy érték típusnak null értéket adni (`Nullable<T>`). Az érem másik oldala a C# 8-ban megjelent nem nullozható referencia típusok. Mivel itt nem egy új típust vezettek be, hanem az eddig megszokott típusneveket értelmezi máshogyan a fordító, így ez a képesség alapból nincs bekapcsolva. A projekt szintű bekapcsoláshoz a projektfájlban kell egy új beállítást felvennünk a _ProprtyGroup_ címkén belül (menu:jobbklikk a projekten[Edit Project File]).
+Korábban láttuk, hogy hogyan lehet egy érték típusnak null értéket adni (`Nullable<T>`). Az érem másik oldala a C# 8-ban megjelent nem nullozható referencia típusok. Nem egy új típust vezettek be, hanem az eddig megszokott típusneveket értelmezi máshogyan a fordító. A projektfájlban az alábbi beállítás kapcsolja be ezt a funkciót.
 
 [source,xml]
 ----
@@ -190,6 +187,7 @@ Induljunk ki egy egyszerű személyeket nyilvántartó adatosztályból, ahol el
 
 [source,csharp]
 ----
+Console.WriteLine("Hello World!");
 class Person
 {
     string FirstName;   // Not null
@@ -246,7 +244,7 @@ static void M(string? ns)
 <2> Ha egy egyszerű `if`-fel levizsgáljuk, akkor máris ok. Pedig pl. többszálú környezetben az `if` kiértékelése és ezen sor végrehajtása között a változó akár `null` értékre is beíródhat.
 <3> Az előtte lévő rövidzár is megnyugtatja a fordítót, így itt sincs figyelmeztetés.
 <4> Ezt az előző sor alapján figyelmeztetéssel jutalmazza.
-<5> Ez is figyelmeztetés, a `default` operátor által adott értékkel nem inicializálhatunk.
+<5> Ez is figyelmeztetés, a `default` operátor által adott értékkel (`null`) nem inicializálhatunk.
 <6> Ez viszont nem figyelmeztetés, pedig egy csomó `null` jön létre. Ha ez figyelmeztetés lenne, az aránytalanul megnehezítené a tömbök kezelését.
 
 Látható, hogy az egyszerűbb eseteket jól kezeli a fordító, de korántsem mindenható, illetve nem mindig szól akkor sem, amikor egyébként szólhatna.
@@ -315,7 +313,7 @@ A felkiáltójeles ráerőszakolást a `ResetFields`-ben látható ámokfutás h
 
 Figyeljük meg, ahogy a figyelmeztetés eltűnik.
 
-Ha igazán elkötelezettek vagyunk a `null` kiirtása mellett, akkor bekapcsolhatjuk, hogy minden, a `null` kezelés miatti, fordító által detektált figyelmeztetés legyen hiba. A projekt beállítási között (menu:a projekten jobbklikk[Properties]), a _Build_ lapon kapcsoljuk be a _Treat warnings as errors_ részen a _Specific warnings_ opciót, majd az opciónak adjuk meg a `nullable` értéket.
+Ha igazán elkötelezettek vagyunk a `null` kiirtása mellett, akkor bekapcsolhatjuk, hogy minden, a `null` kezelés miatti, fordító által detektált figyelmeztetés legyen hiba. A projekt beállítási között (menu:a projekten jobbklikk[Properties]), a _Build_ lapon adjuk meg a _Treat specific warnings as errors_ opciónak a `nullable` értéket. (Ha több értéket akarunk megadni, akkor a `;` elválasztót alkalmazhatjuk.)
 
 Ellenőrizzük, hogy tényleg hibaként jelennek-e meg az eddigi `null` kezelés miatti figyelmeztetések.
 
@@ -335,7 +333,7 @@ TIP: Léteznek generikus `Tuple<>` típusok is. Ezek referencia típusok, hasonl
 
 [source,csharp]
 ----
-public static long Fibonacci(long x)
+static long Fibonacci(long x)
 {
     (long Current, long Previous) Fib(long i) //<1> 
     {
@@ -364,17 +362,14 @@ Mérjük meg az első pár Fibonacci szám kiszámítását (a mesterséges kés
 
 [source,csharp]
 ----
-/**/static void Main(string[] args)
-/**/{
-        var sw = Stopwatch.StartNew();
-        foreach (var n in Enumerable.Range(1, 15))
-        {
-            Console.WriteLine($"{n}: {Fibonacci(n)}");
-        }
-        sw.Stop();
-        Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
-        Console.ReadKey();
-/**/}
+var sw = Stopwatch.StartNew();
+foreach (var n in Enumerable.Range(1, 15))
+{
+  Console.WriteLine($"{n}: {Fibonacci(n)}");
+}
+sw.Stop();
+Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
+Console.ReadKey();
 ----
 
 Ez így jó, működik, viszont nem újrahasznosítható ez az időmérési mechanizmus.
@@ -389,7 +384,7 @@ public class StopwatchWrapper : IDisposable
 
     public string Title { get; }
 
-    public StopwatchWrapper(string title = null)
+    public StopwatchWrapper(string? title = default)
     {
         Title = title ?? Guid.NewGuid().ToString();
         Console.WriteLine($"Task {title} starting at {DateTime.Now}.");

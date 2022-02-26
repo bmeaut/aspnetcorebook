@@ -118,7 +118,7 @@ Ismerkedjünk meg a `Func` és `Action` általános delegáttípusokkal. Ezzel a
 [source,csharp]
 ----
 Func<Dog, bool> dogFunc =
-    p => p.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
+    d => d.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
 ----
 
 A `dogfunc` és a `predicate` kompatibilisnek tűnhetnek (elvégre a jobboldaluk ugyanaz), ám ha lecserélnénk pl. a `ListDogsByPredicate(Dogs, predicate)` hívásban a `predicate`-et `dogFunc`-ra, a kód nem fordulna, ugyanis a két delegáttípus nem kompatibilis.
@@ -128,6 +128,25 @@ Az `Action<>` hasonló elven működik, visszatérési érték nélküli függv�
 INFO: Ha minden esetre jók, miért vannak használatban `Action<>` és `Func<>`-on kívül más delegáttípusok? Egyrészt történelmi okok miatt. Később jelentek meg, mint a specifikusak, például a `Predicate<T>`. Másrészt a specifikusabbak a nevükkel kifejezőbbek lehetnek.
 
 WARNING: A fenti predikátumváltozataink mind nem tiszta függvények (pure function), ugyanis olyan adattól is függ a visszatérési értéke, ami nem szerepel a paraméterlistáján - ez esetünkben a `searchText` változó. A kódunk azért működik, mert a delegát megadásakor a `searchText` aktuális értékét https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions#capture-of-outer-variables-and-variable-scope-in-lambda-expressions[elkapjuk (capture)], belerakjuk a függvénylogikába.
+
+Próbáljuk a `dogFunc`-ot `var`-ként deklarálni.
+
+[source,csharp]
+----
+var dogFunc =
+    d => d.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
+//Fordítási hiba!
+----
+
+A fordító nem tudja meghatározni a `d` paraméter típusát, ezért kapjuk a fordítási hibát. Adjuk meg explicit a paraméter típusát.
+
+[source,csharp]
+----
+var dogFunc =
+    (Dog d) => d.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
+----
+
+Debugger-rel ellenőrizhetjük, hogy a `dogFunc` valódi típusa `Func<Dog, bool>` lesz.
 
 == IEnumerable<T> bővítő metódusok
 
@@ -314,6 +333,7 @@ Az anonim típusok:
 * csak publikusan látható, csak olvasható tulajdonságokat tartalmazhatnak,
 * eseményeket és metódusokat nem tartalmazhatnak (delegate példányokat tulajdonságban viszont igen),
 * szerelvényen belül láthatók (`internal`) és nem származhat belőlük másik típus (`sealed`)
+* típusnevét nem ismerjük, így hivatkozni sem tudunk rá, csak a `var`-t tudjuk használni
 * nem használhatók ott, ahol a `var` típus se használható, többek között nem adhatjuk át függvénynek és nem lehet visszatérési érték sem
 
 Ha az egeret a `var` kulcsszavak, vagy egyes tulajdonságnevek fölé visszük, láthatjuk, hogy valóban fordítási idejű típusokról van szó.
