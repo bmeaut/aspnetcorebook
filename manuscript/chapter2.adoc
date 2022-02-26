@@ -23,6 +23,8 @@ C# 10-ben a program belépési pontját adó forrásfájlt jelentősen lerövid�
 
 WARNING: Fontos észrevétel a fentiekből: ezen képesség nem változtatja meg a C# semmilyen alapvető jellemzőjét, például ugyanúgy minden függvénynek osztályon belül kell lennie. A fordítás során a legfelső szintű utasítások kódja úgy egészül ki, ami már minden szabálynak megfelel.
 
+WARNING: A legfelső szintű kód olyan, amit a program más részéről nem tudunk hívni, hiszen nem is ismerjük  a burkoló osztály nevét. Emiatt nincs értelme legfelső szintű kódban láthatósági beállításnak (`private`, `protcted`, stb.) vagy propertynek.
+
 Akadályozzuk meg a program azonnali lefutását egy blokkoló hívással.
 
 [source, csharp]
@@ -236,11 +238,11 @@ A szótár feltöltését megírhatjuk kollekció inicializációval is. Ehhez k
 ----
 var dogs = new Dictionary<string, Dog>
 {
-    { nameof(banan), banan },
-    { nameof(watson), watson },
-    { nameof(unnamed), unnamed },
-    { nameof(unknown), unknown },
-    { nameof(pimpedli),pimpedli}
+    { nameof(banan), banan},
+    { nameof(watson), watson},
+    { nameof(unnamed), unnamed},
+    { nameof(unknown), unknown},
+    { nameof(pimpedli), pimpedli}
 
 };
 ----
