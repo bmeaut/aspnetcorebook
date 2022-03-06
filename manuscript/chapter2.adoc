@@ -20,6 +20,7 @@ C# 10-ben a program belépési pontját adó forrásfájlt jelentősen lerövid�
 - a `Main` függvényt tartalmazó osztály deklarációját (`namespace` blokk, `class` blokk) elhagyhatjuk, ezt a fordító generálja nekünk
 - a `Main` függvény deklarációját szintén generálja a fordító. A metódus neve nem definiált, nem (biztos, hogy) `Main`. A metódus szignatúrája attól függ, milyen utasításokat adunk meg a forrásfájlban. Például, ha nincs return, akkor `void` visszatérési értékű. A paramétere viszont mindig `string[] args`.
 - a függvény blokkba nem foglalt kód a generált belépési pont függvény belsejébe kerül. Függvényt is írhatunk, az a belépési pontot tartalmazó generált osztály tagfüggvénye lesz.
+- típusokat, osztályokat is definiálhatunk, de csak a legfelső szintű kódot követően
 
 WARNING: Fontos észrevétel a fentiekből: ezen képesség nem változtatja meg a C# semmilyen alapvető jellemzőjét, például ugyanúgy minden függvénynek osztályon belül kell lennie. A fordítás során a legfelső szintű utasítások kódja úgy egészül ki, ami már minden szabálynak megfelel.
 
