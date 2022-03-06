@@ -130,7 +130,7 @@ public class NorthwindContext : DbContext
 
 TIP: A nagyobb rugalmasság érdekében érdemes a connection stringet konfigurációs fájlba helyezni, majd az ASP.NET Core konfigurációs megoldásaival felolvasni. Erre egy későbbi gyakorlaton nézünk példát.
 
-INFO: A `DbSet<>` típusú tulajdonságoknak látszólag csak kényelmi funkciójuk van, a `Set<>()` függvényhívásokat egyszerűsítik, azonban valójában nagyobb a jelentőségük. Ezek alapján deríti fel az EF, hogy melyek az entitásosztályok, hiszen alapvetően nincsen semmilyen megkülönböztető jellemzőjük. Alapvetően a `DbSet<>` típusú property-k típusparaméterei és az így felderített entitástípusokban lévő navigációs propertyk típusa alapján áll össze az entitástípusok köre.
+INFO: A `DbSet<>` típusú tulajdonságoknak látszólag csak kényelmi funkciójuk van, a `Set<>()` függvényhívásokat egyszerűsítik, azonban valójában nagyobb a jelentőségük. Többek között ezek alapján deríti fel az EF, hogy melyek az entitásosztályok, hiszen alapvetően nincsen semmilyen megkülönböztető jellemzőjük. Alapvetően a `DbSet<>` típusú property-k típusparaméterei és az így felderített entitástípusokban lévő navigációs propertyk típusa alapján áll össze az entitástípusok köre.
 
 Az első verziós adatelérési (DAL) rétegünk ezzel kész is van.
 
@@ -186,6 +186,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 ----
 
 Ezzel a `Name` property hosszát állítottuk be és megadtuk, hogy kötelező (nem `NULL`-ozató) mező.
+
+INFO: Az `OnModelCreating` függvényben hivatkozott típusokat is figyelembe veszi az EF az entitástípusok felderítésekor.
 
 A fluent mellett próbáljuk ki az attribútumos konfigurációt is. Állítsunk át egy oszlopnevet a `Product` osztályban a `Column` attribútummal.
 
@@ -702,7 +704,7 @@ Vegyünk fel a `Product` osztályba egy új property-t az új felsorolt típussa
 
 [source,csharp]
 ----
-public ShipmentRegion ShipmentRegion { get; set; }
+public ShipmentRegion? ShipmentRegion { get; set; }
 ----
 
 Módosítsuk és bővítsük a kezdeti `Product`-ok listáját szállítási információkkal:
@@ -761,6 +763,8 @@ Változott a modell, frissítsük az adatbázist.
 Add-Migration ProductShipmentRegionAsString
 Update-Database
 ----
+
+WARNING: Ahogy a migráció generálásakor a figyelmeztetés is írja, ellenőrizzük a migrációt, mert olyan oszlop típusát változtatjuk, amiben vannak már adatok, ez pedig különös körültekintést igényel. A generált migráció nem is tökéletes, a `Down` részben előbb állítja a migráció `nvarchar`-ról `int`-re az oszlop típusát, minthogy a szöveges értéket számra (pontosabban számot tartalmazó szövegre) cserélné - így lefelé migráláskor SQL hibát kapunk. Az `UpdateData` hívás `AlterColumn` hívás elé helyezésével ezt javíthatjuk.
 
 Ellenőrizzük a termékek táblájában, hogy sikerült-e az átalakítás. Kipróbálhatjuk, hogy működik-e a konverzió objektummodell szinten is. A legfelső szintű kódban kérjük el az összes terméket:
 
