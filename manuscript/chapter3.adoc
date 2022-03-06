@@ -376,12 +376,11 @@ using HelloLinq.Extensions;
                 {
                     Dog = d,
                     AverageSiblingAge = d.Siblings.Average(s => s.Age ?? 0)
-                };
-    int maxLength = query.Max(d => d.Dog.Name.Length);
+                };    
     foreach (var meta in query)
     {
         Console.WriteLine(
-            $"{meta.Dog.Name.TrimPad(maxLength)} - {meta.AverageSiblingAge.TrimPad(5)}");
+            $"{meta.Dog.Name} - {meta.AverageSiblingAge}");
     }
 ----
 

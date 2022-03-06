@@ -4,7 +4,7 @@
 
 Az objektum-relációs (OR) leképzés (_mapping_) két fő részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektummodell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk _Code-First_ mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot __Reverse Engineered Code-First__nek vagy https://docs.microsoft.com/en-us/ef/core/managing-schemas/scaffolding[__scaffolding__nak] hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
 
-Akárhogy is, az Entity Framework (EF), mint OR leképező eszköz (ORM) használatához az alábbi összetevőkre van szükség:
+Akárhogy is, az Entity Framework Core (EF), mint OR leképező eszköz (ORM) használatához az alábbi összetevőkre van szükség:
 
 - objektummodell kódban
 - relációs modell az adatbázisban
@@ -19,20 +19,36 @@ A Code-First módszer lényege, hogy elsőként az OO entitásokat definiáljuk 
 
 === Az entitások definiálása
 
-Készítsünk egy .NET 5 konzolos alkalmazást (csak https://github.com/dotnet/efcore/issues/8035[*ne* EF legyen a neve]), majd a projekten belül hozzunk létre egy _Entities_ nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
+Készítsünk egy .NET 6 konzolos alkalmazást (csak https://github.com/dotnet/efcore/issues/8035[*ne* EF legyen a neve]), majd a projekten belül hozzunk létre egy _Entities_ nevű mappát. Adjunk hozzá a mappához egyszerű osztályokat az alábbi sémának megfelelően:
 
 * *Product* (`Id`: `int`, `Name`: `string`, `UnitPrice`: `int`)
 * *Order* (`Id`: `int`, `OrderDate`: `DateTime`)
 * *Category* (`Id`: `int`, `Name`: `string`)
-Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált property-k (_prop_ snippet).
+Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált propertyk (_prop_ snippet).
+
+A `string` típusú property-k esetén figyelmeztet a fordító, hogy nem nullozható referencia típusú property inicializáció után is `null` értékű lehet. Ennek kivédésére az ajánlott módszer olyan konstruktor írása, ami az ilyen propertyk kezdeti értékét paraméterben megkapja és beállítja.
+
+WARNING: A konstruktort az EF is fogja hívni, neki automatikusan tudnia kell, hogy melyik paraméter melyik tulajdonságot állítja - pedig ez a konstruktor szignatúrájából alapesetben nem kikövetkeztethető. Emiatt önkéntesen tartanunk kell magunkat ahhoz, hogy konstruktorparaméter nevének és a property nevének egyeznie kell, kivéve, hogy a paramétere neve kezdődhet kisbetűvel is (*camel casing*).
+
+Példaként így néz ki a `Product` konstruktor:
+
+[source,csharp]
+----
+public Product(string name)
+{
+    Name = name;
+}
+----
+
+TIP: A Visual Studio *Quick Action*-ként fel szokta ajánlani *Generate constructor [konstruktorfejléc]* vagy *Add parameter to [konstruktorfejléc]* gyors kódgenerálási lehetőségeket, amivel létrehozhatjuk vagy bővíthetjük a szükséges konstruktort.
 
 === Mapping és egyéb metaadatok megadása I.
 
-Eddig megadtuk az entitás nevét, az attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen az attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál ezek megadására. Az egyik módszer, hogy attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
+Eddig megadtuk az entitás nevét, a relációs attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen a relációs attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál ezek megadására. Az egyik módszer, hogy C# attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
 
 A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: például gyakori, hogy az elsődleges kulcs neve tartalmazza az _id_ szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor azt az attribútumos vagy a fluent megadással tehetjük meg.
 
-TIP: EF 6-ban saját konvenciókat is megadhatunk, viszont Core-ban https://github.com/aspnet/EntityFrameworkCore/issues/214[még] nem.
+TIP: A klasszikus EF6-ban saját konvenciókat is megadhatunk, viszont Core-ban https://github.com/aspnet/EntityFrameworkCore/issues/214[még] nem.
 
 Elsőként azt fogjuk megnézni, hogy mit talál ki az EF, ha semmi plusz adatot nem adunk meg.
 
@@ -48,13 +64,15 @@ Egy konkrét kapcsolat esetében: a `Product`-`Category` egy-többes kapcsolatho
 
 TIP: Általánosságban nem kötelező egy kapcsolat mindkét oldalán navigációs property-t felvenni, de erősen javasolt és mindig jó, ha van. Az entitáson végzendő műveleteket egyszerűsíti, illetve a konvenciós logika is következtet belőle.
 
+A navigációs propertyk referencia típusúak, így foglalkoznunk kell a nullozhatóság kérdésével. Ha a kapcsolat modellezési szempontból nem kötelező (például ha nem várnánk el, hogy minden terméknek legyen megadva a kategóriája), akkor a navigációs property típusa is legyen értelemszerűen nullozható. Ha a kapcsolat kötelező, akkor az ajánlott eljárás, hogy a navigációs property típusa ne legyen nullozható - viszont ekkor kezdeti értéket kell adnunk. Gyakori eset, hogy egy entitást betöltünk adatbázisból, de a hozzá kapcsolódó entitás(oka)t nem, ilyenkor mégis a `null` érték lenne a megfelelő. Emiatt az egyik ajánlott módszer, ha a propertyt  *null forgiving* operátorral inicializáljuk `null` értékre. Példa: `public Category Category { get; set; } = null!;`.
+
 Az `Order`-`Product` több-többes kapcsolatokhoz hozzuk létre a kapcsolótáblának megfelelő entitást is, ami egy-egy Product és Order közötti kapcsolatot reprezentálja.
 
 * *OrderItem* (`Id`: `int`, `ProductId`: `int`, `OrderId`: `int`, `Quantity`: `int`)
 
-TIP: Nem kötelező létrehozni osztályt a kapcsolótáblának, konfigurációval is lehet érni, hogy a kapcsolótábla létrejöjjön és az EF megfelelően használja. Ezt a módszert akkor érdemes követni ha a kapcsolótábla csupán technikai tehertétel, de ha például extra adatot is tárol,  esetünkben a rendelt mennyiséget (`Quantity`), akkor jobban követhető kódot eredményez, ha explicit létrehozzuk a kapcsolótáblának megfelelő entitástípust.
+TIP: Nem kötelező létrehozni osztályt a kapcsolótáblának, https://docs.microsoft.com/en-us/ef/core/modeling/relationships?tabs=fluent-api%2Cfluent-api-simple-key%2Csimple-key#many-to-many[konfigurációval is lehet érni], hogy a kapcsolótábla létrejöjjön és az EF megfelelően használja. Ezt a módszert akkor érdemes követni ha a kapcsolótábla csupán technikai tehertétel, de ha például extra adatot is tárol,  esetünkben a rendelt mennyiséget (`Quantity`), akkor jobban követhető kódot eredményez, ha explicit létrehozzuk a kapcsolótáblának megfelelő entitástípust.
 
-Az így kialakult modell:
+Az így kialakult modell (konstruktorok nélkül):
 
 image::images/efcore-model.png[EF Core model]
 
@@ -83,7 +101,7 @@ TIP: NuGet csomagok telepítéséhez segítség a https://docs.microsoft.com/en-
 
 Az Entity Framework önmagában független az adatbázis implementációktól, azokhoz különböző, adatbázisgyártó-specifikus https://docs.microsoft.com/en-us/ef/core/providers/[_adatbázis providereken_] keresztül kapcsolódik. A *Microsoft.EntityFrameworkCore.SqlServer* csomag hivatkozza az EF absztrakt relációs komponensét (_EntityFrameworkCore.Relational_), és tartalmazza az _MS SQL Server_-hez tartozó providert. A providert a `DbContext` `OnConfiguring` metódusában adhatjuk meg, esetünkben a `UseSqlServer` metódussal, ami egy connection stringet vár.
 
-MS SQL Server helyett a _LocalDB_ nevű fejlesztői adatbázist használjuk, mely fejlesztői szempontból gyakorlatilag megegyezik az MS SQL Server-rel. A LocalDB a Visual Studio-val együtt települ, minden Windows felhasználónak külön LocalDB példány indítható el. A Visual Studio az _SQL Server Object Explorer_ ablak megnyitásakor automatikusan létrehozza a felhasználónkhoz tartozó, _MSSQLLocalDB_ nevű példányt.
+https://www.microsoft.com/en-us/sql-server[MS SQL Server] helyett a _LocalDB_ nevű fejlesztői adatbázist használjuk, mely fejlesztői szempontból gyakorlatilag megegyezik az MS SQL Server-rel. A LocalDB a Visual Studio-val együtt települ, minden Windows felhasználónak külön LocalDB példány indítható el. A Visual Studio az _SQL Server Object Explorer_ ablak megnyitásakor automatikusan létrehozza a felhasználónkhoz tartozó, _MSSQLLocalDB_ nevű példányt.
 
 TIP: A LocalDB külön is letölthető, illetve a vele együtt települő _sqllocaldb_ parancs segítségével egyszerűen kezelhető. Minderről bővebb információ a dokumentációban https://docs.microsoft.com/en-us/sql/tools/sqllocaldb-utility?view=sql-server-ver15[olvasható].
 
@@ -104,13 +122,15 @@ public class NorthwindContext : DbContext
         optionsBuilder.UseSqlServer(@"<connstring>");
     }
 
-    public DbSet<Product> Products { get; set; }
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Order> Orders { get; set; }
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Order> Orders => Set<Order>();
 }
 ----
 
 TIP: A nagyobb rugalmasság érdekében érdemes a connection stringet konfigurációs fájlba helyezni, majd az ASP.NET Core konfigurációs megoldásaival felolvasni. Erre egy későbbi gyakorlaton nézünk példát.
+
+INFO: A `DbSet<>` típusú tulajdonságoknak látszólag csak kényelmi funkciójuk van, a `Set<>()` függvényhívásokat egyszerűsítik, azonban valójában nagyobb a jelentőségük. Ezek alapján deríti fel az EF, hogy melyek az entitásosztályok, hiszen alapvetően nincsen semmilyen megkülönböztető jellemzőjük. Alapvetően a `DbSet<>` típusú property-k típusparaméterei és az így felderített entitástípusokban lévő navigációs propertyk típusa alapján áll össze az entitástípusok köre.
 
 Az első verziós adatelérési (DAL) rétegünk ezzel kész is van.
 
@@ -120,7 +140,7 @@ Az első verziós adatelérési (DAL) rétegünk ezzel kész is van.
 
 A kódban történő sémamódosításokat követni tudja a keretrendszer, és a változások alapján frissíteni tudja az adatbázis sémáját lefele, illetve felfele irányban is. Ezt a mechanizmust nevezzük migrációnak. Esetünkben a séma nulláról felhúzása is már módosításnak számít.
 
-A migráció elvégzésére parancssoros utasításokat kell igénybe vennünk. Itt kétfajta megközelítés is adott: vannak PowerShell és vannak klasszikus cmd (dotnet cli) parancsaink.
+A migráció elvégzésére parancssoros utasításokat kell igénybe vennünk. Itt kétfajta megközelítés is adott: vannak *PowerShell* és vannak klasszikus *cmd* (dotnet cli) parancsaink.
 Fel kell telepítsük a projektünkbe valamelyik NuGet csomagot:
 
 * *PowerShell*: Microsoft.EntityFrameworkCore.Tools (telepítsük fel most ezt)
@@ -133,7 +153,7 @@ Hozzuk elő a *Package Manager Console*-t. (menu:Tools[NuGet Package Manager > P
 Add-Migration Init
 ----
 
-Figyeljük meg mit generált a projektünkbe ez a parancs. Itt a migrációhoz egy osztályt készít, ami tartalmazza azokat az utasításokat, amikkel fel- vagy le tudjuk frissíteni az adatbázis sémánkat. Fontos, hogy lefordítsuk a projektet, mert ezen és a többi kódunk alapján fog futni a migráció.
+Figyeljük meg mit generált a projektünkbe ez a parancs. Itt a migrációhoz egy osztályt készít, ami tartalmazza azokat az utasításokat (`Up` függvény), amikkel a modellünknek megfelelő táblákat fel lehet venni. Emellett külön függvényben (`Down`) olyan utasítások is vannak, melyek ugyanezen táblákat eldobják.
 
 Fordítás után adjuk ki az `Update-Database` parancsot, amivel egy adott migrációs állapotig próbálja frissíteni a sémát. Ha nem adunk meg sémanevet akkor a legfrissebb migrációig frissít:
 
@@ -187,11 +207,11 @@ Add-Migration CategoryName_ProductName
 Update-Database CategoryName_ProductName
 ----
 
-TIP: Ha van időnk megnézhetjük az adatbázison futtatott SQL-t is a Script-Migration paranccsal. Például ez mutatja a legutóbbi módosítást érvényesítő SQL-t: `Script-Migration -From Init`
+TIP: Megnézhetjük az adatbázison futtatott SQL-t is a Script-Migration paranccsal. Például ez mutatja a legutóbbi módosítást érvényesítő SQL-t: `Script-Migration -From Init`
 
 TIP: Természetesen mivel még nincsenek adataink az adatbázisban akár el is dobhatnánk az adatbázist és újra legenerálhatnánk nulláról a sémát, de most kifejezetten a migrációt szeretnénk gyakorolni. Az `Add-Migration` kimenete figyelmeztet, hogy adatvesztés is történhet. Vannak veszélyes migrációs műveletek, ezért érdemes átnézni a generálódó migrációs kódot.
 
-WARNING: Ha valamilyen okból nem megfelelő a migrációnk, ne töröljük kézzel a generált .cs fájlokat. Használjuk helyette a `Remove-Migration` parancsot (mindenfajta paraméter nélkül), ami a legutóbbi migrációt törli.
+WARNING: Ha valamilyen okból nem megfelelő a migrációnk, ne töröljük kézzel a generált C# kódfájlokat. Használjuk helyette a `Remove-Migration` parancsot (mindenfajta paraméter nélkül), ami a legutóbbi migrációt törli.
 
 Nézzük meg milyen migrációs osztályt generáltunk, és hogy ez milyen utasításokat tartalmaz.
 
@@ -216,7 +236,7 @@ TIP: Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug kimenetre 
 
 == Beszúrás
 
-Írjunk egy egyszerű beszúró kódot a `Program` osztályba. Várjunk paraméterül egy kontext-et, és csak akkor szúrjunk be az adatbázisba bármit, ha még üres.
+Írjunk egy egyszerű beszúró kódot a *Program.cs*-be. Várjunk paraméterül egy kontext-et, és csak akkor szúrjunk be az adatbázisba bármit, ha még üres.
 
 [source,csharp]
 ----
@@ -226,16 +246,16 @@ static void SeedDatabase(NorthwindContext ctx)
 {
     if (!ctx.Products.Any())
     {
-        var cat_drink = new Category { Name = "Ital" };
-        var cat_food = new Category { Name = "Étel" };
+        var cat_drink = new Category("Ital");
+        var cat_food = new Category("Étel");
         ctx.Categories.Add(cat_drink);
         ctx.Categories.Add(cat_food);
-        ctx.Products.Add(new Product
-                     { Name = "Sör", UnitPrice = 50, Category = cat_drink });
-        ctx.Products.Add(new Product
-                    { Name = "Bor", Category = cat_drink });
-        ctx.Products.Add(new Product
-                    { Name = "Tej", CategoryId = cat_drink.Id });
+        ctx.Products.Add(new Product("Sör")
+            { UnitPrice = 50, Category = cat_drink });
+        ctx.Products.Add(new Product("Bor")
+            { Name = "Bor", Category = cat_drink });
+        ctx.Products.Add(new Product("Tej")
+            { Name = "Tej", CategoryId = cat_drink.Id });
         ctx.SaveChanges();
     }
 }
@@ -243,20 +263,15 @@ static void SeedDatabase(NorthwindContext ctx)
 
 Figyeljük meg, hogy kevertük a kapcsolatok beállításánál a navigációs property szerinti, illetve a sima `Id` érték beállítást.
 
-Hívjuk meg a `Main` függvényben és próbáljuk meg lekérdezni az első terméket. Rakjunk a `Main` végére egy `Console.ReadKey`-t, hogy legyen időnk megnézni a naplót.
+Hívjuk meg a legfelső szintű kódból és próbáljuk meg lekérdezni az első terméket. Rakjunk a kód végére egy `Console.ReadKey`-t, hogy legyen időnk megnézni a naplót.
 
 [source,csharp]
 ----
-/**/static void Main(string[] args)
-/**/{
-        using (var ctx = new NorthwindContext())
-        {
-            SeedDatabase(ctx);
+using var ctx = new NorthwindContext();
+SeedDatabase(ctx);
+var p = ctx.Products.FirstOrDefault();
 
-            var p = ctx.Products.FirstOrDefault();
-        }
-        Console.ReadKey();
-/**/}
+Console.ReadKey();
 ----
 
 Próbáljuk ki! Hibára fut, mert beszúrásnál az `Id` értékes hivatkozás alapértelmezett `int`, azaz 0 értékű lesz, hiszen a kategória is új. Az új elemeknél gyakori, hogy az adatbázis osztja ki az elsődleges kulcs értéket, addig az alapértelmezett értékű. Konvenció szerint a mi _Id_ oszlopaink is ilyenek lesznek (https://docs.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property[ún. IDENTITY oszlopok]).  A termék beszúrásakor viszont a 0 érték már nem lesz helyes, hiszen addigra a kategória kapott valamilyen kulcs értéket. Mindezt a problémát navigációs property-s hivatkozással elkerülhetjük.
@@ -291,13 +306,13 @@ A kontextuskonfiguráció részeként megadhatjuk, hogy milyen adattartalmat sze
 [source,csharp]
 ----
 modelBuilder.Entity<Category>().HasData(
-        new Category {Id = 1, Name = "Ital"}
+    new Category ("Ital") { Id = 1 }
 );
 
 modelBuilder.Entity<Product>().HasData(
-    new Product { Id=1, Name = "Sör", UnitPrice = 50, CategoryId = 1 },
-    new Product { Id=2, Name = "Bor", UnitPrice = 550, CategoryId = 1 },
-    new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 }
+    new Product("Sör") { Id = 1, UnitPrice = 50, CategoryId = 1 },
+    new Product("Bor") { Id = 2, UnitPrice = 550, CategoryId = 1 },
+    new Product("Tej") { Id = 3, UnitPrice = 260, CategoryId = 1 }
 );
 ----
 
@@ -319,13 +334,13 @@ Update-Database 0
 Update-Database
 ----
 
-Ezek után a `SeedDatabase` hívásra nincs szükség, kommentezzük ki a `Main` függvényben.
+Ezek után a `SeedDatabase` hívásra nincs szükség, kommentezzük ki.
 
 == Lekérdezések
 
 Minden rész után az előző szakasz kódját kommentezzük ki, hogy ne keltsen felesleges zajt a kimeneten az előző utasítás, illetve ne legyenek felesleges mellékhatások.
 
-Kérdezzük le azokat a termékeket, melyeknek neve egy adott betűt tartalmaz. A `Main` függvény `using` blokkjába:
+Kérdezzük le azokat a termékeket, melyeknek neve egy adott betűt tartalmaz:
 
 [source,csharp]
 ----
@@ -514,7 +529,7 @@ foreach (var p in products)
 }
 ----
 
-Figyeljük meg, hogy a generálódó SELECT projekciós része így jóval rövidebb.
+Figyeljük meg, hogy a generálódó `SELECT` projekciós része így jóval rövidebb.
 
 TIP: További ritkábban alkalmazott / korábbi verziókban elterjedt módszerek: https://docs.microsoft.com/en-us/ef/core/querying/related-data/explicit[_explicit loading_], https://docs.microsoft.com/en-us/ef/core/querying/related-data/lazy[_lazy loading_].
 
@@ -598,11 +613,14 @@ Nézzünk példát egyszerű módosításra.
 [source,csharp]
 ----
 var pFirst = ctx.Products.Find(1);
-Console.WriteLine(ctx.Entry(pFirst).State);
-pFirst.UnitPrice *= 2;
-Console.WriteLine(ctx.Entry(pFirst).State);
-ctx.SaveChanges();
-Console.WriteLine(ctx.Entry(pFirst).State);
+if (pFirst != null)
+{
+    Console.WriteLine(ctx.Entry(pFirst).State);
+    pFirst.UnitPrice *= 2;
+    Console.WriteLine(ctx.Entry(pFirst).State);
+    ctx.SaveChanges();
+    Console.WriteLine(ctx.Entry(pFirst).State);
+}
 ----
 
 Debuggerrel sorra-sorra lépkedve kövessük végig az EF változáskövető működését. A lekérdezések eredménye alapértelmezetten bekerül a változáskövetőbe (change tracker). Ezután az osztályon végezhetünk adatváltoztató műveletet, mindig könnyen eldönthető, hogy volt-e változás, ha összevetjük az aktuális állapotot (current value) a bekerüléskorival (original value). Figyeljük meg, hogyan kezeli az EF a hozzá tartozó objektumok állapotát.
@@ -660,7 +678,7 @@ Update-Database
 
 Futtassuk újra a törlő kódot - kivételt kapunk, mivel az `OrderItem` rekord nem törlődött kaszkád módon, így az egy már nem létező `Order`-re hivatkozik, viszont ez a külső kulcs kényszert megsérti. Emiatt az egész törlési művelet meghiúsul.
 
-TIP: Adatkezelő alkalmazásokban az adatbázisbeli törlés (SQL `DELETE` utasítás) helyett gyakran inkább logikai törlést (_soft delete_) alkalmaznak. A logikai törlés megvalósításával ezen gyakorlat keretében nem foglalkozunk.
+TIP: Adatkezelő alkalmazásokban az adatbázisbeli törlés (SQL `DELETE` utasítás) helyett gyakran inkább logikai törlést (https://www.thereformedprogrammer.net/ef-core-in-depth-soft-deleting-data-with-global-query-filters/[_soft delete_]) alkalmaznak. A logikai törlés megvalósításával ezen gyakorlat keretében nem foglalkozunk.
 
 == Felsorolt típus, értékkonvertálók
 
@@ -698,17 +716,21 @@ Módosítsuk és bővítsük a kezdeti `Product`-ok listáját szállítási inf
              ,ShipmentRegion = ShipmentRegion.Asia
 /**/    },
 /**/    new Product { Id=2, Name = "Bor", UnitPrice = 550, CategoryId = 1 },
-/**/    new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 },
-        new Product
-        {
-            Id = 4, Name = "Whiskey", UnitPrice = 960, CategoryId = 1,
-            ShipmentRegion = ShipmentRegion.Australia
-        },
-        new Product
-        {
-            Id = 5, Name = "Rum", UnitPrice = 960, CategoryId = 1,
-            ShipmentRegion = ShipmentRegion.EU | ShipmentRegion.NorthAmerica
-        }
+/**/    new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 }
+        ,new Product("Whiskey")
+         {
+             Id = 4,
+             UnitPrice = 960,
+             CategoryId = 1,
+             ShipmentRegion = ShipmentRegion.Australia
+         },
+         new Product("Rum")
+         {
+             Id = 5,
+             UnitPrice = 960,
+             CategoryId = 1,
+             ShipmentRegion = ShipmentRegion.EU | ShipmentRegion.NorthAmerica
+         }     
 /**/  );
 ----
 
@@ -722,18 +744,15 @@ Add-Migration ProductShipmentRegion
 Update-Database
 ----
 
-Figyeljük meg, hogy az új oszlop egész számként tárolja a felsorolt típus értékeit. Ha ez nem tetszik nekünk, használhatjuk az értékkonvertálókat (_value converter_), melyek az adatbázis- és az objektummodell között képesek oda-vissza konvertálni a leképezett elemek értékeit. Számos beépített konvertáló van az EF-ben. Az `enum`-`string` átalakítót használva érjük el, hogy szövegként jelenjenek meg a szállítási területek az adatbázisban. Az `OnModelCreating`-be:
+Figyeljük meg, hogy az új oszlop egész számként tárolja a felsorolt típus értékeit. Ha ez nem tetszik nekünk, mert például szövegesen szeretnénk az adatbázisban látni az értékeket, használhatjuk az értékkonvertálókat (_value converter_), melyek az adatbázis- és az objektummodell között képesek oda-vissza konvertálni a leképezett elemek értékeit. Számos beépített konvertáló van az EF-ben, melyek közül a leggyakoribbakat automatikusan alkalmaz is az EF, elég csak a céltípust megadnunk. Az *felsorolt típus* - *szöveg* átalakító is ilyen. Az `OnModelCreating`-be:
 
 [source,csharp]
 ----
-var converter = new EnumToStringConverter<ShipmentRegion>();
 modelBuilder
     .Entity<Product>()
     .Property(e => e.ShipmentRegion)
-    .HasConversion(converter);
+    .HasConversion<string>();
 ----
-
-TIP: A konvertereket érdemes lehet külön létrehozni, mert nyugodtan újrahasználhatjuk őket, nem kell mindig új példány.
 
 Változott a modell, frissítsük az adatbázist.
 
@@ -743,7 +762,7 @@ Add-Migration ProductShipmentRegionAsString
 Update-Database
 ----
 
-Ellenőrizzük a termékek táblájában, hogy sikerült-e az átalakítás. Kipróbálhatjuk, hogy működik-e a konverzió objektummodell szinten is. A `Main` függvényben kérjük el az összes terméket:
+Ellenőrizzük a termékek táblájában, hogy sikerült-e az átalakítás. Kipróbálhatjuk, hogy működik-e a konverzió objektummodell szinten is. A legfelső szintű kódban kérjük el az összes terméket:
 
 [source,csharp]
 ----
@@ -752,7 +771,7 @@ var prods = ctx.Products.ToArray();
 
 Vizsgáljuk meg a tömbben lévő termékeket debuggerrel: látható, hogy a szállítási területek megfelelő értékűek.
 
-TIP: Saját https://docs.microsoft.com/en-us/ef/core/modeling/value-conversions#the-valueconverter-class[konvertereket] is írhatunk, ha a beépítettek között nem találunk megfelelőt.
+TIP: Explicit is megadhatjuk az alkalmazandó konvertert, ami leggyakrabban a számos https://docs.microsoft.com/en-us/ef/core/modeling/value-conversions?tabs=data-annotations#built-in-converters[beépített konverter] közül kerül ki. Saját https://docs.microsoft.com/en-us/ef/core/modeling/value-conversions#the-valueconverter-class[konvertereket] is írhatunk, ha a beépítettek között nem találunk megfelelőt.
 
 == Tranzakciók
 
@@ -767,19 +786,17 @@ try
 {    
     using (var transaction = ctx.Database.BeginTransaction())
     {
-        ctx.Products.Add(new Product
-        {
-            Name = "Coca Cola",
-            CategoryId = cid,
-        });
-        ctx.SaveChanges();
-        ctx.Products.Add(new Product
-        {
-            Name = "Pepsi",
-            CategoryId = cid,
-        });
-        ctx.SaveChanges();
-        transaction.Commit();
+       ctx.Products.Add(new Product("Coca Cola")
+       {
+           CategoryId = cid,
+       });
+       ctx.SaveChanges();
+       ctx.Products.Add(new Product("Pepsi")
+       {
+           CategoryId = cid,
+       });
+       ctx.SaveChanges();
+       transaction.Commit();
     }
 }
 catch (Exception){}
@@ -802,16 +819,14 @@ Teszteljük a hibás ágat is azáltal, hogy a második terméket egy nem létez
 ----
 /**/using (var transaction = ctx.Database.BeginTransaction())
 /**/{
-/**/    ctx.Products.Add(new Product
+        ctx.Products.Add(new Product("Cider") //új név
 /**/    {
-            Name = "Cider", //a név megváltozott
 /**/        CategoryId = cid,
 /**/    });
 /**/    ctx.SaveChanges();
-/**/    ctx.Products.Add(new Product
+        ctx.Products.Add(new Product("Kőműves KUBU") //új név
 /**/    {
-            Name = "Kőműves KUBU", //a név megváltozott
-            CategoryId = 100,     //nem létező kategória azonosítóra változott
+            CategoryId = 100, //nem létező CategoryId
 /**/    });
 /**/    ctx.SaveChanges();
 /**/    transaction.Commit();

@@ -266,7 +266,7 @@ private void ResetFields()
 }
 ----
 
-Látható, hogy vannak megkerülő megoldások arra, hogy ráerőszakoljuk a fordítóra az akaratunkat, a felkiáltójel használatával beírhatunk `null` értékeket nem nullozható változókba. Illetve `string` esetén null helyett használhatjuk az üres `string` értéket - ami nem biztos, hogy sokkal jobb a `null` értéknél. Mindenesetre ezek a függvények nem okoznak újabb figyelmeztetéseket.
+Látható, hogy vannak megkerülő megoldások arra, hogy ráerőszakoljuk a fordítóra az akaratunkat, a felkiáltójel használatával beírhatunk `null` értékeket nem nullozható változókba (ez az ún. *null forgiving operator* ). Illetve `string` esetén null helyett használhatjuk az üres `string` értéket - ami nem biztos, hogy sokkal jobb a `null` értéknél. Mindenesetre ezek a függvények nem okoznak újabb figyelmeztetéseket.
 
 Nézzük meg, hogy mennyire tudja lekövetni a fenti függvények működését a fordító. Vegyünk fel ennek tesztelésére egy újabb függvényt a `Person` osztályba:
 
