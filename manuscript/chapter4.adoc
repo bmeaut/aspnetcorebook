@@ -77,7 +77,7 @@ A fő gond, hogy a hosszan futó műveletek blokkolhatják a fő/UI/aktuális sz
 Ötlet a hosszan tartó műveleteket végezzük aszinkron módon, és ha az befejeződött az eredményről valamilyen módon értesüljünk. A keretrendszer többféle mintát kínál erre: Asynchronous Programming Model (APM), Event-based Asynchronous Pattern (EAP), Task-based Asynchronous Pattern (TAP). Mi most a legutóbbival foglalkozunk csak, a többi jórészt elavultnak számít ma már.
 
 A TAP-ra már C# nyelvi támogatást is kapunk az `async`/`await` kulcsszavakon keresztül.
-Vegyünk fel egy új metódust és hívjuk meg a `Main` metódusban. A megírt metódus írása során hivatkozzuk be a `System.Net.Http` névteret. A kód semmi mást nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott URL-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és kiírja a konzolra.
+Vegyünk fel egy új metódust és hívjuk meg a legfelső szintű kódban. A megírt metódus írása során hivatkozzuk be a `System.Net.Http` névteret. A kód semmi mást nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott URL-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és kiírja a konzolra.
 
 [source,csharp]
 ----
@@ -116,7 +116,7 @@ Módosítsuk a `LoadWebPageAsync` fejlécét, hogy taszkot adjon vissza:
 
 [source,csharp]
 ----
-/**/public static async Task LoadWebPageAsync() //void helyett Task
+public static async Task LoadWebPageAsync() //void helyett Task
 ----
 
 Várjuk be az szinkron művelet végét a legfelső szintű kódban.
@@ -135,19 +135,14 @@ Figyeljük meg, hogy így már az _Ez a vége_ felirat már a letöltés után j
 
 [source,csharp]
 ----
-static async Task Main(string[] args) //void helyett async Task
-{
-    await LoadWebPageAsync();
-    Console.WriteLine("Ez a vége");
-    //Console.ReadKey();
-}
+await LoadWebPageAsync();
+Console.WriteLine("Ez a vége");
+//Console.ReadKey();
 ----
-
-TIP:  Az `async Main` háttere: a fordító még egy saját (nem `async`-os) `Main`-t is generál, ez lesz az igazi belépési pont. Annyit csinál, hogy meghívja és bevárja a mi `Main`-ünket.
 
 === Háttérművelet eredményének visszaadása
 
-Alakítsuk át, hogy a weboldal tartalmának kiíratása a `Main`-ben történjen, és a `LoadWebPageAsync` csak adja vissza a tartalmat `string`-ként. Ehhez módosítsuk a visszatérési értéket `Task<string>`-re, így az `await` már eredménnyel fog tudni visszatérni.
+Alakítsuk át, hogy a weboldal tartalmának kiíratása a legfelső szintű kódban történjen, és a `LoadWebPageAsync` csak adja vissza a tartalmat `string`-ként. Ehhez módosítsuk a visszatérési értéket `Task<string>`-re, így az `await` már eredménnyel fog tudni visszatérni.
 
 [source,csharp]
 ----
@@ -423,17 +418,13 @@ Az `IDisposable` interfészt megvalósító elemekkel használhatjuk a `using` k
 
 [source,csharp]
 ----
-/**/static void Main(string[] args)
-/**/{
-        using (new StopwatchWrapper("Fib 1-15"))
-        {
-            foreach (var n in Enumerable.Range(1, 15))
-            {
-                Console.WriteLine($"{n}: {Fibonacci(n)}");
-            }
-        }    
-/**/    Console.ReadKey();
-/**/}
+using (new StopwatchWrapper("Fib 1-15"))
+{
+    foreach (var n in Enumerable.Range(1, 15))
+    {
+        Console.WriteLine($"{n}: {Fibonacci(n)}");
+    }
+}    
 ----
 
 Tehát a `using` használatával a blokk elejét és végét tudjuk kezelni. Gyakorlatilag egy `try-finally`-val ekvivalens a minta, a `finally`-ben meghívódik a `Dispose` metódus.
