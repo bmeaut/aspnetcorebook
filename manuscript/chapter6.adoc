@@ -180,12 +180,11 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
     modelBuilder.Entity<Category>()
         .Property(c => c.Name)
-        .HasMaxLength(15)
-        .IsRequired();
+        .HasMaxLength(15);
 }
 ----
 
-Ezzel a `Name` property hosszát állítottuk be és megadtuk, hogy kötelező (nem `NULL`-ozató) mező.
+Ezzel a `Name` property hosszát állítottuk be.
 
 INFO: Az `OnModelCreating` függvényben hivatkozott típusokat is figyelembe veszi az EF az entitástípusok felderítésekor.
 

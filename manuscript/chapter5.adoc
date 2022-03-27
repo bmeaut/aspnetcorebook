@@ -6,7 +6,7 @@ Ezen a gyakorlaton nem a beépített API projektsablont fogjuk felhasználni, ha
 
 === Generálás
 
-Hozzunk létre a Visual Studioban egy új, C# nyelvű  projektet az _ASP.NET Core Empty_ sablonnal, a neve legyen _HelloAspNetCore_. Megcélzott keretrendszerként adjuk meg a _.NET 5_-öt. Minden extra opció legyen kikapcsolva, a docker és a HTTPS is.
+Hozzunk létre a Visual Studioban egy új, C# nyelvű  projektet az _ASP.NET Core Empty_ sablonnal, a neve legyen _HelloAspNetCore_. Megcélzott keretrendszerként adjuk meg a _.NET 6_-ot. Minden extra opció legyen kikapcsolva, a docker és a HTTPS is.
 
 === Kitérő: NuGet és a keretrendszert alkotó komponensek helye
 
@@ -19,76 +19,89 @@ Nem fejlesztői, például végfelhasználói vagy szerver környezetben- ahol n
 Nézzük meg milyen projekt generálódott:
 
 * *.csproj*: (menu:Projekten jobb gomb[Edit Project File]) a projekt fordításához szükséges beállításokat tartalmazza. Előző verziókhoz képest itt erősen építenek az alapértelmezett értékekre, hogy minél karcsúbbra tudják fogni ezt az állományt.
- ** *Project SDK*: projekt típusa (Microsoft.NET.Sdk.Web), az eszközkészlet funkcióit szabályozza, illetve meghatározza a megcélzott keretrendszert (lásd lentebb)
- ** *TargetFramework*: _net5.0_. Ezzel jelezzük, hogy .NET 5-ös API-kat használunk az alkalmazásban.
+ ** *Project SDK*: projekt típusa (https://docs.microsoft.com/en-us/aspnet/core/razor-pages/web-sdk[Microsoft.NET.Sdk.Web]), az eszközkészlet funkcióit szabályozza, meghatározza a futtatáshoz használatos shared framework-öt, illetve meghatározza a megcélzott keretrendszert is(lásd lentebb)
+ ** *TargetFramework*: _net6.0_. Ezzel jelezzük, hogy .NET 6-os API-kat használunk az alkalmazásban.
 * *Connected Services*: külső szolgáltatások, amiket használ a projektünk, most nincs ilyenünk.
 * *Dependencies*: a keretrendszer alapfüggőségei és egyéb NuGet csomagfüggőségek szerepelnek itt. Egyelőre csak keretrendszer függőségeink vannak.
- ** *Frameworks*: két alkönyvtárat (Microsoft.AspNetCore.App.Ref, Microsoft.NETCore.App.Ref) hivatkozunk a .NET SDK *packs* alkönyvtárából. Ezek a függőségek külső NuGet csomagként is elérhetőek, de ahogy fentebb jeleztük, nem érdemes úgy hivatkozni őket.
+ ** *Frameworks*: két alkönyvtárat (Microsoft.AspNetCore.App, Microsoft.NETCore.App) hivatkozunk a .NET SDK *packs* alkönyvtárából. Ezek a függőségek külső NuGet csomagként is elérhetőek, de ahogy fentebb jeleztük, nem érdemes úgy hivatkozni őket.
  ** *Analyzers*: speciális komponensek, amik kódanalízist végzenek, de egyébként ugyanúgy külső függőségként (NuGet csomag) kezelhetjük őket. Ha kibontjuk az egyes analizátorokat, akkor láthatjuk, hogy miket ellenőriznek. Ezek a függőségek a futáshoz nem szükségesek.
 * *Properties*: duplakattra előjön a klasszikus projektbeállító felület
  ** *launchSettings.json:* a különböző indítási konfigurációkhoz tartozó beállítások (lásd később).
 * *appsettings.json*: futásidejű beállítások helye. Kibontható, kibontva a különböző környezetekre specifikus konfigurációk találhatóak (lásd később).
 
-==== Program.cs
+==== Legfelső szintű kód, minimál API
 
-Az előző ASP.NET verzióval ellentétben, itt már az ASP.NET Core alkalmazások a születésüktől fogva klasszikus konzolos alkalmazásként is indíthatók, ekkor az alkalmazás alapértelmezett belépési pontja a `Program` osztály statikus `Main` metódusa. Itt a következő lépéseket végzi el a kód:
+Az előző ASP.NET verzióval ellentétben, itt már az ASP.NET Core alkalmazások a születésüktől fogva klasszikus konzolos alkalmazásként is indíthatók, ekkor az alkalmazás alapértelmezett belépési pontja a legfelső szintű kód (esetleg a `Main` metódus). Az ASP.NET Core 6-os verzióban megjelent ún. *minimál API* segítségével már nem csak a konfigurációt tartalmazhatja ez a kód, hanem (egyszerű) kiszolgáló logikát is. 
 
-* a hosztolási környezetet és az alkalmazás szerkezetét felállító builder objektum összeállítása (`CreateHostBuilder` függvényhívás)
-* a builder objektum alapján a hosztolási környezet és az alkalmazás szerkezetének felállítása (`Build` függvényhívás)
+Esetünkben a következő lépéseket végzi el a generált kód:
+* a hosztolási környezetet és az alkalmazás alapszolgáltatásait konfiguráló *builder* objektum összeállítása (`CreateBuilder` függvényhívás)
+* a *builder* objektum alapján a hosztolási környezet és az alkalmazás szerkezetének felállítása (`Build` függvényhívás)
+* végpontot definiál az alkalmazás gyökércímére minimál API segítségével. A végpont a meghívására a *Hello World* szöveget adja vissza.
 * a felállított szerkezet futtatása (`Run` függvényhívás)
 
-Az igazán munkás feladat a builder megalkotása lenne, igen sok mindent lehetne benne konfigurálni, ez a kódban a `CreateHostBuilder`-ben történik. Szerencsére meghívhatjuk a `CreateDefaultBuilder` gyártófüggvényt, ami egy szokványos, az egész alkalmazás működési környezetét meghatározó beállításokat elvégző __builder__t állít elő. Ezek a beállítások még függetlenek attól, hogy milyen jellegű (webes, konzolos) alkalmazásunk van. Ezután adjuk hozzá webes alkalmazás esetén a webre jellemző környezeti beállításokat (pl. webszerver konfiguráció), szerencsére ehhez is van alapértelmezett implementáció (`ConfigureWebHostDefaults`). Az alkalmazás szerkezetét pedig a `Startup` osztállyal írjuk le. A `Startup` osztályra nincsenek erős megkötések, nem kötelező interfészt implementálnia, csupán a megfelelő szignatúrájú függvényeket (`Configure`, `ConfigureServices` - opcionális) fogja az ASP.NET Core keresni.
+Az igazán munkás feladat a builder megalkotása lenne, igen sok mindent lehetne benne konfigurálni, ez a kódban a `CreateBuilder`-ben történik, ami egy szokványos, az egész webalkalmazás működési környezetét meghatározó beállításokat elvégző kiinduló buildert állít elő. Ha valamit a kiinduló builderben megadottól eltérően szeretnénk vagy új beállításokat adnánk meg, akkor a kiinduló builder objektumon történő függvényhívásokkal tehetnénk meg.
 
-TIP: Később érdemes megnézni a `CreateDefaultBuilder` implementációját, de most még nem sok mindent értenénk belőle.
+Mivel a kiinduló builderen nem végzünk semmilyen utólagos konfigurálást, így akár egy utasítással is megkaphatnánk az alkalmazásszerkezetet reprezentáló `WebApplication` példányt.
 
-==== Startup.cs
+[source,csharp]
+----
+//var builder = WebApplication.CreateBuilder(args);
+//var app = builder.Build();
 
-A `Startup` osztály tartalmazza az ASP.NET Core alkalmazásunk konfigurációját, ahol két kitüntetett metódus van.
+var app = WebApplication.Create();
+----
 
-A `ConfigureServices`-ben konfigurálhatjuk fel a dependency injection konténert. (lásd később)
+== Végrehajtási pipeline, middleware-ek
 
-A `Configure` metódusban pedig a middleware (MW) csővezetéket adjuk meg, tehát azokat a komponenseket, amelyeken a HTTP kérés feldolgozása fut végig. Az alábbi ábra szemlélteti a middleware pipeline működését.
+Az ASP.NET Core-ban egy kérés kiszolgálása úgy történik, hogy a kérés egy csővezetéken halad (végig). A csővezeték middleware-ekből (MW) áll. Az alábbi ábra szemlélteti a middleware pipeline működését.
 
+.Forrás: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware
 image::images/aspnetcore1-pipeline.png[ASP.NET Core pipeline]
 
-Az ASP.NET Core alkalmazás alapszerkezete, hogy a befutó HTTP kérés (végig)fusson a middleware-ekből álló csővezetéken és valamelyik (alapesetben az utolsó) middleware előállítja a választ, ami visszairányban halad végig a csővezetéken.
+Az ASP.NET Core alkalmazás alapszerkezete, hogy a befutó HTTP kérés (végig)fusson a middleware-ekből álló csővezetéken és valamelyik (alapesetben az utolsó) middleware előállítja a választ, ami visszairányban halad végig a csővezetéken. A csővezeték adja tehát az alkalmazás szerkezetét. A kiinduló csővezetéket a `WebApplication.Create` vagy a `builder.Build` építi fel, ezt utána `app.UseX` (X= MW neve) hívásokkal testreszabhatunk, kiegészíthetünk.
 
-Esetünkben most csak három middleware-ünk van:
+Esetünkben a kiinduló csővezetékben három MW van:
 
-* kivételkezelő middleware, ami az őt követő middleware-ek hibáit képes elkapni és ennek megfelelően egy a fejlesztőknek szóló hibaoldalt jelenít meg. Ez csak opcionálisan kerül beregisztrálásra attól függően, hogy most éppen _Development módban_ futtatjuk-e az alkalmazást vagy sem. (lásd később)
-* routing middleware, aminek a feladata, hogy a bejövő kérés és a végpontok (lásd lentebb) által adott információk alapján kitalálja, hogy melyik endpoint felé továbbítsa a bejövő kérést.
-* végpontokat (_endpoints_) összefogó middleware, amiben jelenleg egy endpoint árválkodik, ami a gyökércímre (`/`) küldött GET kérésre reagál (ez a routing információ) és válaszba ír egy _Hello World!_ szöveget (ez a működés). Figyeljük meg, hogy ez most egy lambda kifejezéssel kerül megadásra, viszont bonyolultabb esetben érdemes a middleware logikát egy külön osztályba kiszervezni (lásd később)
+* kivételkezelő middleware (`UseDeveloperExceptionPage`), ami az őt követő middleware-ek hibáit képes elkapni és ennek megfelelően egy a fejlesztőknek szóló hibaoldalt jelenít meg. Ez csak opcionálisan kerül beregisztrálásra attól függően, hogy most éppen _Development módban_ futtatjuk-e az alkalmazást vagy sem. (lásd később)
+* routing middleware (`UseRouting`), aminek a feladata, hogy a bejövő kérés és a végpontok (lásd lentebb) által adott információk alapján kitalálja, hogy melyik endpoint felé továbbítsa a bejövő kérést.
+* végpontok middleware  (`UseEndpoints`), ami a kiválasztott endpoint definíciójában megadott logika tényleges lefuttatásáért felel
+
+TIP: A kiinduló csővezeték regisztrálását megfigyelhetjük a https://github.com/dotnet/aspnetcore/blob/c911002ab43b7b989ed67090f2a48d9073d5118d/src/DefaultBuilder/src/WebApplicationBuilder.cs#L232[`WebApplicationBuilder` forráskódjában] - keressük az `app.UseX` sorokat.
+
+A kiinduló projekt nem változtat a kiinduló csővezetéken, csak egy végpont definíciót ad meg (`app.MapGet` sor).
+
+WARNING: A middleware-ek sorrendje fontos. Ha nem megfelelő sorrendben regisztráljuk őket, nem megfelelő működés lehet az eredmény. A dokumentáció általában tartalmazza, hogy melyik middleware https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware#built-in-middleware[hova illeszthető be].
 
 == Hosztolási lehetőségek a fejlesztői gépen
 
-Próbáljuk ki IIS Expressen keresztül futtatva, azaz a VS-ben az indítógomb (zöld nyíl) mellett az IIS Express felirat legyen!
+Próbáljuk ki IIS Expressen keresztül futtatva, azaz a VS-ben az indítógomb (zöld nyíl) mellett az IIS Express felirat legyen! Ha nem ez a felirat van, állítsuk át az indítógomb jobb szélén lévő menüt lenyitva.
 
 Két dolog is történik: az alkalmazásunk IIS Express webkiszolgálóban hosztolva kezd futni és egy böngésző is elindul, hogy ki tudjuk próbálni. Figyeljük meg az értesítési területen (az óra mellett) megjelenő IIS Express ikont (image:images/aspnetcore1-iisexpress.png[title="IIS Express ikon",16,16]) és azon jobbklikkelve a hosztolt alkalmazás címét (menu:jobbklikk[Show All Applications]).
 
-TIP: A indítógomb legördülőjében a böngésző típusát is állíthatjuk.
+A böngésző az alkalmazás gyökércímére navigál (a cím csak **localhost:port**-ból áll), így a *Hello World!* szöveg jelenik meg.
 
-TIP: Debuggerrel nézzük meg, hogy a `Main` ilyenkor is meghívódik, illetve, ahogy az egysoros middleware-ünk előállítja a választ.
+TIP: A indítógomb legördülőjében a böngésző típusát is állíthatjuk.
 
 TIP: Az IIS Express a Microsoft web szerverének (IIS) fejlesztői célra optimalizált változata. Alapvetően csak ugyanarról a gépről érkező (localhost) kéréseket szolgál ki.
 
 A másik lehetőség, ha közvetlenül a konzolos alkalmazást szeretnénk futtatni, akkor ezt az indítógombot lenyitva a projekt nevét kiválasztva tehetjük meg. Ebben az esetben egy beágyazott web szerverhez (_Kestrel_) futnak be a kérések. Próbáljuk ki a Kestrelt közvetlenül futtatva!
 
-Két dolog is történik: az alkalmazásunk konzolos alkalmazásként kezd futni, illetve az előző esethez hasonlóan a böngésző is elindul. Figyeljük meg a konzolban megjelenő naplóüzeneteket.
+Most is két dolog történik: az alkalmazásunk konzolos alkalmazásként kezd futni, illetve az előző esethez hasonlóan a böngésző is elindul. Figyeljük meg a konzolban megjelenő naplóüzeneteket.
 
 TIP: Bár ezek a hosztolási opciók fejlesztői környezetben nagyon kényelmesek, érdemes áttekinteni az éles hosztolási opciókat https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers[itt]. A Kestrel ugyan jelenleg már alkalmas arra, hogy kipublikáljuk közvetlenül a világhálóra, de mivel nem rendelkezik olyan széles konfigurációs és biztonsági beállításokkal, mint a már bejáratott webszerverek, így érdemes lehet egy ilyen webszervert a Kestrel elé rakni proxy gyanánt, például az IIS-t vagy nginx-et.
 
-Rakjunk most az utolsó middleware-ünkbe egy kivétel dobást a kiírás helyett, hogy kipróbáljuk a hibakezelő MW-t.
+Rakjunk most a kiszolgáló logikánkba egy kivétel dobást a kiírás helyett, hogy kipróbáljuk a hibakezelő MW-t.
 
 [source,csharp]
 ----
-/**/endpoints.MapGet("/", async context =>
+/**/app.MapGet("/", () =>
 /**/{
     throw new Exception("hiba");
-    //await context.Response.WriteAsync("Hello World!");
+    //"Hello World!";
 /**/});
 ----
 
-Próbáljuk ki!
+Próbáljuk ki debugger nélkül (kbd:[Ctrl+F5])!
 
 Láthatjuk, hogy a kivételt a hibakezelő middleware elkapja és egy hibaoldalt jelenítünk meg, sőt még a konzolon is megjelenik naplóbejegyzésként.
 
@@ -98,24 +111,28 @@ Figyeljük meg, hogy most Development konfigurációban fut az alkalmazás (konz
 
 Próbáljuk ki Visual Studio-n kívülről futtatni. menu:Projekten jobb klikk[Open Folder in File Explorer]. Ezután a címsorba mindent kijelölve kbd:[cmd + Enter], a parancssorba `dotnet run`.
 
-Ugyanúgy fog indulni, mint VS-ből, mert az újabb .NET Core verziókban már a _dotnet run_ is figyelembe veszi a *launchSettings.json*-t. Ha nem akarjuk ezt, akkor a `--no-launch-profile` kapcsolót használhatjuk a _dotnet run_ futtatásánál.
+Ugyanúgy fog indulni, mint VS-ből, mert az újabb .NET Core verziókban már a _dotnet run_ is figyelembe veszi a *launchSettings.json*-t. A böngészőt magunknak kell indítani (https://github.com/dotnet/sdk/issues/9038[most még]) és elnavigálni a naplóban szereplő címre (*Now listening on: http://localhost:port* üzenetet keressünk).
 
-Most az alkalmazásunk Production módban indul el, és ha a _localhost:5000_-es oldalt megnyitjuk a böngészőben, akkor nem kapunk hibaoldalt, de a konzolon megjelenik a naplóbejegyzés.
+Ha nem akarjuk ezt, akkor a `--no-launch-profile` kapcsolót használhatjuk a _dotnet run_ futtatásánál.
+
+Most az alkalmazásunk Production módban indul el, és ha a _localhost:5000_-es oldalt megnyitjuk a böngészőben, akkor nem kapunk hibaoldalt, de a konzolon továbbra is megjelenik a naplóbejegyzés.
+
+TIP: A **dotnet run** futását kbd:[CTRL + C]-vel állíthatjuk le.
 
 TIP: A konzolban a `setx ENV_NAME Value` utasítással tudunk https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx[felvenni] környezeti változót úgy, hogy az permanensen megmaradjon, és ne csak a konzolablak bezárásáig maradjon érvényben. (Admin/nem admin, illetve powershell konzolok különbözőképpen viselkednek)
 
-A Hello World kiírásunkat kommentezzük vissza.
+Az eredeti logikánkat kommentezzük vissza.
 
 [source,csharp]
 ----
-/**/endpoints.MapGet("/", async context =>
+/**/app.MapGet("/", () =>
 /**/{
-    //throw new Exception("hiba"); //kikommentezve
-    await context.Response.WriteAsync("Hello World!");  //komment levéve
+      //throw new Exception("hiba"); //kikommentezve
+      await context.Response.WriteAsync("Hello World!");  //komment levéve
 /**/});
 ----
 
-Az alkalmazás számára a különböző beállításokat JSON állományokban tárolhatjuk, amelyek akár környezetenként különbözőek is lehetnek. A generált projektünkben ez az *appsettings.json*, nézzünk bele - főleg naplózási beállítások vannak benne. A fájl a Solution Explorer ablakban kinyitható, alatta megtaláljuk az *appsettings.Development.json*-t. Ebben a _Development_ nevű konfigurációra vonatkozó beállítások vannak. Alapértelmezésben az *appsettings.<indítási konfiguráció neve>.json* beállításai jutnak érvényre, felülírva a sima *appsettings.json* egyező értékeit (a pontosabb logikát lásd lentebb).
+Az alkalmazás számára a különböző beállításokat JSON állományokban tárolhatjuk, amelyek akár környezetenként különbözőek is lehetnek. A generált projektünkben ez az *appsettings.json*, nézzünk bele - főleg naplózási beállítások vannak benne. A fájl a *Solution Explorer* ablakban kinyitható, alatta megtaláljuk az *appsettings.Development.json*-t. Ebben a _Development_ nevű konfigurációra vonatkozó beállítások vannak. Alapértelmezésben az *appsettings.<indítási konfiguráció neve>.json* beállításai jutnak érvényre, felülírva a sima *appsettings.json* egyező értékeit (a pontosabb logikát lásd lentebb).
 
 Állítsunk Development módban részletesebb naplózást. Az *appsettings.Development.json*-ben minden naplózási szintet írjunk `Debug`-ra.
 
@@ -125,8 +142,7 @@ Az alkalmazás számára a különböző beállításokat JSON állományokban t
   "Logging": {
     "LogLevel": {
       "Default": "Debug",
-      "Microsoft": "Debug",
-      "Microsoft.Hosting.Lifetime": "Debug"
+      "Microsoft.AspNetCore": "Debug"
     }
   }
 }
@@ -138,100 +154,60 @@ Próbáljuk ki, hogy így az alkalmazásunk futásakor minden böngészőbeli fr
 
 VS-ből is tudjuk állítani a környezeti változókat, nem kell a *launchsettings.json*-ben kézzel varázsolni. A projekt tulajdonságok _Debug_ lapján tudunk új indítási profilt megadni, illetve a meglévőeket módosítani. Válasszuk ki az aktuálisan használt profilunkat (projektneves), majd írjuk át az _ASPNETCORE_ENVIRONMENT_ környezeti változó értékét az _Environment Variables_ részen mondjuk _Production_-re.
 
-Mivel nincs *appsettings.Production.json*, így csak a sima *appsettings.json* jut érvényre. 
-
 Indítsuk ezzel a profillal és figyeljük meg, hogy már nem jelennek meg az egyes kérések a naplóban, bárhogy is frissítgetjük a böngészőt. Oka: nincs *appsettings.Production.json*, így az általános *appsettings.json* jut érvényre.
 
 TIP: Parancssorban a dotnet run --launch-profile [profilnév] kapcsolóval adhatjuk meg az indítási profilt.
 
-TIP: Számos forrásból lehet konfigurációt megadni: parancssor, környezeti változó, fájl (ezt láttuk most), felhő (Azure Key Vault), stb. Ezek közül többet is használhatunk egyszerre, a különböző források konfigurációja a közös kulcsok mentén összefésülődik. A források (_configuration provider_-ek) között sorrendet adhatunk meg, amikor regisztráljuk őket, a legutolsóként regisztrált provider konfigurációja a legerősebb. Az alapértelmezett provider-ek regisztrációját elintézi a korábban látott `CreateDefaultBuilder`.
+TIP: Számos forrásból lehet konfigurációt megadni: parancssor, környezeti változó, fájl (ezt láttuk most), felhő (*Azure Key Vault*), stb. Ezek közül többet is használhatunk egyszerre, a különböző források konfigurációja a közös kulcsok mentén összefésülődik. A források (_configuration provider_-ek) között sorrendet adhatunk meg, amikor regisztráljuk őket, a legutolsóként regisztrált provider konfigurációja a legerősebb. Az alapértelmezett provider-ek regisztrációját elintézi a korábban látott kiinduló builder.
 
 === Statikus fájl MW
 
 Hozzunk létre a projekt gyökerébe egy _wwwroot_ nevű mappát (menu:jobbklikk a projekten[Add > New Folder]) és tegyünk egy képfájlt bele. (Ellophatjuk pl. a http://www.bme.hu honlap bal felső sarkából a logo-t)
 
-A statikus fájlkezelést a teljes modularitás jegyében egy külön middleware-ként implementálták a _Microsoft.AspNetCore.StaticFiles_ osztálykönyvtárban (az AspNetCore.App már függőségként tartalmazza, így nem kell külön hivatkoznunk), csak hozzá kell adnunk a pipeline-hoz. Mindig gondoljunk arra, hogy a `Configure` metódusban a mw-ek konfigurációjának sorrendje fontos, mindig az általunk szabályozott kódlefutási sorrendben fog a kérés a csővezetéken végigfutni. A routing MW által nyújtott szolgáltatás felesleges a statikus fájl middleware-nek, hiszen nem egy endpoint-on elérhető logikát akarunk meghívni, így őt majdnem legelőre a hibakezelés után érdemes rakni.
+A statikus fájlkezelést a teljes modularitás jegyében egy külön middleware-ként implementálták a _Microsoft.AspNetCore.StaticFiles_ osztálykönyvtárban (az AspNetCore.App már függőségként tartalmazza, így nem kell külön hivatkoznunk), csak hozzá kell adnunk a pipeline-hoz.
 
 [source,csharp]
 ----
-/**/public void Configure(IApplicationBuilder app, 
-/**/                      IWebHostEnvironment env)
-/**/{
-/**/   //... hibakezelés
-        app.UseStaticFiles();
-/**/   //... routing
-/**/}
+    app.UseStaticFiles();
+/**/app.MapGet("/", () => "Hello World!");
 ----
 
-Próbáljuk ki! Láthatjuk hogy a _localhost:port_ címen még mindig a _Hello World_ szöveg tűnik fel, de amint a _localhost:port/[képfájlnév]_-vel próbálkozunk, a kép töltődik be. A static file MW megszakítja a pipeline futását, ha egy általa ismert fájltípusra hivatkozunk, egyébként továbbhív a következő MW-be.
+Próbáljuk ki! Láthatjuk hogy a _localhost:port_ címen még mindig a _Hello World_ szöveg tűnik fel, de amint a _localhost:port/[képfájlnév]_-vel próbálkozunk, a kép töltődik be. A static file MW megszakítja a pipeline futását, ha egy általa ismert fájltípusra hivatkozunk, egyébként továbbhív a következő MW-be. Az ilyen MW-eket ún. *termináló* MW-eknek hívjuk.
 
-TIP: Ezt az egysoros „Hello world!” middleware-re tett törésponttal is szemléltethetjük. Figyeljünk arra, hogy csak az `await`-es sorra kerüljön a töréspont és ne az egész `endpoints.MapGet` sorra, illetve csak akkor nézzük, hogy mi fut le, amikor a kép URL-re hívunk.
-
-== Alkalmazásbeállítások vs. DI
-
-Az alkalmazásbeállításokat kódban egy `IConfiguration` interfészt megvalósító objektumon keresztül érhetjük el. Az objektum életciklusát az ASP.NET Core DI konténere kezeli. Ha egy konstruktor szignatúrájában jelezzük, hogy az adott osztályban szeretnénk dolgozni a konfigurációs objektummal, akkor a DI alrendszer beinjektálja nekünk.
-
-Valósítsuk meg ezt a `Startup` osztályban:
-
-[source,csharp]
-----
-public IConfiguration Configuration { get; }
-
-public Startup(IConfiguration configuration)
-{
-    Configuration = configuration;
-}
-----
-
-A konstruktor végére tett törésponton megállva megvizsgálhatjuk a *Watch* ablakban például a `Configuration["AllowedHosts"]` értéket - az appsettings.json szerint ennek * értékűnek kell lennie.
+TIP: Ezt az egysoros endpoint logikára tett törésponttal is szemléltethetjük. Figyeljünk arra, hogy csak a *Hello World!* szövegre kerüljön a töréspont és ne az egész `MapGet` sorra, illetve csak akkor nézzük, hogy mi fut le, amikor a kép URL-re hívunk.
 
 == Web API
 
-Minden API-nál nagyon magas szinten az a cél, hogy egy kérés hatására egy szerveroldali kódrészlet meghívódjon. ASP.NET Core-ban a kódrészleteket függvényekbe írjuk, a függvények pedig ún. _controllerek_-be kerülnek. Összességében tehát a cél, hogy a webes kérés hatására egy kontroller egy függvénye meghívódjon.
+Minden API-nál nagyon magas szinten az a cél, hogy egy kérés hatására egy szerveroldali kódrészlet meghívódjon. ASP.NET Core-ban a kódrészleteket függvényekbe írjuk, a függvények pedig ún. _kontrollerek_-be kerülnek. Egy controller általában egy erőforrástípushoz kapcsolódó műveleteket fogja össze. Összességében tehát a cél, hogy a webes kérés hatására egy kontroller egy függvénye meghívódjon.
 
 === DummyController
 
-Hozzunk létre egy új mappát _Controllers_ néven. A mappába hozzunk létre egy kontrollert (menu:jobbklikk a projekten[Add > Controller... > a bal oldali fában Common > API > jobb oldalon API Controller with read/write actions]) `DummyController` néven. A generált kontrollerünk a _Microsoft.AspNetCore.Mvc.Core_ nuget csomagban található `ControllerBase` osztályból származik. (Ezt a csomagot sem kell feltennünk, mivel az AspNetCore.App függősége)
+Hozzunk létre egy új mappát _Controllers_ néven. A mappába hozzunk létre egy kontrollert (menu:jobbklikk a projekten[Add > Controller... > a bal oldali fában Common > API > jobb oldalon API Controller with read/write actions]) `DummyController` néven. A generált kontrollerünk a _Microsoft.AspNetCore.Mvc.Core_ nuget csomagban található `ControllerBase` osztályból származik. (Ezt a csomagot sem kell feltennünk, mivel az *AspNetCore.App* függősége)
 
-Adjuk hozzá a DI konténerhez az MVC-s szolgáltatásokat, és adjuk hozzá a csővezetékhez az MVC MW-t. Az egysoros MW-t kommentezzük ki.
+Adjuk hozzá a szolgáltatásokhoz a kontrollertámogatás szolgáltatást, és adjuk hozzá a csővezetékhez a kontroller kezelő MW-t. Az egysoros MW-t kommentezzük ki. Így néz ki a teljes legfelső szintű kód:
 
 [source,csharp]
 ----
-/**/public void ConfigureServices(IServiceCollection services)
-/**/{
-        services.AddControllers();
-/**/}
-/**/
-/**/public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-/**/{
-/**/    if (env.IsDevelopment())
-/**/    {
-/**/        app.UseDeveloperExceptionPage();
-/**/    }
-/**/
-/**/    //app.UseStaticFiles();
-/**/
-/**/    app.UseRouting();
-/**/
-/**/    app.UseEndpoints(endpoints =>
-/**/    {
-            //endpoints.MapGet("/", async context =>
-            //{ 
-            //    //throw new Exception("hiba");
-            //    await context.Response.WriteAsync("Hello World!");
-            //});
-            endpoints.MapControllers();
-/**/    });
-/**/}
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllers(); //<1>
+var app = builder.Build();
+//var app = WebApplication.Create(); //<2>
+app.UseStaticFiles();
+//app.MapGet("/", () => "Hello World!"); //<3>
+app.MapControllers();
+app.Run();
 ----
+<1> Kontrollertámogatás szolgáltatás regisztrálása
+<2> Mivel kell a kiinduló builder, így ezt az egysoros app inicializációt nem alkalmazhatjuk
+<3> Egysoros MW kikommentezve
 
 Próbáljuk ki. Az alapoldal üres, viszont ha a _/api/Dummy_ címre hívunk, akkor megjelenik a `DummyController.Get` által visszaadott érték. A routing szabályok szabályozzák, hogy hogyan jut el a HTTP kérés alapján a végrehajtás a függvényig. Itt attribútum alapú routing-ot használunk, azaz a kontroller osztályra és a függvényeire biggyesztett attribútumok határozzák meg, hogy a HTTP kérés adata (pl. URL) alapján melyik függvény hívódik meg. 
 
 A `DummyController` osztályon lévő `Route` attribútum az `"api/[controller]"` útvonalat definiálja, melyből a `[controller]` úgynevezett token, ami jelen esetben controller nevére cserélődik. Ezzel összességében megadtuk, hogy az _api/Dummy_ útvonal a `DummyController`-t választja ki, de még nem tudjuk, hogy a függvényei közül melyiket kell meghívni - ez a függvényekre tett attribútumokból következik. A `Get` függvényen levő `HttpGet` mutatja, hogy ez a függvény akkor hívandó, ha a GET kérés URL-je nem folytatódik - ellentétben a `Get(int id)` függvénnyel, ami az URL-ben még egy további szegmenst vár (ezért van egy `"{id}"` paraméter megadva az attribútum konstruktorban), amit az `id` nevű függvényparaméterként használ fel.
 
-TIP: API-t publikáló alkalmazásoknál az attribútum alapú routing az ajánlott, de emellett vannak más megközelítések is, például Razor alapú weboldalaknál konvenció alapú routing az ajánlott. Bővebben a témakörről általánosan https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing[itt], illetve specifikusan webes API-k vonatkozásában https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/routing#attribute-routing-for-rest-apis[itt] lehet olvasni. A dokumentáció mennyiségéből látható, hogy a routing alrendszer nagyon szofisztikált és sokat tud, szerencsére az alap működés elég egyszerű és gyorsan megszokható.
+TIP: API-t publikáló alkalmazásoknál az attribútum alapú routing az ajánlott, de emellett vannak más megközelítések is, például *Razor* alapú weboldalaknál konvenció alapú routing az ajánlott. Bővebben a témakörről általánosan https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing[itt], illetve specifikusan webes API-k vonatkozásában https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/routing#attribute-routing-for-rest-apis[itt] lehet olvasni. A dokumentáció mennyiségéből látható, hogy a routing alrendszer nagyon szofisztikált és sokat tud, szerencsére az alap működés elég egyszerű és gyorsan megszokható.
 
-Ha van időnk, próbáljuk ki az _/api/Dummy/[egész szám]_ címet is.
+Ha van időnk, próbáljuk ki az _/api/Dummy/[egész szám]_ címet is. A `Get(int id)` függvény kódjának megfelelően, bármit adunk meg, az eredmény a _value_ szöveg lesz.
 
 == Típusos beállítások, IOption<T>
 
@@ -264,26 +240,28 @@ Hozzunk létre egy új mappát _Options_ néven. A mappába hozzunk létre egy s
 ----
 public class DummySettings
 {
-    public string DefaultString { get; set; }
+    public string? DefaultString { get; set; }
 
     public int DefaultInt { get; set; }
 
-    public string SuperSecret { get; set; }
+    public string? SuperSecret { get; set; }
 }
 ----
 
-A `ConfigureServices`-ben adjuk meg, hogy egy `DummySettings` példányt mi alapján kell inicializálni - a konfiguráció megfelelő szekciójára hivatkozzunk:
+Regisztráljuk szolgáltatásként a `DummySettings` kezelését, és adjuk meg, hogy a példányt mi alapján kell inicializálni - a konfiguráció megfelelő szekciójára hivatkozzunk:
 
 [source,csharp]
 ----
-public void ConfigureServices(IServiceCollection services)
-{
-    services.Configure<DummySettings>(
-        Configuration.GetSection(nameof(DummySettings)));
-}
+/**/builder.Services.AddControllers();
+    builder.Services.Configure<DummySettings>(
+        builder.Configuration.GetSection(nameof(DummySettings)));
 ----
 
-A DI alrendszer így már beinjektálhatja, ahol csak igényeljük ezt a konstruktorban. Igénylejük a `DummyController` konstruktorban:
+A `builder.Services`-ben regisztrált szolgáltatások valójában egy dependency injection (DI) konténerbe kerülnek regisztrálásra. Ez többek között lehetővé teszi, hogy az alkalmazáson belül konstruktorban paraméterként igényeljük a szolgáltatást. A paraméter értékét a DI alrendszer automatikusan tölti ki a regisztrált szolgáltatások alapján.
+
+TIP: ASP.NET Core környezetben (is) törekedjünk arra, hogy lehetőleg minden osztályunk minden függőségét a DI minta szerint a DI konténer kezelje. Ez nagyban hozzájárul a komponensek közötti laza csatolás és a jobb tesztelhetőség eléréséhez. Bővebb információ az ASP.NET Core DI alrendszeréről a https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection[dokumentációban] található.
+
+Igényeljünk `DummySettings`-t a `DummyController` konstruktorban:
 
 [source,csharp]
 ----
@@ -304,7 +282,7 @@ Az egész számot váró `Get` változatban használjuk fel az értékeket:
 /**/[HttpGet("{id}", Name = "Get")]
 /**/public string Get(int id)
 /**/{
-        return id % 2 == 0 ? options.DefaultString : options.DefaultInt.ToString();
+        return id % 2 == 0 ? (options.DefaultString ?? "value") : options.DefaultInt.ToString();
 /**/}
 ----
 
@@ -331,10 +309,16 @@ Másoljuk át az *appsettings.json* tartalmát a *secrets.json*-be, vegyük ki a
 }
 ----
 
-Töréspontot letéve (pl. a `DummyController` konstruktorának végén) ellenőrizzük, hogy a titkos érték melyik fájlból jön. 
+Töréspontot letéve (pl. a `DummyController` konstruktorának végén) ellenőrizzük, hogy a titkos érték melyik fájlból jön. Ehhez meg kell hívunk böngészőből az _api/dummy_ címet.
 
 WARNING: Fontos tudni, hogy a _User Secrets_ tároló csak **Development** mód esetén jut érvényre, így figyeljünk rá, hogy a megfelelő módot indítsuk és a környezeti változók is jól legyenek beállítva.
 
 Ez az eljárás tehát a futtató felhasználó saját könyvtárából a GUID alapján kikeresi a projekthez tartozó *secrets.json*-t, annak tartalmát pedig futás közben összefésüli az *appsettings.json* tartalmával. Így szenzitív adat nem kerül a projekt könyvtárába.
 
-TIP: Mivel a _User Secrets_ tároló csak Development mód esetén jut érvényre, így ha az éles változatnak szüksége van ezekre a titkos értékekre, akkor további trükkökre van szükség. Ilyen megoldás lehet, ha a felhős hosztolás esetén a felhőből (pl. https://docs.microsoft.com/en-us/azure/app-service/configure-common#configure-app-settings[Azure App Service Configuration]) vagy felhőbeli titok tárolóból (pl. https://docs.microsoft.com/en-us/aspnet/core/security/key-vault-configuration[Azure Key Vault]) vagy a DevOps eszközből (pl. https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables[Azure DevOps Pipeline Secrets]) töltjük be a szenzitív beállításokat.
+TIP: Mivel a _User Secrets_ tároló csak Development mód esetén jut érvényre, így ha az éles változatnak szüksége van ezekre a titkos értékekre, akkor további trükkökre van szükség. Ilyen megoldás lehet, ha a felhős hosztolás esetén a felhőből (pl. https://docs.microsoft.com/en-us/azure/app-service/configure-common#configure-app-settings[Azure App Service Configuration]) vagy felhőbeli titoktárolóból (pl. https://docs.microsoft.com/en-us/aspnet/core/security/key-vault-configuration[Azure Key Vault]) vagy a DevOps eszközből (pl. https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables[Azure DevOps Pipeline Secrets]) töltjük be a szenzitív beállításokat.
+
+== Epilógus - WebApplicationBuilder
+
+Az eddigiekből látható, hogy számos alapszolgáltatás már a `CreateBuilder` hívás által visszaadott kiinduló builderben konfigurálva van. Ilyen az alap (`IOptions` nélküli) alkalmazásbeállítások kezelése vagy a naplózás. A `CreateBuilder` a `WebApplicationBuilder` internal konstruktorát hívja.
+
+A `WebApplicationBuilder` elődje az `IWebHostBuilder`, ez utóbbinak a https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/web-host[dokumentációját] tanulmányozva érthetjük meg, hogy mi mindent tud a kiinduló builder.

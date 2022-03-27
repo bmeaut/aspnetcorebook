@@ -1,6 +1,6 @@
 = ASP.NET Core 6 gyakorlatok
 Simon Gábor <simon.gabor@vik.bme.hu>; Szabó Gábor <szabo.gabor@vik.bme.hu>; Tóth Tibor <toth.tibor@vik.bme.hu>
-v1.1 - előzetes verzió, 2022.
+v1.7, 2022.
 :doctype: book
 :!version-label:
 :source-highlighter: rouge
@@ -25,11 +25,10 @@ include::chapter3.adoc[]
 
 include::chapter4.adoc[]
 
-////
-include::chapter5.adoc[]
-
 include::chapter6.adoc[]
 
+include::chapter5.adoc[]
+////
 include::chapter7.adoc[]
 
 include::chapter8.adoc[]
