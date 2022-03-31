@@ -128,7 +128,7 @@ Az eredeti logikánkat kommentezzük vissza.
 /**/app.MapGet("/", () =>
 /**/{
       //throw new Exception("hiba"); //kikommentezve
-      await context.Response.WriteAsync("Hello World!");  //komment levéve
+      "Hello World!";  //komment levéve
 /**/});
 ----
 
