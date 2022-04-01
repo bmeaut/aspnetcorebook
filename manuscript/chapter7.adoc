@@ -8,22 +8,22 @@
 
 == Kiinduló projektek beüzemelése
 
-A kiinduló solution két .NET 5 osztálykönyvtárat foglal magába, melyek egy N-rétegű architektúra egy-egy rétegét valósítják meg:
+A kiinduló solution két .NET 6 osztálykönyvtárat foglal magába, melyek egy N-rétegű architektúra egy-egy rétegét valósítják meg:
 
-* *WebApiLab.DAL*: lényegében az Entity Framework gyakorlatok anyagát tartalmazza, ez az adatelérési rétegünk.
+* *WebApiLab.Dal*: lényegében az Entity Framework gyakorlatok anyagát tartalmazza, ez az adatelérési rétegünk.
 ** entitásdefiníciók
 ** kontext, modellkonfigurációval, kezdeti adatokkal
 ** connection string kezelés és SQL naplózás a korábbi gyakorlatok alapján
 ** migráció (még) nincs
-* *WebApiLab.BLL*: ezt szánjuk az üzleti logikai rétegnek. Fő feladata, hogy a DAL-ra építve végrehajtsa az _Interfaces_ mappában definiált műveleteket.
+* *WebApiLab.Bll*: ezt szánjuk az üzleti logikai rétegnek. Fő feladata, hogy a DAL-ra építve végrehajtsa az _Interfaces_ mappában definiált műveleteket.
 ** Interfaces - ez a BLL réteg specifikációja
 ** Services - ide kerülnek majd az üzleti logikát, ill. az interfészeket megvalósító osztály(ok)
-** DTOs - csak később lesz szerepük, egyelőre nincsenek használva
+** Dtos - csak később lesz szerepük, egyelőre nincsenek használva
 ** Exceptions - saját kivétel osztály, egyelőre nincs használva
 
-Adjunk hozzá a solution-höz egy új C# nyelvű web API projektet (ASP.NET Core Web *API*, nem pedig Web App), a neve legyen _WebApiLab.API_.
+Adjunk hozzá a solution-höz egy új C# nyelvű web API projektet (ASP.NET Core Web *API*, nem pedig Web App), a neve legyen _WebApiLab.Api_.
 
-A következő dialógusablakban válasszuk ki az _.NET 5_ opciót. Más egyéb extrát (HTTPS, Docker, authentikáció, stb.) ne kérjünk. A generált projektből törölhetjük a minta API fájljait, azaz a _Weather_ kezdetű fájlokat a projekt gyökeréből és a _Controllers_ mappából.
+A következő dialógusablakban válasszuk ki az _.NET 6_ opciót. Az extrát közül ne kérjünk: HTTPS, Docker, authentikáció. Viszont hagyjuk bepipálva a Controller és az  OpenAPI támogatást. A generált projektből törölhetjük a minta API fájljait, azaz a _Weather_ kezdetű fájlokat a projekt gyökeréből és a _Controllers_ mappából.
 
 Adjuk hozzá függőségként:
 
@@ -35,22 +35,24 @@ Adjuk hozzá függőségként:
 
 A kontext konfigurálása az EF gyakorlat során - mivel ott egy sima konzol alkalmazást írtunk - a kontext `OnConfiguring` függvényében történt. Mivel az ASP.NET Core projekt DI rendszert is ad, így érdemes a kontextet a DI rendszerbe regisztrálni, hogy a projekten belül a modulok/osztályok függőségként tudják használni. A regisztrálás a `ConfigureServices` függvényben történik (lásd ASP.NET Core bevezető gyakorlatot). 
 
-A kontext `OnConfiguring`-ját így **kommentezzük ki**!
+A kontext `OnConfiguring`-ját így **töröljük ki**!.
 
-A kontext regisztrálása a `Startup.ConfigureServices` függvénybe:
-
-[source,csharp]
-----
-services.AddDbContext<NorthwindContext>(o =>
-    o.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
-----
-
-Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit az alapértelmezett `Host` már inicializál, így ezzel kapcsolatban nincs teendőnk. Viszont egy új kontext konstruktorra lesz szükségünk, ami `DbContextOptions<NorthwindContext>`-et vár.
+A kontext regisztrálása a `Program` osztály `WebApplicationBuilder`jébe:
 
 [source,csharp]
 ----
-public NorthwindContext(DbContextOptions<NorthwindContext> options)
-    : base(options){}
+builder.Services.AddDbContext<AppDbContext>(o =>
+    o.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]));
+----
+
+Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit az alapértelmezett `Host` már inicializál, így ezzel kapcsolatban nincs teendőnk. Viszont egy új kontext konstruktorra lesz szükségünk, ami `DbContextOptions<AppDbContext>`-et vár.
+
+[source,csharp]
+----
+public AppDbContext(DbContextOptions<AppDbContext> options)
+    : base(options)
+{
+}
 ----
 
 Az Entity Framework gyakorlat alapján hozzunk létre egy új LocalDB adatbázist egy választott névvel, pl. neptun kód, northwind, stb. Az SQL Server Object Explorer-ből a connection string-et lopjuk el. (menu:nyissuk le az adatbáziskapcsolatot[jobbklikk az adatbázison > Properties > a Properties ablakból a _Connection String_ értéke]).
@@ -64,7 +66,6 @@ Az _appsettings.Development.json_-ba vegyük fel a connection string-et és a ge
 /**/    "LogLevel": {
 /**/      "Default": "Information",
           "Microsoft": "Information",
-/**/      "Microsoft.Hosting.Lifetime": "Information"
 /**/    }
       }, //vessző bekerült
       "ConnectionStrings": {
@@ -73,7 +74,7 @@ Az _appsettings.Development.json_-ba vegyük fel a connection string-et és a ge
 /**/}
 ----
 
-TIP: Kukac (`@`) ilyenkor nem kell a connection string elé. Az adatbáziskapcsolatot azért kellhet lenyitni, hogy az SQL Server Object Explorer csatlakozzon is az új adatbázishoz, ezután tudjuk megszerezni a connection stringet.
+TIP: Kukac (`@`) ilyenkor nem kell a connection string elé mert ez JSON. Az adatbáziskapcsolatot azért kellhet lenyitni, hogy az SQL Server Object Explorer csatlakozzon is az új adatbázishoz, ezután tudjuk megszerezni a connection stringet.
 
 === Adatbázis inicializálása Code-First migrációval
 
@@ -87,19 +88,37 @@ Update-Database
 
 WARNING: Fontos, hogy a fenti parancs két projektet ismerjen: azt, amelyikben a kontext van, ill. a kontextet használó futtatható projektet. A VS Package Manager Console-jában futtatva alapértelmezésben az előbbit a Default Project értéke adja meg, utóbbit az indítandó projekt. Továbbá ezeket a projekteket meg lehet adni https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/powershell#common-parameters[paraméterként] is.
 
-TIP: Itt mutatkozik meg, hogy a migráció lényegében egy teljes alkalmazásindítást jelent a `Startup` osztályon keresztül, inicializálódik a DI konténer, a konfigurációs objektum, stb.
+TIP: Itt mutatkozik meg, hogy a migráció lényegében egy teljes alkalmazásindítást jelent a `Program` osztályon keresztül, inicializálódik a DI konténer, a konfigurációs objektum, stb.
 
 Ellenőrizzük az SQL Server Object Explorer-ben, hogy rendben lefutott-e a migráció, létrejöttek-e az adatbázis objektumok, feltöltődtek-e a táblák.
 
 == EF entitások használata az API felületen
 
-Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál.  A _Controllers_ mappában hozzunk létre egy kontrollert (menu:Add[Controller > bal fában Common > API > jobb oldalon API Controller with actions using Entity Framework]). A felbukkanó ablakban válasszuk ki a `Product` entitás osztályt (azaz az Entities névtérbelit), a kontextet és adjunk meg nevet ( `EFProductsController`).
+Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál. Ehhez használhatjuk a Visual Studio Entity Frameworkös Controller sablonjait. 
 
-WARNING: Figyeljünk rá, hogy ne a `Dto` névtérből adjuk meg a DTO típust a tényleges entitástípus helyett.
+.NET 6-ban ehhez szükségünk lesz egy `IDesignTimeDbContextFactory<TContext>` interfészt megvalósító osztályra is, amit vegyünk fel `AppDbContextDesignTimeFactory` néven a DAL projektbe. Az implementációban csak vissza kell adnunk egy DbContext példányt. Itt most nem számít a connection string, viszont gondoljunk arra, hogy ezt az osztályt fogja használni a migrációk futtatása során is a keretrendszer, így ide is érdemes megadni helyes connection string-et vagy a parancssorból argumentumként adjuk át a migráció futtatásakor. 
 
-A legenerálódó kontroller már használható is. Állítsuk át a zöld nyíl mellett az indítási konfigurációt a projektnevesre, hogy ne IIS Express induljon és így lássuk a konzolon a naplót. Indítsuk a projektet és próbáljuk például lekérni az összes terméket az **api/efproducts** címről.
+[source,csharp]
+----
+public class AppDbContextDesignTimeFactory : IDesignTimeDbContextFactory<AppDbContext>
+{
+    public AppDbContext CreateDbContext(string[] args)
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        optionsBuilder.UseSqlServer("dummy");
 
-TIP: Érdemes a zöld nyíl melletti lenyílóban olyan böngészőt megadni (Chrome, Firefox), ami értelmes formában meg tudja jeleníteni a nyers JSON adatokat.
+        return new AppDbContext(optionsBuilder.Options);
+    }
+}
+----
+
+A _Controllers_ mappában hozzunk létre egy kontrollert (menu:Add[Controller > bal fában Common > API > jobb oldalon API Controller with actions using Entity Framework]). A felbukkanó ablakban válasszuk ki a `Product` entitás osztályt (azaz az Entities névtérbelit), a kontextet és adjunk meg nevet ( `EFProductsController`).
+
+WARNING: Figyeljünk rá, hogy ne a `Dtos` névtérből adjuk meg a DTO típust a tényleges entitástípus helyett.
+
+A legenerálódó kontroller már használható is. Állítsuk át a zöld nyíl mellett az indítási konfigurációt a projektnevesre, hogy ne IIS Express induljon és így lássuk a konzolon a naplót. Indítsuk a projektet és próbáljuk például lekérni az összes terméket az **api/efproducts** címről vagy a swagger felületről.
+
+TIP: Érdemes a zöld nyíl melletti lenyílóban olyan böngészőt megadni (Chrome, Firefox), ami értelmes formában meg tudja jeleníteni a nyers JSON adatokat, ha nem swagger felületről tesztelünk.
 
 TIP: Az alapértelmezésben megnyitandó URL útvonalat a projekt tulajdonságok között adhatjuk meg: menu:jobbklikk a projekten[Debug lap > Launch Browser]. Ide egy a gyökércímhez képesti relatív útvonalrészt kell beírni. (pl. _api/efproducts_)
 
@@ -117,35 +136,26 @@ A BLL projekt Services mappájába hozzunk létre egy új osztályt `ProductServ
 
 [source,csharp]
 ----
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using WebApiLab.DAL;
-using WebApiLab.DAL.Entities;
-
-namespace WebApiLab.BLL
+public class ProductService : IProductService
 {
-    public class ProductService : IProductService
+    private readonly AddDbContext _context;
+
+    public ProductService(AddDbContext context)
     {
-        private readonly NorthwindContext _context;
-        public ProductService(NorthwindContext context)
-        {
-            _context = context;
-        }       
+        _context = context;
+    }       
 
-        public IEnumerable<Product> GetProducts()
-        {
-            var products = _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductOrders)
-                    .ThenInclude(po => po.Order)
-                .ToList();
+    public IEnumerable<Product> GetProducts()
+    {
+        var products = _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductOrders)
+                .ThenInclude(po => po.Order)
+            .ToList();
 
-            return products;
-        }
-        /*Többi függvény generált implementációja*/
+        return products;
     }
+    /*Többi függvény generált implementációja*/
 }
 ----
 
@@ -154,6 +164,7 @@ Injektáljunk `IProductService`-t a `ProductsController`-be.
 [source,csharp]
 ----
 private readonly IProductService _productService;
+
 public ProductsController(IProductService productService)
 {
     _productService = productService;
@@ -164,7 +175,7 @@ Adjuk meg a DI alrendszernek, hogy hogyan kell egy `IProductService` típusú f�
 
 [source,csharp]
 ----
-services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IProductService, ProductService>();
 ----
 
 A függőség injektálás úgy működik, hogy kontrollereket is a központi DI komponens példányosítja, és ilyenkor megvizsgálja a konstruktor paramétereket. Ha a konténerben talál alkalmas beregisztrált osztályt, akkor azt létrehozza és átadja a konstruktornak. Ezt hívjuk konstruktor injektálásnak. Ha a létrehozandó függőségnek is vannak konstruktor paraméterei, akkor azokat is megpróbálja feloldani, így rekurzívan a teljes függőségi objektum hierarchiát le tudja kezelni (ha abban nincs irányított kör).
@@ -194,9 +205,8 @@ A kontrollerek által használt JSON sorosítót konfigurálhatjuk a `Startup.Co
 
 [source,csharp]
 ----
-/**/services.AddControllers()
-        .AddJsonOptions(o=> { o.JsonSerializerOptions.ReferenceHandler 
-                                = ReferenceHandler.Preserve; });
+/**/builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 ----
 
 Így már sikerülni fog a sorosítást, egy elég furcsa JSON-t láthatunk, ahol az első elem egy nagyobb objektumgráfot leíró rész, a többi elem pedig csak hivatkozás.
@@ -225,30 +235,30 @@ A leképezési konfigurációkat profilokba szervezve adhatjuk meg. Adjunk hozz�
 [source,csharp]
 ----
 using AutoMapper;
-using System.Linq;
 
-namespace WebApiLab.BLL.DTO
+namespace WebApiLab.Bll.Dtos;
+
+public class WebApiProfile : Profile
 {
-    public class WebApiProfile : Profile
+    public WebApiProfile()
     {
-        public WebApiProfile()
-        {
-            CreateMap<DAL.Entities.Product, Product>()
-                .ForMember(p=>p.Orders, 
-                           opt=>opt.MapFrom(x=>x.ProductOrders.Select(po=> po.Order)))
-                .ReverseMap();
-            CreateMap<DAL.Entities.Order, Order>().ReverseMap();
-            CreateMap<DAL.Entities.Category, Category>().ReverseMap();
-        }
+        CreateMap<Dal.Entities.Product, Product>()
+            .ForMember(
+                p => p.Orders,
+                opt => opt.MapFrom(x => x.ProductOrders.Select(po => po.Order)))
+            .ReverseMap();
+        CreateMap<Dal.Entities.Order, Order>().ReverseMap();
+        CreateMap<Dal.Entities.Category, Category>().ReverseMap();
     }
 }
+
 ----
 
-A `ConfigureServices`-ben adjuk hozzá és konfiguráljuk a leképezési szolgáltatást.
+A `Program`-ban adjuk hozzá és konfiguráljuk a leképezési szolgáltatást.
 
 [source,csharp]
 ----
-services.AddAutoMapper(typeof(WebApiProfile));
+builder.Services.AddAutoMapper(typeof(WebApiProfile));
 ----
 
 TIP: Az AutoMapper az `AddAutoMapper` paramétereként megadott típust definiáló szerelvényben fogja a profilt keresni. A konkrét típusnak nincs más jelentősége, nem kell feltétlenül profilnak lenni.
@@ -272,8 +282,8 @@ A `ProductsController`-ben, az `IProductService`-ben és a `ProductService`-ben 
 
 [source,csharp]
 ----
-//using WebApiLab.DAL.Entities;
-using WebApiLab.BLL.DTO;
+//using WebApiLab.Dal.Entities;
+using WebApiLab.Bll.Dtos;
 ----
 
 Írjuk át a lekérdezést a `ProductService`-ben a leképzőt alkalmazva:
@@ -282,12 +292,14 @@ using WebApiLab.BLL.DTO;
 ----
 /**/public IEnumerable<Product> GetProducts()
 /**/{
-/**/    var products =
-            _mapper.ProjectTo<Product>(_context.Products)
+/**/    var products = _context.Products
+            .ProjectTo<Product>(_mapper.ConfigurationProvider)
             .AsEnumerable();
 /**/    return products;
 /**/}
 ----
+
+Hogy ne zavarjon be a swaggernek az EFProductControllerben használt entitás osztályok, töröljük ki a Controllers mappából az EFProductControllert!
 
 Próbáljuk ismét meghívni böngészőből, figyeljük meg a naplóban, hogy milyen SQL lekérdezés fut le.
 
@@ -301,15 +313,15 @@ TIP: A `ProjectTo` speciálisan `IQueryable`-n működik. Ha csak simán memóri
 
 === Egy elem lekérdezése
 
-Ahhoz, hogy használhassuk a `ProjectTo`-t először a `Where`-rel szűrünk, ami `IQuerable`-t ad, és csak a végén szűkítjük az eredményt egy elemre. Ez nem tűnik optimálisnak, összevetve azzal, ha kapásból `SingleOrDefault`-ot hívnánk. Azonban az EF ki tudja optimalizálni a nem optimálisnak tűnő lekérdezéseket is.
+A `ProjectTo` metódust felfoghatjuk a továbbiakban egy LINQ-s `Select()` operátornak, annyi különbséggel, hogy az automapper generálja azt az expressiont, ami alapján előáll majd az eredmény.
 
 [source,csharp]
 ----
 /**/public Product GetProduct(int productId)
 /**/{
-        return _mapper.ProjectTo<Product>(
-                _context.Products.Where(p=>p.Id==productId)
-            ).SingleOrDefault() 
+        return _context.Products
+            .ProjectTo<Product>(_mapper.ConfigurationProvider)
+            .SingleOrDefault(p => p.Id == productId)
             ?? throw new EntityNotFoundException("Nem található a termék");
 /**/}
 ----
@@ -322,7 +334,7 @@ Ez hasonló az EF gyakorlaton látottakhoz, csak itt nem kell legyártanunk az �
 ----
 public Product InsertProduct(Product newProduct)
 {
-    var efProduct = _mapper.Map<DAL.Entities.Product>(newProduct);
+    var efProduct = _mapper.Map<Dal.Entities.Product>(newProduct);
     _context.Products.Add(efProduct);
     _context.SaveChanges();
     return GetProduct(efProduct.Id);
@@ -345,6 +357,8 @@ public void UpdateProduct(int productId, Product updatedProduct)
 }
 ----
 
+Alternatíva lehetne még ennél a függvény esetében, hogy lekérdezzük ID alapján az entitást és AutoMapperrel a lekérdezett objektumba mappeljük a DTO-t. Ebben az esetben nincs szükség Attach-ra és állapotkezelésre sem.
+
 TIP: Bizonyos esetekben az elsődleges kulcs alapján az `Attach` automatikusan beszúrandó, _Added_ állapotúként regisztrálja az entitást. Bővebben a https://docs.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext.attach[dokumentációban]
 
 === Törlés
@@ -355,7 +369,7 @@ Egy trükkel elkerülhetjük, hogy le kelljen kérdezni a törlendő terméket. 
 ----
 public void DeleteProduct(int productId)
 {
-    _context.Products.Remove(new DAL.Entities.Product { Id = productId });
+    _context.Products.Remove(new Dal.Entities.Product { Id = productId });
     _context.SaveChanges();
 }
 ----
@@ -421,16 +435,15 @@ Most viszont következzen egy létrehozó művelet:
         //ActionResult<T> visszatérési érték + Product paraméter
 /**/{
         var created = _productService.InsertProduct(product);
-        return CreatedAtAction(
-                    nameof(Get),
-                    new { id = created.Id },
-                    created);
+        return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
 /**/}
 ----
 
 Itt már látszik az `ActionResult` haszna. A konvenciónak megfelelően 201-es kódot akarunk visszaadni. Ehhez a `ControllerBase` ősosztály biztosít segédfüggvényt. A segédfüggvény olyan `ActionResult` leszármazottat ad vissza, ami 201-es kódot szolgáltat a kliensnek. Másik konvenció, hogy a _Location_ HTTP fejlécben legyen egy URL az új termék lekérdező műveletének meghívásához. Ezt az URL-t rakjuk össze a `CreatedAtAction` paraméterei révén.
 
-Próbáljuk ki a műveletet https://www.telerik.com/blogs/how-to-compose-https-requests-with-fiddler[Fiddlerben] vagy https://learning.postman.com/docs/postman/sending-api-requests/requests/[Postmanben]! Egy `Product`-ot kell felküldenünk. Egy példa érték:
+Gyakori, hogy a lefele irányú (kliens felé) bővebb adathalmaz kerül leküldésre, mint amit egy létrehozáskor vagy frissítéskor várunk. Esetünkben is az `Orders` és a `Category` propertyk létrehozáskor feleslegesek. Erre a célra jobb egy külön DTO-t létrehozni, ami csak a megfelelő adatokat tartalmazza. Most ideiglenesen tegyük nullozhatóvá ezt a két propertyt.
+
+Próbáljuk ki a műveletet Swaggerből. Egy `Product`-ot kell felküldenünk. erre egy példa érték:
 
 [source,javascript]
 ----
@@ -442,18 +455,18 @@ Próbáljuk ki a műveletet https://www.telerik.com/blogs/how-to-compose-https-r
 }
 ----
 
-Ne felejtsük el a _Content-Type_ fejlécet  *application/json*-re állítani! Figyeljük meg a kapott választ. A válaszból másoljuk ki a _Location_ fejlécből az URL-t és hívjuk meg böngészőből.
+WARNING: Ha Fiddlerből vagy Postmandből tesztelünk. ne felejtsük el a _Content-Type_ fejlécet  *application/json*-re állítani! Figyeljük meg a kapott választ. A válaszból másoljuk ki a _Location_ fejlécből az URL-t és hívjuk meg böngészőből.
 
 Fiddler Classic példa POST hívásra:
 
 image::images/aspnetcorerest-fiddlerpost.png[Fiddler - POST küldése]
 
-A módosító, törlő műveleteknél a konvenció megengedi, hogy üres törzsű (body) választ adjunk, ilyenkor a válaszkód *204 (No Content)*. Ilyesfajta válasz előállításához is van segédfüggvény, illetve elég csak az `IActionResult` interfészt megadni visszatérési típusnak:
+A módosító, törlő műveleteknél a konvenció megengedi, hogy üres törzsű (body) választ adjunk, ilyenkor a válaszkód *204 (No Content)*. Ilyesfajta válasz előállításához is van segédfüggvény, illetve elég csak az `ActionResult` típust megadni visszatérési típusnak:
 
 [source,csharp]
 ----
 /**/[HttpPut("{id}")]
-    public IActionResult Put(int id, [FromBody] Product product)
+    public ActionResult Put(int id, [FromBody] Product product)
          //ActionResult visszatérési érték + Product paraméter
 /**/{
         _productService.UpdateProduct(id, product);
@@ -461,7 +474,7 @@ A módosító, törlő műveleteknél a konvenció megengedi, hogy üres törzs�
 /**/}
 
 /**/[HttpDelete("{id}")]
-public IActionResult Delete(int id)
+public ActionResult Delete(int id)
      //ActionResult visszatérési érték
 /**/{
         _productService.DeleteProduct(id);
@@ -471,7 +484,9 @@ public IActionResult Delete(int id)
 
 TIP: PUT mellett a módosításhoz használatos a PATCH is. A PUT konvenció szerint teljes, míg a PATCH részleges felülírásnál használatos. PATCH esetén általában valamilyen patch formátumú adatot küld a kliens, pl. https://tools.ietf.org/html/rfc6902[RFC 6902 - JSON Patch]. A JSON Patch formátumot jelenleg csak a JSON korábbi sorosító (Newtonsoft.Json) https://docs.microsoft.com/en-us/aspnet/core/web-api/jsonpatch[támogatja].
 
-Próbáljuk kitörölni az újonnan felvett terméket Fiddler/Postman-ből (_DELETE_ igés kérés az `api/products/<új id>` címre, üres törzzsel). Sikerülnie kell, mert még nincs rá idegen kulcs hivatkozás.
+TIP: Gyakori, hogy a PUT művelet esetében nem 204 No Content válasszal térünk vissza, hanem 200 OK státuszkóddal és a módosított erőforrással, hogy a kliens a tényleges érvényre jutott értékekkel befrissíthesse a saját adatait.
+
+Próbáljuk kitörölni az újonnan felvett terméket Swaggerből/Fiddler/Postman-ből (_DELETE_ igés kérés az `api/products/<új id>` címre, üres törzzsel). Sikerülnie kell, mert még nincs rá idegen kulcs hivatkozás.
 
 == Hibakezelés
 
@@ -581,29 +596,23 @@ Telepítsük fel a _Hellang.Middleware.ProblemDetails_ csomagot az API projektbe
 Install-Package Hellang.Middleware.ProblemDetails
 ----
 
-Szokás szerint konfiguráljuk a `Startup.ConfigureServices`-ben. Sose adjuk vissza a kivétel részleteit (szigorú _exception shielding_), illetve a saját kivételtípusunkat képezzük le 404-es hibára.
+Szokás szerint konfiguráljuk a `Program` osztályban. Sose adjuk vissza a kivétel részleteit (szigorú _exception shielding_), illetve a saját kivételtípusunkat képezzük le 404-es hibára.
 
 [source,csharp]
 ----
-services.AddProblemDetails(options =>
+builder.Services.AddProblemDetails(options =>
 {
     options.IncludeExceptionDetails = (ctx,ex) => false;
     options.MapToStatusCode<EntityNotFoundException>(StatusCodes.Status404NotFound);
 });
-
 ----
 
-Illesszük a pipeline-ba az eddigi hibakezelő MW helyére:
+Illesszük a pipeline-ba a legelső helyre:
 
 [source,csharp]
 ----
-/**/public void Configure(/*...*/)
-/**/{
-        //if (env.IsDevelopment())
-        //{
-        //    app.UseDeveloperExceptionPage();
-        //}
-        app.UseProblemDetails();
+/**/var app = builder.Build();
+    app.UseProblemDetails();
 /**/    
 /**/    //további MW-k
 /**/}
@@ -646,7 +655,8 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
         {
             if (_context.Products.SingleOrDefault(p => p.Id == productId) == null)
                 throw new EntityNotFoundException("Nem található a termék");
-            else throw;
+            else
+                throw;
         }
 /**/}
 
@@ -661,12 +671,15 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
         {
             if (_context.Products.SingleOrDefault(p => p.Id == productId) == null)
                 throw new EntityNotFoundException("Nem található a termék");
-            else throw;
+            else
+                throw;
         }
 /**/}
 ----
 
 Ez egy optimista megközelítés: feltételezzük, hogy helyes azonosítót kapunk. Ha kivételes esetben mégsem, akkor az UPDATE/INSERT utasítás nem a megfelelő számú sort módosítja és `DbUpdateConcurrencyException`-t kapunk. Ekkor vizsgáljuk csak meg, hogy az azonosító helyes-e.
+
+TIP: Egy másik megközelítés szerint a DELETE műveletnek idempotensnek kellene lennie, tehát egymás után többször végrehajtva is sikeres eredményt kell kapjunk. Ez azt is jelenti, hogy 404-es hiba helyet 204 No Content státuszkódot kell küldenünk akkor is, ha nem található adott ID-val entitás. Ez a jelenlegi kódban egyszerűen implementálhatjuk, hogy nem dobunk kivételt az megfelelő ágban.
 
 === Saját hibaüzenet
 
@@ -711,7 +724,7 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 
     public async Task UpdateProductAsync(int productId, Product updatedProduct)
 /**/{
-/**/    var efProduct = _mapper.Map<DAL.Entities.Product>(updatedProduct);
+/**/    var efProduct = _mapper.Map<Dal.Entities.Product>(updatedProduct);
 /**/    efProduct.Id = productId;
 /**/    var entry = _context.Attach(efProduct);
 /**/    entry.State = EntityState.Modified;
@@ -726,12 +739,13 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
                         .SingleOrDefaultAsync(p => p.Id == productId)) == null)
             //async változat hívása
 /**/               throw new EntityNotFoundException("Nem található a termék");
-/**/        else throw;
+/**/        else
+/**/            throw;
 /**/    }
 /**/}
 
 
-    public async Task<IActionResult> Put(int id, [FromBody] Product product)
+    public async Task<IActionResult> PutAsync(int id, [FromBody] Product product)
 /**/{
 /**/  await _productService.
                 .UpdateProductAsync(id, product);
@@ -742,8 +756,6 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 
 Próbáljuk ki, például küldjünk PUT-ot az `api/products/1` címre, állítsuk be a _Content-Type: application/json_ fejlécet és a POST-nál használt JSON-t küldjük a törzsben. Ezzel az 1-es `id`-jű termék adatait fogjuk felülírni.
 
-WARNING: Bár az `Async` végződés a kontroller függvényeknél alapvetően támogatott, még https://github.com/dotnet/aspnetcore/issues/8998[vannak vele gondok], így most ezt nem alkalmazzuk.
-
 == Végállapot
 
 A többi műveletet aszinkronizálva az alábbi a végállapot (elérhető a kapcsolódó GitHun repo https://github.com/bmeaut/WebApiLab/tree/net5[net5-ös ágán] is):
@@ -752,59 +764,52 @@ A többi műveletet aszinkronizálva az alábbi a végállapot (elérhető a kap
 ----
 public interface IProductService
 {
-    Task<Product> GetProductAsync(int productId);
-    Task<IEnumerable<Product>> GetProductsAsync();
-    Task<Product> InsertProductAsync(Product newProduct);
-    Task UpdateProductAsync(int productId, Product updatedProduct);
-    Task DeleteProductAsync(int productId);
+    public Task<Product> GetProductAsync(int productId);
+    public Task<IEnumerable<Product>> GetProductsAsync();
+    public Task<Product> InsertProductAsync(Product newProduct);
+    public Task UpdateProductAsync(int productId, Product updatedProduct);
+    public Task DeleteProductAsync(int productId);
 }
 
 public class ProductService : IProductService
 {
-    private readonly NorthwindContext _context;
+    private readonly AppDbContext _context;
     private readonly IMapper _mapper;
-    public ProductService(NorthwindContext context, IMapper mapper)
+
+    public ProductService(AppDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
-    public async Task DeleteProductAsync(int productId)
-    {
-        _context.Products.Remove(new DAL.Entities.Product { Id = productId });
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (_context.Products.SingleOrDefault(p => p.Id == productId) == null)
-                throw new EntityNotFoundException("Nem található a termék");
-            else throw;
-        }
-    }
+
     public async Task<Product> GetProductAsync(int productId)
     {
-       return await _mapper.ProjectTo<Product>(
-                    _context.Products.Where(p=>p.Id==productId)
-            ).SingleOrDefaultAsync() 
-           ?? throw new EntityNotFoundException("Nem található a termék"); 
+        return await _context.Products
+            .ProjectTo<Product>(_mapper.ConfigurationProvider)
+            .SingleOrDefaultAsync(p => p.Id == productId)
+            ?? throw new EntityNotFoundException("Nem található a termék");
     }
+
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
-        return await
-            _mapper.ProjectTo<Product>(_context.Products)
+        var products = await _context.Products
+            .ProjectTo<Product>(_mapper.ConfigurationProvider)
             .ToListAsync();
+
+        return products;
     }
+
     public async Task<Product> InsertProductAsync(Product newProduct)
     {
-        var efProduct = _mapper.Map<DAL.Entities.Product>(newProduct);
+        var efProduct = _mapper.Map<Dal.Entities.Product>(newProduct);
         _context.Products.Add(efProduct);
         await _context.SaveChangesAsync();
         return await GetProductAsync(efProduct.Id);
     }
+
     public async Task UpdateProductAsync(int productId, Product updatedProduct)
     {
-        var efProduct = _mapper.Map<DAL.Entities.Product>(updatedProduct);
+        var efProduct = _mapper.Map<Dal.Entities.Product>(updatedProduct);
         efProduct.Id = productId;
         var entry = _context.Attach(efProduct);
         entry.State = EntityState.Modified;
@@ -814,50 +819,74 @@ public class ProductService : IProductService
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (await _context.Products
-                    .SingleOrDefaultAsync(p => p.Id == productId) == null)
+            if (await _context.Products.SingleOrDefaultAsync(p => p.Id == productId) == null)
                 throw new EntityNotFoundException("Nem található a termék");
-            else throw;
+            else
+                throw;
+        }
+    }
+
+    public async Task DeleteProductAsync(int productId)
+    {
+        _context.Products.Remove(new Dal.Entities.Product { Id = productId });
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (await _context.Products.SingleOrDefaultAsync(p => p.Id == productId) == null)
+                throw new EntityNotFoundException("Nem található a termék");
+            else
+                throw;
         }
     }
 }
 
 [Route("api/[controller]")]
 [ApiController]
-public class ProductsController : ControllerBase
+public class ProductController : ControllerBase
 {
     private readonly IProductService _productService;
-    public ProductsController(IProductService productService)
+
+    public ProductController(IProductService productService)
     {
         _productService = productService;
     }
+
+    // GET: api/<ProductController>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> Get()
+    public async Task<ActionResult<IEnumerable<Product>>> GetAsync()
     {
         return (await _productService.GetProductsAsync()).ToList();
     }
+
+    // GET api/<ProductController>/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> Get(int id)
+    public async Task<ActionResult<Product>> GetAsync(int id)
     {
         return await _productService.GetProductAsync(id);
     }
+
+    // POST api/<ProductController>
     [HttpPost]
-    public async Task<ActionResult<Product>> Post([FromBody] Product product)
+    public async Task<ActionResult<Product>> PostAsync([FromBody] Product product)
     {
         var created = await _productService.InsertProductAsync(product);
-        return CreatedAtAction(
-                    nameof(Get),
-                    new { id = created.Id },
-                    created);
+        return CreatedAtAction(nameof(GetAsync), new { id = created.Id }, created);
     }
+
+    // PUT api/<ProductController>/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, [FromBody] Product product)
+    public async Task<ActionResult> PutAsync(int id, [FromBody] Product value)
     {
-        await _productService.UpdateProductAsync(id, product);
+        await _productService.UpdateProductAsync(id, value);
         return NoContent();
     }
+
+    // DELETE api/<ProductController>/5
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<ActionResult> DeleteAsync(int id)
     {
         await _productService.DeleteProductAsync(id);
         return NoContent();
