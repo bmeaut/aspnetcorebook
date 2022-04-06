@@ -95,28 +95,25 @@ Ellenőrizzük az SQL Server Object Explorer-ben, hogy rendben lefutott-e a migr
 
 Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál. Ehhez használhatjuk a Visual Studio Entity Frameworkös Controller sablonjait. 
 
-.NET 6-ban ehhez szükségünk lesz egy `IDesignTimeDbContextFactory<TContext>` interfészt megvalósító osztályra is, amit vegyünk fel `AppDbContextDesignTimeFactory` néven a DAL projektbe. Az implementációban csak vissza kell adnunk egy DbContext példányt. Itt most nem számít a connection string, viszont gondoljunk arra, hogy ezt az osztályt fogja használni a migrációk futtatása során is a keretrendszer, így ide is érdemes megadni helyes connection string-et vagy a parancssorból argumentumként adjuk át a migráció futtatásakor. 
+1. Adjunk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot.
 
-[source,csharp]
+2. PMC-ben telepítsük az ASP.NET Core kódgeneráló eszközt
+[source,powershell]
 ----
-public class AcmeShopContextFactory : IDesignTimeDbContextFactory<AcmeShopContext>
-{
-    public AcmeShopContext CreateDbContext(string[] args)
-    {
-        var config = new ConfigurationBuilder()
-               .AddJsonFile("appsettings.json", optional: false)
-               .AddUserSecrets<AcmeShopContextFactory>()
-               .AddEnvironmentVariables()
-               .Build();
-
-        var builder = new DbContextOptionsBuilder<AcmeShopContext>();
-        builder.UseSqlServer(config.GetConnectionString("AcmeShopContext"));
-        return new AcmeShopContext(builder.Options);
-    }
-}
+dotnet tool install -g dotnet-aspnet-codegenerator
 ----
 
-A _Controllers_ mappában hozzunk létre egy kontrollert (menu:Add[Controller > bal fában Common > API > jobb oldalon API Controller with actions using Entity Framework]). A felbukkanó ablakban válasszuk ki a `Product` entitás osztályt (azaz az Entities névtérbelit), a kontextet és adjunk meg nevet ( `EFProductsController`).
+3. Lépjünk be a projekt könyvtárába
+[source,powershell]
+----
+cd .\WebApiLab.Api
+----
+
+4. Generáljunk a kódgenerálóval REST API (`-api`) controllert a `Product` entitáshoz (`-m`), mely az `AppDbContext` kontextushoz  (`-dc`) tartozik. A generált osztály neve legyen `EFProductController` (`-name`), az `WebApiLab.Api.Controllers` névtérbe  (`-namespace`) kerüljön. A generált fájl a *Controllers* mappába (`-outDir`) kerüljön. 
+[source,powershell]
+----
+dotnet aspnet-codegenerator controller -m WebApiLab.Dal.Entities.Product -dc WebApiLab.Dal.AppDbContext -outDir Controllers -name EFProductController -namespace WebApiLab.Api.Controllers -api
+----
 
 WARNING: Figyeljünk rá, hogy ne a `Dtos` névtérből adjuk meg a DTO típust a tényleges entitástípus helyett.
 
