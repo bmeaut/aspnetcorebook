@@ -27,17 +27,14 @@ A következő dialógusablakban válasszuk ki az _.NET 6_ opciót. Az extrát k�
 
 Adjuk hozzá függőségként:
 
-* a _BLL_ projektet (menu:Dependencies-en jobbklikk[Add Project Reference...])
-* a _Microsoft.EntityFrameworkCore.Design_ NuGet csomagot
+* a _BLL_ projektet (menu:projekten jobbklikk[Dependencies > Add Project Reference...])
 * a _Microsoft.EntityFrameworkCore.Tools_ NuGet csomagot
 
 == Az EF bekötése az ASP.NET Core DI, naplózó, konfiguráló rendszereibe
 
-A kontext konfigurálása az EF gyakorlat során - mivel ott egy sima konzol alkalmazást írtunk - a kontext `OnConfiguring` függvényében történt. Mivel az ASP.NET Core projekt DI rendszert is ad, így érdemes a kontextet a DI rendszerbe regisztrálni, hogy a projekten belül a modulok/osztályok függőségként tudják használni. A regisztrálás a `ConfigureServices` függvényben történik (lásd ASP.NET Core bevezető gyakorlatot). 
+A kontext konfigurálása az EF gyakorlat során - mivel ott egy sima konzol alkalmazást írtunk - a kontext `OnConfiguring` függvényében történt. Mivel az ASP.NET Core projekt DI rendszert is ad, így érdemes a kontextet a DI rendszerbe regisztrálni, hogy a projekten belül a modulok/osztályok függőségként tudják használni. A regisztrálás a legfelső szintű kódban történik (lásd ASP.NET Core bevezető gyakorlatot). 
 
-A kontext `OnConfiguring`-ját így **töröljük ki**!.
-
-A kontext regisztrálása a `Program` osztály `WebApplicationBuilder`jébe:
+A kontext regisztrálása a legfelső szintű kódban a DI konténerbe:
 
 [source,csharp]
 ----
@@ -45,7 +42,9 @@ builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]));
 ----
 
-Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit az alapértelmezett `Host` már inicializál, így ezzel kapcsolatban nincs teendőnk. Viszont egy új kontext konstruktorra lesz szükségünk, ami `DbContextOptions<AppDbContext>`-et vár.
+Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit a kiinduló builder már inicializál, így ezzel kapcsolatban nincs teendőnk. Viszont egy új kontext konstruktorra lesz szükségünk, ami `DbContextOptions<AppDbContext>`-et vár.
+
+A kontext `OnConfiguring`-jára pedig nincs szükség, úgyhogy töröljük ki, helyére tegyük az új konstruktort:
 
 [source,csharp]
 ----
@@ -100,14 +99,19 @@ Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mel
 
 [source,csharp]
 ----
-public class AppDbContextDesignTimeFactory : IDesignTimeDbContextFactory<AppDbContext>
+public class AcmeShopContextFactory : IDesignTimeDbContextFactory<AcmeShopContext>
 {
-    public AppDbContext CreateDbContext(string[] args)
+    public AcmeShopContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseSqlServer("dummy");
+        var config = new ConfigurationBuilder()
+               .AddJsonFile("appsettings.json", optional: false)
+               .AddUserSecrets<AcmeShopContextFactory>()
+               .AddEnvironmentVariables()
+               .Build();
 
-        return new AppDbContext(optionsBuilder.Options);
+        var builder = new DbContextOptionsBuilder<AcmeShopContext>();
+        builder.UseSqlServer(config.GetConnectionString("AcmeShopContext"));
+        return new AcmeShopContext(builder.Options);
     }
 }
 ----
@@ -132,7 +136,7 @@ Ehhez a megoldáshoz készítsünk külön kontroller változatot. A _Controller
 
 A megoldáshoz a _BLL_ projektben már létezik a `ProductService` osztály, aminek szintén függősége az EF kontext és megvalósítja szükséges CRUD műveleteket. Az EF gyakorlaton tanultakra visszautalva mutassuk be a műveletek implementációját. Függőségeknél előnyösebb, ha interfészekre hivatkozunk, mert tesztelésnél az interfész mögötti implementációt általában egyszerűbb cserélni. Szerencsére az `IProductService` interfész is már rendelkezésünkre áll.
 
-A BLL projekt Services mappájába hozzunk létre egy új osztályt `ProductService` néven. Implementálja az IProductService interfészt, a kiinduló implementációt generáltassuk a Visual Studio-val. Konstruktorban várja a függőségként a kontextet. A kontext segítségével implementáljuk normálisan a `GetProducts` függvényt. _Eager Loading_ használatával az egyes termékekhez a kapcsolódó kategóriát és megrendeléseket is adjuk vissza.
+A BLL projekt Services mappájába hozzunk létre egy új osztályt `ProductService` néven. Implementálja az `IProductService` interfészt, a kiinduló implementációt generáltassuk a Visual Studio-val. Konstruktorban várja a függőségként a kontextet. A kontext segítségével implementáljuk normálisan a `GetProducts` függvényt. _Eager Loading_ használatával az egyes termékekhez a kapcsolódó kategóriát és megrendeléseket is adjuk vissza.
 
 [source,csharp]
 ----
