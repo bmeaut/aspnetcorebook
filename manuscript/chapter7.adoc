@@ -95,21 +95,21 @@ Ellenőrizzük az SQL Server Object Explorer-ben, hogy rendben lefutott-e a migr
 
 Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál. Ehhez használhatjuk a Visual Studio Entity Frameworkös Controller sablonjait. 
 
-1. Adjunk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot.
+Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot.
 
-2. PMC-ben telepítsük az ASP.NET Core kódgeneráló eszközt
+PMC-ben telepítsük az ASP.NET Core kódgeneráló eszközt
 [source,powershell]
 ----
 dotnet tool install -g dotnet-aspnet-codegenerator
 ----
 
-3. Lépjünk be a projekt könyvtárába
+Majd lépjünk be a projekt könyvtárába
 [source,powershell]
 ----
 cd .\WebApiLab.Api
 ----
 
-4. Generáljunk a kódgenerálóval REST API (`-api`) kontrollert a `Product` entitáshoz (`-m`), mely az `AppDbContext` kontextushoz  (`-dc`) tartozik. A generált osztály neve legyen `EFProductController` (`-name`), az `WebApiLab.Api.Controllers` névtérbe  (`-namespace`) kerüljön. A generált fájl a *Controllers* mappába (`-outDir`) kerüljön.
+Végül generáljunk a kódgenerálóval REST API (`-api`) kontrollert a `Product` entitáshoz (`-m`), mely az `AppDbContext` kontextushoz  (`-dc`) tartozik. A generált osztály neve legyen `EFProductController` (`-name`), az `WebApiLab.Api.Controllers` névtérbe  (`-namespace`) kerüljön. A generált fájl a *Controllers* mappába (`-outDir`) kerüljön.
 
 [source,powershell]
 ----
