@@ -39,7 +39,7 @@ A kontext regisztrálása a legfelső szintű kódban a DI konténerbe:
 [source,csharp]
 ----
 builder.Services.AddDbContext<AppDbContext>(o =>
-    o.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]));
+    o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 ----
 
 Az EF naplózást az ASP.NET Core naplózó rendszere végzi, amit a kiinduló builder már inicializál, így ezzel kapcsolatban nincs teendőnk. Viszont egy új kontext konstruktorra lesz szükségünk, ami `DbContextOptions<AppDbContext>`-et vár.
@@ -364,7 +364,7 @@ Egy trükkel elkerülhetjük, hogy le kelljen kérdezni a törlendő terméket. 
 ----
 public void DeleteProduct(int productId)
 {
-    _context.Products.Remove(new Dal.Entities.Product { Id = productId });
+    _context.Products.Remove(new Dal.Entities.Product(null!) { Id = productId });
     _context.SaveChanges();
 }
 ----
@@ -436,7 +436,7 @@ Most viszont következzen egy létrehozó művelet:
 
 Itt már látszik az `ActionResult` haszna. A konvenciónak megfelelően 201-es kódot akarunk visszaadni. Ehhez a `ControllerBase` ősosztály biztosít segédfüggvényt. A segédfüggvény olyan `ActionResult` leszármazottat ad vissza, ami 201-es kódot szolgáltat a kliensnek. Másik konvenció, hogy a _Location_ HTTP fejlécben legyen egy URL az új termék lekérdező műveletének meghívásához. Ezt az URL-t rakjuk össze a `CreatedAtAction` paraméterei révén.
 
-Gyakori, hogy a lefele irányú (kliens felé) bővebb adathalmaz kerül leküldésre, mint amit egy létrehozáskor vagy frissítéskor várunk. Esetünkben is az `Orders` és a `Category` propertyk létrehozáskor feleslegesek. Erre a célra jobb egy külön DTO-t létrehozni, ami csak a megfelelő adatokat tartalmazza. Most ideiglenesen tegyük nullozhatóvá ezt a két propertyt.
+Gyakori, hogy a lefele irányú (kliens felé) bővebb adathalmaz kerül leküldésre, mint amit egy létrehozáskor vagy módosításkor várunk. Esetünkben is az `Orders` és a `Category` propertyk létrehozáskor feleslegesek. Erre a célra jobb egy külön DTO-t létrehozni, ami csak a megfelelő adatokat tartalmazza. Most ideiglenesen tegyük nullozhatóvá ezt a két propertyt.
 
 [source,csharp]
 ----
