@@ -109,19 +109,20 @@ dotnet tool install -g dotnet-aspnet-codegenerator
 cd .\WebApiLab.Api
 ----
 
-4. Generáljunk a kódgenerálóval REST API (`-api`) controllert a `Product` entitáshoz (`-m`), mely az `AppDbContext` kontextushoz  (`-dc`) tartozik. A generált osztály neve legyen `EFProductController` (`-name`), az `WebApiLab.Api.Controllers` névtérbe  (`-namespace`) kerüljön. A generált fájl a *Controllers* mappába (`-outDir`) kerüljön. 
+4. Generáljunk a kódgenerálóval REST API (`-api`) kontrollert a `Product` entitáshoz (`-m`), mely az `AppDbContext` kontextushoz  (`-dc`) tartozik. A generált osztály neve legyen `EFProductController` (`-name`), az `WebApiLab.Api.Controllers` névtérbe  (`-namespace`) kerüljön. A generált fájl a *Controllers* mappába (`-outDir`) kerüljön.
+
 [source,powershell]
 ----
 dotnet aspnet-codegenerator controller -m WebApiLab.Dal.Entities.Product -dc WebApiLab.Dal.AppDbContext -outDir Controllers -name EFProductController -namespace WebApiLab.Api.Controllers -api
 ----
 
-WARNING: Figyeljünk rá, hogy ne a `Dtos` névtérből adjuk meg a DTO típust a tényleges entitástípus helyett.
+WARNING: Figyeljünk rá, hogy *ne* a `Dtos` névtérből adjuk meg a DTO típust a tényleges entitástípus helyett.
 
-A legenerálódó kontroller már használható is. Állítsuk át a zöld nyíl mellett az indítási konfigurációt a projektnevesre, hogy ne IIS Express induljon és így lássuk a konzolon a naplót. Indítsuk a projektet és próbáljuk például lekérni az összes terméket az **api/efproducts** címről vagy a swagger felületről.
+A legenerálódó kontroller már használható is. Állítsuk át a zöld nyíl mellett az indítási konfigurációt a projektnevesre, hogy ne IIS Express induljon és így lássuk a konzolon a naplót. Indítsuk a projektet és próbáljuk például lekérni az összes terméket az **api/efproduct** címről vagy a swagger felületről.
 
 TIP: Érdemes a zöld nyíl melletti lenyílóban olyan böngészőt megadni (Chrome, Firefox), ami értelmes formában meg tudja jeleníteni a nyers JSON adatokat, ha nem swagger felületről tesztelünk.
 
-TIP: Az alapértelmezésben megnyitandó URL útvonalat a projekt tulajdonságok között adhatjuk meg: menu:jobbklikk a projekten[Debug lap > Launch Browser]. Ide egy a gyökércímhez képesti relatív útvonalrészt kell beírni. (pl. _api/efproducts_)
+TIP: Az alapértelmezésben megnyitandó URL útvonalat a projekt tulajdonságok között adhatjuk meg: menu:zöld nyíl melletti legördülő menü[<Projektnév> Debug Properties]. Ide egy a gyökércímhez képesti relatív útvonalrészt kell beírni. (pl. _api/efproduct_)
 
 Figyeljük meg, hogy a controller a konstruktorban igényli meg a DI-tól az EF kontextet, amit a szokásos módon osztályváltozóban tárol el.
 
@@ -131,17 +132,15 @@ A rétegezett architektúra elveit követve gyakori eljárás, hogy a kontroller
 
 Ehhez a megoldáshoz készítsünk külön kontroller változatot. A _Controllers_ mappába hozzunk létre egy kontrollert (menu:Add[Controller > bal fában Common > API > jobb oldalon API Controller with read/write actions]) `ProductsController` néven.
 
-A megoldáshoz a _BLL_ projektben már létezik a `ProductService` osztály, aminek szintén függősége az EF kontext és megvalósítja szükséges CRUD műveleteket. Az EF gyakorlaton tanultakra visszautalva mutassuk be a műveletek implementációját. Függőségeknél előnyösebb, ha interfészekre hivatkozunk, mert tesztelésnél az interfész mögötti implementációt általában egyszerűbb cserélni. Szerencsére az `IProductService` interfész is már rendelkezésünkre áll.
-
-A BLL projekt Services mappájába hozzunk létre egy új osztályt `ProductService` néven. Implementálja az `IProductService` interfészt, a kiinduló implementációt generáltassuk a Visual Studio-val. Konstruktorban várja a függőségként a kontextet. A kontext segítségével implementáljuk normálisan a `GetProducts` függvényt. _Eager Loading_ használatával az egyes termékekhez a kapcsolódó kategóriát és megrendeléseket is adjuk vissza.
+A BLL projekt Services mappájába hozzunk létre egy új osztályt `ProductService` néven. Az új osztály kontroller számára nyújtandó funkcióit az `IProductService` adja meg. Implementáljuk ezt az interfészt, a kiinduló implementációt generáltassuk a Visual Studio-val. Konstruktorban várja a függőségként a kontextet. A kontext segítségével implementáljuk normálisan a `GetProducts` függvényt. _Eager Loading_ használatával az egyes termékekhez a kapcsolódó kategóriát és megrendeléseket is adjuk vissza.
 
 [source,csharp]
 ----
 public class ProductService : IProductService
 {
-    private readonly AddDbContext _context;
+    private readonly AppDbContext _context;
 
-    public ProductService(AddDbContext context)
+    public ProductService(AppDbContext context)
     {
         _context = context;
     }       
@@ -243,11 +242,7 @@ public class WebApiProfile : Profile
 {
     public WebApiProfile()
     {
-        CreateMap<Dal.Entities.Product, Product>()
-            .ForMember(
-                p => p.Orders,
-                opt => opt.MapFrom(x => x.ProductOrders.Select(po => po.Order)))
-            .ReverseMap();
+        CreateMap<Dal.Entities.Product, Product>().ReverseMap();
         CreateMap<Dal.Entities.Order, Order>().ReverseMap();
         CreateMap<Dal.Entities.Category, Category>().ReverseMap();
     }
@@ -255,7 +250,7 @@ public class WebApiProfile : Profile
 
 ----
 
-A `Program`-ban adjuk hozzá és konfiguráljuk a leképezési szolgáltatást.
+A DI konténerhez adjuk hozzá és konfiguráljuk a leképezési szolgáltatást.
 
 [source,csharp]
 ----
@@ -300,21 +295,23 @@ using WebApiLab.Bll.Dtos;
 /**/}
 ----
 
-Hogy ne zavarjon be a swaggernek az EFProductControllerben használt entitás osztályok, töröljük ki a Controllers mappából az EFProductControllert!
+Hogy ne zavarjanak be a swaggernek az `EFProductController`ben használt entitás osztályok, töröljük ki a Controllers mappából az `EFProductController`t!
 
 Próbáljuk ismét meghívni böngészőből, figyeljük meg a naplóban, hogy milyen SQL lekérdezés fut le.
 
-TIP: A többrétegű architektúránál elméletben minden rétegnek külön objektummodellje kellene, hogy legyen DAL: EF entitások, BLL: domain objektumok, Kontroller: DTO-k, viszont ha a domain objektumok nem visznek plusz funkciót a rendszerbe, akkor el szoktuk hagyni.
+TIP: A többrétegű architektúránál elméletben minden rétegnek külön objektummodellje kellene, hogy legyen DAL: EF entitások, BLL: https://en.wikipedia.org/wiki/Domain_model[domain objektumok], Kontroller: DTO-k, viszont ha a domain objektumok nem visznek plusz funkciót a rendszerbe, akkor el szoktuk hagyni.
 
 A DTO leképezést más rétegben is végezhetnénk. Egyes megközelítések szerint a kontroller réteg feladata lenne, azonban, ha az EF lekérdezésekkel összevonva végezzük a leképezést, akkor kiaknázhatjuk a _query result shaping_ előnyeit, azaz csak azt kérdezzük le az adatbázisból, amire a leképezésnek szüksége van. Az AutoMapper `ProjectTo` függvénye ráadásul mindezt el is intézi helyettünk a leképezési konfiguráció alapján.
 
 TIP: A `ProjectTo` speciálisan `IQueryable`-n működik. Ha csak simán memóriabeli objektumok között szeretnénk leképezni, akkor az `IMapper` `Map<>` függvényét hívjuk. A memóriabeli  leképezésnek hátránya, hogy EF szinten gondoskodnunk kell róla, hogy `Include` hívásokkal a leképezéshez szükséges kapcsolódó entitásokat is lekérdezzük. A `ProjectTo` ezt is elintézi helyettünk.
 
+A `ProjectTo` metódust felfoghatjuk a továbbiakban egy LINQ-s `Select()` operátornak, annyi különbséggel, hogy az AutoMapper generálja azt az `Expression`t, ami alapján előáll majd az eredmény.
+
 == BLL funkciók implementációja
 
 === Egy elem lekérdezése
 
-A `ProjectTo` metódust felfoghatjuk a továbbiakban egy LINQ-s `Select()` operátornak, annyi különbséggel, hogy az automapper generálja azt az expressiont, ami alapján előáll majd az eredmény.
+Valósítsunk meg további interfész által előírt funkciókat a `ProductService` osztályban:
 
 [source,csharp]
 ----
@@ -350,17 +347,14 @@ Konvenció szerint külön paraméterként szokták átadni a módosítandó ele
 ----
 public void UpdateProduct(int productId, Product updatedProduct)
 {
-    var efProduct = _mapper.Map<DAL.Entities.Product>(updatedProduct);
+    var efProduct = _mapper.Map<Dal.Entities.Product>(updatedProduct);
     efProduct.Id = productId;
-    var entry = _context.Attach(efProduct);
-    entry.State = EntityState.Modified;
+    _context.Entry(efProduct).State = EntityState.Modified;
     _context.SaveChanges();
 }
 ----
 
-Alternatíva lehetne még ennél a függvény esetében, hogy lekérdezzük ID alapján az entitást és AutoMapperrel a lekérdezett objektumba mappeljük a DTO-t. Ebben az esetben nincs szükség Attach-ra és állapotkezelésre sem.
-
-TIP: Bizonyos esetekben az elsődleges kulcs alapján az `Attach` automatikusan beszúrandó, _Added_ állapotúként regisztrálja az entitást. Bővebben a https://docs.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext.attach[dokumentációban]
+TIP: Alternatíva lehetne még ennél a függvény esetében, hogy lekérdezzük azonosító (`Id`) alapján az entitást és AutoMapperrel a lekérdezett objektumba mappeljük a DTO-t. Ebben az esetben nincs szükség `Attach`-ra és állapotkezelésre sem, viszont extra lekérdezéssel jár.
 
 === Törlés
 
@@ -444,7 +438,17 @@ Itt már látszik az `ActionResult` haszna. A konvenciónak megfelelően 201-es 
 
 Gyakori, hogy a lefele irányú (kliens felé) bővebb adathalmaz kerül leküldésre, mint amit egy létrehozáskor vagy frissítéskor várunk. Esetünkben is az `Orders` és a `Category` propertyk létrehozáskor feleslegesek. Erre a célra jobb egy külön DTO-t létrehozni, ami csak a megfelelő adatokat tartalmazza. Most ideiglenesen tegyük nullozhatóvá ezt a két propertyt.
 
-Próbáljuk ki a műveletet Swaggerből. Egy `Product`-ot kell felküldenünk. erre egy példa érték:
+[source,csharp]
+----
+public record Product
+{
+    /*többi property*/
+    public Category? Category { get; init; } //? módosító bekerült
+    public List<Order>? Orders { get; init; } //? módosító bekerült
+}
+----
+
+Próbáljuk ki a műveletet Swagger felületről. Egy `Product`-ot kell felküldenünk. erre egy példa érték:
 
 [source,javascript]
 ----
@@ -456,7 +460,7 @@ Próbáljuk ki a műveletet Swaggerből. Egy `Product`-ot kell felküldenünk. e
 }
 ----
 
-WARNING: Ha Fiddlerből vagy Postmandből tesztelünk. ne felejtsük el a _Content-Type_ fejlécet  *application/json*-re állítani! Figyeljük meg a kapott választ. A válaszból másoljuk ki a _Location_ fejlécből az URL-t és hívjuk meg böngészőből.
+WARNING: Ha Fiddlerből vagy Postmanből tesztelünk, ne felejtsük el a _Content-Type_ fejlécet  *application/json*-re állítani! Figyeljük meg a kapott választ. A válaszból másoljuk ki a _Location_ fejlécből az URL-t és hívjuk meg böngészőből.
 
 Fiddler Classic példa POST hívásra:
 
@@ -483,7 +487,7 @@ public ActionResult Delete(int id)
 /**/}
 ----
 
-TIP: PUT mellett a módosításhoz használatos a PATCH is. A PUT konvenció szerint teljes, míg a PATCH részleges felülírásnál használatos. PATCH esetén általában valamilyen patch formátumú adatot küld a kliens, pl. https://tools.ietf.org/html/rfc6902[RFC 6902 - JSON Patch]. A JSON Patch formátumot jelenleg csak a JSON korábbi sorosító (Newtonsoft.Json) https://docs.microsoft.com/en-us/aspnet/core/web-api/jsonpatch[támogatja].
+TIP: PUT mellett a módosításhoz használatos a PATCH is. A PUT konvenció szerint teljes, míg a PATCH részleges felülírásnál használatos. PATCH esetén általában valamilyen patch formátumú adatot küld a kliens, pl. https://tools.ietf.org/html/rfc6902[RFC 6902 - JSON Patch]. A JSON Patch formátumot jelenleg csak a JSON korábbi sorosító (_Newtonsoft.Json_) https://docs.microsoft.com/en-us/aspnet/core/web-api/jsonpatch[támogatja].
 
 TIP: Gyakori, hogy a PUT művelet esetében nem 204 No Content válasszal térünk vissza, hanem 200 OK státuszkóddal és a módosított erőforrással, hogy a kliens a tényleges érvényre jutott értékekkel befrissíthesse a saját adatait.
 
@@ -491,7 +495,7 @@ Próbáljuk kitörölni az újonnan felvett terméket Swaggerből/Fiddler/Postma
 
 == Hibakezelés
 
-Eddig főleg csak a hibamentes ágakat (happy path) néztük. A REST konvenciók rendelkeznek arról is, hogy bizonyos hibahelyezetekben milyen https://httpstatuses.com[HTTP választ] illik adni, például ha a kérésben hivatkozott azonosító nem létezik - 404-es hiba a bevett eljárás. Státuszkódok szempontjából a korábban idézett oldal ad segítséget, a válasz törzsében a hibaüzenet szerkezete tekintetében az https://tools.ietf.org/html/rfc7807[RFC 7807] ad iránymutatást az ún. _Problem Details_ típusú válaszok bevezetésével. Az ASP.NET Core 2.1-es verzió óta támogatja a Problem Details válaszokat, és általában automatikusan ilyen válaszokat küld.
+Eddig főleg csak a hibamentes ágakat (happy path) néztük. A REST konvenciók rendelkeznek arról is, hogy bizonyos hibahelyezetekben milyen https://httpstatuses.com[HTTP választ] illik adni, például ha a kérésben hivatkozott azonosító nem létezik - 404-es hiba a bevett eljárás. Státuszkódok szempontjából a korábban idézett oldal ad segítséget, a válasz törzsében a hibaüzenet szerkezete tekintetében az https://tools.ietf.org/html/rfc7807[RFC 7807] ad iránymutatást az ún. _Problem Details_ típusú válaszok bevezetésével. Az ASP.NET Core 2.1-es verzió óta támogatja a _Problem Details_ válaszokat, és általában automatikusan ilyen válaszokat küld.
 
 === 400 Bad Request
 
@@ -560,7 +564,7 @@ Legegyszerűbb módszer a kontroller műveletben érvényesíteni a konvenciót:
         catch (EntityNotFoundException)
         {
             return NotFound();
-        }    
+        }
 /**/}
 ----
 
@@ -590,14 +594,14 @@ Ha saját _problem details_-t szeretnénk a 404-es kód mellé, akkor kézzel ö
 
 A rendhagyó válaszok előállításánál előnyös lehet, ha az alacsonyabb rétegekből specifikus kivételeket dobunk, mert ezeket egy központi helyen szisztematikusan átalakíthatjuk konvenciónak megfelelő HTTP válaszokká. Ez a képesség egyelőre még nem érhető el beépítetten, ezért egy https://github.com/khellang/Middleware[közösségi fejlesztésű NuGet csomagot] használunk fel.
 
-Telepítsük fel a _Hellang.Middleware.ProblemDetails_ csomagot az API projektbe. Megtehetjük a szokásos módon, de akár a Package Manager Console-ból is a következő paranccsal (az API projekt legyen megadva, mint _Default Project_):
+Telepítsük fel a _Hellang.Middleware.ProblemDetails_ csomagot az API projektbe. Megtehetjük a szokásos módon, de akár a _Package Manager Console_-ból is a következő paranccsal (az API projekt legyen megadva, mint _Default Project_):
 
 [source,powershell]
 ----
 Install-Package Hellang.Middleware.ProblemDetails
 ----
 
-Szokás szerint konfiguráljuk a `Program` osztályban. Sose adjuk vissza a kivétel részleteit (szigorú _exception shielding_), illetve a saját kivételtípusunkat képezzük le 404-es hibára.
+Szokás szerint konfiguráljuk a legfelső szintű kódban. Sose adjuk vissza a kivétel részleteit (szigorú _exception shielding_), illetve a saját kivételtípusunkat képezzük le 404-es hibára.
 
 [source,csharp]
 ----
@@ -614,9 +618,6 @@ Illesszük a pipeline-ba a legelső helyre:
 ----
 /**/var app = builder.Build();
     app.UseProblemDetails();
-/**/    
-/**/    //további MW-k
-/**/}
 ----
 
 Térjünk vissza a korábbi, nem kivétel-elkapós változatra, az előzőt kommentezzük ki:
@@ -644,10 +645,7 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
 ----
 /**/public void UpdateProduct(int productId, Product updatedProduct)
 /**/{
-/**/    var efProduct = _mapper.Map<DAL.Entities.Product>(updatedProduct);
-/**/    efProduct.Id = productId;
-/**/    var entry = _context.Attach(efProduct);
-/**/    entry.State = EntityState.Modified;
+/**/    /*...*/
         try
         {
 /**/         _context.SaveChanges();
@@ -663,7 +661,7 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
 
 /**/public void DeleteProduct(int productId)
 /**/{
-/**/    _context.Products.Remove(new DAL.Entities.Product { Id = productId });     
+/**/    /*...*/     
         try
         {
 /**/        _context.SaveChanges();
