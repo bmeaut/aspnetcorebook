@@ -652,7 +652,7 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (_context.Products.SingleOrDefault(p => p.Id == productId) == null)
+            if (!_context.Products.Any(p => p.Id == productId))
                 throw new EntityNotFoundException("Nem található a termék");
             else
                 throw;
@@ -668,7 +668,7 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (_context.Products.SingleOrDefault(p => p.Id == productId) == null)
+            if (!_context.Products.Any(p => p.Id == productId))
                 throw new EntityNotFoundException("Nem található a termék");
             else
                 throw;
@@ -734,8 +734,8 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 /**/    }
 /**/    catch (DbUpdateConcurrencyException)
 /**/    {
-           if ((await _context.Products
-                        .SingleOrDefaultAsync(p => p.Id == productId)) == null)
+/**/          if (!await _context.Products
+                        .AnyAsync(p => p.Id == productId))
             //async változat hívása
 /**/               throw new EntityNotFoundException("Nem található a termék");
 /**/        else
@@ -818,7 +818,7 @@ public class ProductService : IProductService
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (await _context.Products.SingleOrDefaultAsync(p => p.Id == productId) == null)
+            if (!await _context.Products.AnyAsync(p => p.Id == productId))
                 throw new EntityNotFoundException("Nem található a termék");
             else
                 throw;
@@ -827,14 +827,15 @@ public class ProductService : IProductService
 
     public async Task DeleteProductAsync(int productId)
     {
-        _context.Products.Remove(new Dal.Entities.Product(null!) { Id = productId });
+        _context.Products.Remove(
+            new Dal.Entities.Product(null!) { Id = productId });
         try
         {
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (await _context.Products.SingleOrDefaultAsync(p => p.Id == productId) == null)
+            if (!await _context.Products.AnyAsync(p => p.Id == productId))
                 throw new EntityNotFoundException("Nem található a termék");
             else
                 throw;
