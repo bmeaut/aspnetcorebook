@@ -3,7 +3,7 @@
 == Kiegészítő anyagok, segédeszközök
 
 * kapcsolódó GitHub repo: https://github.com/bmeaut/WebApiLab
-** elég csak https://github.com/bmeaut/WebApiLab/archive/init2021.zip[zip-ként letölteni], nem kell klónozni 
+** elég csak https://github.com/bmeaut/WebApiLab/archive/refs/heads/master.zip[zip-ként letölteni], nem kell klónozni 
 * https://www.getpostman.com/[Postman] vagy https://www.telerik.com/download/fiddler[Fiddler Classic] HTTP kérések küldéséhez
 
 == Kiinduló projektek beüzemelése
@@ -652,7 +652,7 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (_context.Products.SingleOrDefault(p => p.Id == productId) == null)
+            if (!_context.Products.Any(p => p.Id == productId))
                 throw new EntityNotFoundException("Nem található a termék");
             else
                 throw;
@@ -668,7 +668,7 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (_context.Products.SingleOrDefault(p => p.Id == productId) == null)
+            if (!_context.Products.Any(p => p.Id == productId))
                 throw new EntityNotFoundException("Nem található a termék");
             else
                 throw;
@@ -734,8 +734,8 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 /**/    }
 /**/    catch (DbUpdateConcurrencyException)
 /**/    {
-           if ((await _context.Products
-                        .SingleOrDefaultAsync(p => p.Id == productId)) == null)
+/**/          if (!await _context.Products
+                        .AnyAsync(p => p.Id == productId))
             //async változat hívása
 /**/               throw new EntityNotFoundException("Nem található a termék");
 /**/        else
@@ -757,7 +757,7 @@ Próbáljuk ki, például küldjünk PUT-ot az `api/products/1` címre, állíts
 
 == Végállapot
 
-A többi műveletet aszinkronizálva az alábbi a végállapot (elérhető a kapcsolódó GitHun repo https://github.com/bmeaut/WebApiLab/tree/net5[net5-ös ágán] is):
+A többi műveletet aszinkronizálva az alábbi a végállapot (elérhető a kapcsolódó GitHun repo https://github.com/bmeaut/WebApiLab/tree/net6[net6-os ágán] is):
 
 [source,csharp]
 ----
@@ -818,7 +818,7 @@ public class ProductService : IProductService
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (await _context.Products.SingleOrDefaultAsync(p => p.Id == productId) == null)
+            if (!await _context.Products.AnyAsync(p => p.Id == productId))
                 throw new EntityNotFoundException("Nem található a termék");
             else
                 throw;
@@ -827,14 +827,15 @@ public class ProductService : IProductService
 
     public async Task DeleteProductAsync(int productId)
     {
-        _context.Products.Remove(new Dal.Entities.Product { Id = productId });
+        _context.Products.Remove(
+            new Dal.Entities.Product(null!) { Id = productId });
         try
         {
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (await _context.Products.SingleOrDefaultAsync(p => p.Id == productId) == null)
+            if (!await _context.Products.AnyAsync(p => p.Id == productId))
                 throw new EntityNotFoundException("Nem található a termék");
             else
                 throw;
