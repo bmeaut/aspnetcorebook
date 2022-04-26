@@ -3,8 +3,8 @@
 == Kiegészítő anyagok, segédeszközök
 
 * kapcsolódó GitHub repo: https://github.com/bmeaut/WebApiLab
-** elég csak https://github.com/bmeaut/WebApiLab/archive/refs/heads/net5.zip[zip-ként letölteni] a net5-ös ágat, nem kell klónozni 
-* https://github.com/RicoSuter/NSwag/wiki/NSwagStudio[NSwag Studio] - itt is elég csak a legfrissebb zip verziót (például https://github.com/RicoSuter/NSwag/releases/download/NSwag-Build-1130/NSwag.zip[ezt]) az *Assets* részről letölteni.
+** elég csak https://github.com/bmeaut/WebApiLab/archive/refs/heads/net6-client-init.zip[zip-ként letölteni] a `net6-client-init` ágat, nem kell klónozni 
+* https://github.com/RicoSuter/NSwag/wiki/NSwagStudio[NSwag Studio] - itt is elég csak a legfrissebb zip verziót (például https://github.com/RicoSuter/NSwag/releases/download/v13.15.10/NSwag.zip[ezt]) az *Assets* részről letölteni.
 * https://www.getpostman.com/[Postman] HTTP kérések küldéséhez
 
 == Kiinduló projektek beüzemelése
@@ -19,46 +19,39 @@ A tárgy tematikájának ugyan nem része a kliensoldal, de demonstrációs cél
 * HTTP alapú kommunikáció, HTTP kérések küldése, a válasz feldolgozása
 * JSON sorosítás
 
-A fentiekhez szinte minden manapság használt kliensoldali technológia ad támogatást. Mi most egy sima, klasszikus .NET Framework alapú konzol alkalmazást írunk kliens gyanánt.
+A fentiekhez szinte minden manapság használt kliensoldali technológia ad támogatást. Mi most egy sima, .NET 6 alapú konzol alkalmazást írunk kliens gyanánt.
 
 A két képességet könnyen lefedhetjük:
 
 * a *System.Net.Http* függőséget a kiinduló projektben megkapjuk, ez adja a HTTP kommunikáció alapjait
 * a legmodernebb JSON kezelő könyvárat, a *System.Text.Json*-t NuGet csomagként szerezhetjük be
 
-Adjunk a solution-höz egy konzolos projektet (Console App (.NET Framework), **nem Core!**, legalább v4.7.2) _WebApiLab.Client_ néven. Adjuk hozzá a projekthez a *System.Text.Json* Nuget csomagot.
-A _Program.cs_-ben írjuk meg az egy terméket lekérdező függvényt (`GetProductAsync`) és hívjuk meg a `Main` függvényből.
+Adjunk a solution-höz egy konzolos projektet (Console App (.NET 6), **nem .NET Framework!**) _WebApiLab.Client_ néven. Adjuk hozzá a projekthez a *System.Text.Json* Nuget csomagot.
+A _Program.cs_-ben írjuk meg az egy terméket lekérdező függvényt (`GetProductAsync`) és hívjuk meg.
 
 [source,csharp]
 ----
-static async Task Main(string[] args)
-{
-    Console.Write("ProductId: ");
-    var id = Console.ReadLine();
-    await GetProductAsync(int.Parse(id));
+Console.Write("ProductId: ");
+var id = Console.ReadLine();
+await GetProductAsync(int.Parse(id));
 
-    Console.ReadKey();
-}
+Console.ReadKey();
 
-public static async Task GetProductAsync(int id)
+static async Task GetProductAsync(int id)
 {
-    using (var client = new HttpClient())
-    {
-        /*A portot írjuk át a szervernek megfelelően*/
-        var response = await client.
-            GetAsync(new Uri($"http://localhost:5000/api/Products/{id}"));
-        if (response.IsSuccessStatusCode)
-        {
-            var jsonStream = await response.Content.ReadAsStreamAsync();
-            var json = await JsonDocument.ParseAsync(jsonStream);
-            Console.WriteLine($"{json.RootElement.GetProperty("name")}:" +
-                $"{json.RootElement.GetProperty("unitPrice")}.-");
-        }
-    }
+    using var client = new HttpClient();
+
+    /*A portot írjuk át a szervernek megfelelően*/
+    var response = await client.GetAsync(new Uri($"http://localhost:5000/api/Product/{id}"));
+    response.EnsureSuccessStatusCode();
+    var jsonStream = await response.Content.ReadAsStreamAsync();
+    var json = await JsonDocument.ParseAsync(jsonStream);
+    Console.WriteLine($"{json.RootElement.GetProperty("name")}:" +
+        $"{json.RootElement.GetProperty("unitPrice")}.-");
 }
 ----
 
-TIP: Ha .NET-ben írjuk a klienst, akkor gyakori, hogy a klasszikus .NET Framework-öt kell használnunk. Az elterjedtebb .NET alapú kliensek, a WinForms, WPF alkalmazások a legutóbbi időkig .NET Framework alapúak voltak, a .NET Core / .NET 5 alapú változataik még újdonságnak számítanak.
+TIP: Az elterjedtebb .NET alapú kliensek, a WinForms, WPF alkalmazások a legutóbbi időkig .NET Framework alapúak voltak, viszont már egy ideje a .NET 6 is támogatja a WinForms, WPF, WinUI, MAUI (régi Xamarin) alkalmazásokat. Célszerű ezeket választani a régi .NET Framework alapú változatok helyett.
 
 Állítsuk be, hogy a szerver és a kliensoldal is elinduljon (menu:solutionön jobbklikk[Set startup projects...]), majd próbáljuk ki, hogy a megadott azonosítójú termék neve és ára megjelenik-e a konzolon.
 
@@ -76,64 +69,39 @@ Az _OpenAPI_ (eredeti nevén: _swagger_) eszközkészlet segítségével egy JSO
 
 Az OpenAPI nem .NET specifikus, különféle nyelven írt szervert és klienst is támogat. Ugyanakkor készültek kifejezetten a .NET-hez is OpenAPI eszközök, ezek közül használunk párat most. .NET környezetben legelterjedtebb eszközkészletek:
 
-* https://github.com/RicoSuter/NSwag[NSwag] - szerver- és kliensoldali generálás is. Részleges OAS v3 támogatás.
-* https://github.com/domaindrivendev/Swashbuckle.AspNetCore[Swashbuckle] - csak szerveroldali generálás. OAS v3 támogatott.
+* https://github.com/RicoSuter/NSwag[NSwag] - leíró-, szerver-, és kliensoldali generálás is. Részleges OAS v3 támogatás.
+* https://github.com/domaindrivendev/Swashbuckle.AspNetCore[Swashbuckle] - csak leíró generálás. OAS v3 támogatott.
 * https://github.com/Azure/autorest[AutoRest] - _npm_ csomag .NET Core függőséggel, csak kliensoldali kódgeneráláshoz. Részleges OAS v3 támogatás.
 * https://github.com/swagger-api/swagger-codegen[Swagger codegen] - java alapú kliensoldali generátor
 
 Első lépésként a szerveroldali kódunk alapján swagger leírást generálunk _NSwag_ segítségével. Kommentezzük ki a `ProductsController`-en kívül a többi kontroller teljes kódját.
 
-Adjuk hozzá a projekthez az *NSwag.AspNetCore* csomagot a `Package Manager Console`-ból. Figyeljünk rá, hogy a _Default project_ az Api projektünk legyen - ebbe fog bekerülni az új függőség.
-
-[source,powershell]
-----
-Install-Package NSwag.AspNetCore
-----
+Adjuk hozzá a projekthez az *NSwag.AspNetCore* csomagot a `Package Manager Console`-ból vagy az API projekt Manage NuGet packages UI-on, és töröljük ki a Swashbuckle csomagot.
 
 Konfiguráljuk a szükséges szolgáltatásokat a DI rendszerbe.
 
 [source,csharp]
 ----
-/**/public void ConfigureServices(IServiceCollection services)
-/**/{
-/**/    //többi szolgáltatás
-        services.AddOpenApiDocument();
-/**/}
+//builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApiDocument();
 ----
 
-Az OpenAPI leíró, illetve a dokumentációs felület kiszolgálására regisztráljunk egy-egy middleware-t az *Endpoint MW elé*.
+Az OpenAPI leíró, illetve a dokumentációs felület kiszolgálására regisztráljunk egy-egy NSwag middleware-t az *Endpoint MW elé*. Az eddigi Swagger támogatással kapcsolatok kódot törölhetőek.
 
 [source,csharp]
 ----
-/**/public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+/**/if (app.Environment.IsDevelopment())
 /**/{
-/**/ //többi mw.
-    app.UseOpenApi(); // ez az MW szolgálja ki az OpenAPI JSON-t
-    app.UseSwaggerUi3(); //ez az MW adja az OpenAPI felületet
-/**/ //app.UseEndpoint...
+    //app.UseSwagger();
+    //app.UseSwaggerUI();
+    app.UseOpenApi();
+    app.UseSwaggerUi3();
 /**/}
+
 ----
 
-A Swagger UI a /swagger útvonalon lesz elérhető. Állítsuk át a _Properties\launchsettings.json_-ben a _launchUrl_ értékeket, hogy ez a cím töltődjön be automatikusan.
-
-[source,javascript]
-----
-/**/"profiles": {
-/**/  "IIS Express": {
-/**/    //..
-        "launchUrl": "swagger",
-/**/    //..
-/**/  },
-/**/  "WebApiLab.Api": {
-/**/    //..
-        "launchUrl": "swagger",
-/**/    //..
-/**/    }
-/**/  }
-/**/}
-----
-
-Próbáljuk ki, hogy működik-e a dokumentációs felület a */swagger* útvonalon, illetve a leíró elérhető-e a */swagger/v1/swagger.json* útvonalon.
+A Swagger UI a /swagger útvonalon lesz elérhető. Próbáljuk ki, hogy működik-e a dokumentációs felület a */swagger* útvonalon, illetve a leíró elérhető-e a */swagger/v1/swagger.json* útvonalon.
 
 TIP: A swagger leíró linkje megtalálható a dokumentációs felület címsora alatt.
 
@@ -160,23 +128,23 @@ Az NSwag képes a kódunk https://docs.microsoft.com/en-us/dotnet/csharp/codedoc
 /**/public async Task<ActionResult<Product>> Get(int id){/*...*/}
 ----
 
-A swagger komponensünk az XML kommenteket nem a forráskódból, hanem egy generált állományból képes kiolvasni. Állítsuk be ennek a generálását a projekt build beállításai között ( menu:Build[XML documentation file]). A checkbox bekattintásakor felajánlott értéket nem kell megváltoztatnunk.
+A swagger komponensünk az XML kommenteket nem a forráskódból, hanem egy generált állományból képes kiolvasni. Állítsuk be ennek a generálását a projekt build beállításai között ( menu:Build[XML documentation file]). Az alatta lévő textbox-ot üresen hagyhatjuk.
 
 .Projektbeállítások (Build lap) - XML dokumentációs fájl generálása
 image::images/aspnetcoreclient-xmlcomment.png[Projektbeállítások - XML dokumentációs fájl generálása]
 
 === Testreszabás - Felsorolt típusok sorosítása szövegként
 
-Következő kis testreszabási lehetőség, amit kipróbálunk, a felsorolt típusok szövegként való generálása (az egész számos kódolás helyett). Ez általában a kliensek számára https://softwareengineering.stackexchange.com/questions/220091/how-to-represent-enum-types-in-a-public-api[kifejezőbb]. A `ConfigureServices`-ben a JSON sorosítást konfiguráljuk:
+Következő kis testreszabási lehetőség, amit kipróbálunk, a felsorolt típusok szövegként való generálása (az egész számos kódolás helyett). Ez általában bevált módszer a kliensek számára https://softwareengineering.stackexchange.com/questions/220091/how-to-represent-enum-types-in-a-public-api[kifejezőbb]. A DI-ban a JSON sorosítást konfiguráljuk:
 
 [source,csharp]
 ----
-/**/services.AddControllers()
-        .AddJsonOptions(opts =>
-        {
-         opts.JsonSerializerOptions.
-            Converters.Add(new JsonStringEnumConverter());
-        });
+/**/builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        //opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 ----
 
 WARNING: Sajnos a dokumentáció *Example Value* és *Schema* részein megmarad az `int` típus. Ez egyelőre https://github.com/RicoSuter/NJsonSchema/issues/890[bug].
@@ -225,15 +193,14 @@ A kliensoldalt az _NSwag Studio_ eszközzel generáltatjuk. Ez a generátor egy 
 Előkészítésként adjuk a projekthez az alábbiakat:
 
 * _Newtonsoft.Json_ NuGet csomagot.
-* a _System.Runtime.Serialization_ és a  _System.ComponentModel.DataAnnotations_ .NET FW szerelvényeket függőségként (menu:Client projekten belül References[Add Reference...])
-* egy osztályt `ProductsClient` néven
+* egy osztályt `ApiClients` néven
 
 Indítsuk el a projektünket (a szerveroldalra lesz most szükség) és az NSwag Studio-t és adjuk meg az alábbi beállításokat:
 
 * Input rész (bal oldal): válasszuk az _OpenAPI/Swagger Specification_ fület és adjuk meg a OpenAPI leírónk címét (pl.: http://localhost:5000/swagger/v1/swagger.json). Nyomjuk meg a *Create local Copy* gombot.
 * Input rész (bal oldal) - Runtime: Default
 * Output rész (jobb oldal) - jelöljük be a CSharp Client jelölőt
-* Output rész (jobb oldal) - CSharp Client fül - Settings alfül: fölül a _Namespace_ mezőben adjunk meg egy névteret, pl. _WebApiLab.Client.Api_
+* Output rész (jobb oldal) - CSharp Client fül - Settings alfül: fölül a _Namespace_ mezőben adjunk meg egy névteret, pl. _WebApiLab.Client.Api_ (Többi beállítás maradhat alapértelmezetten)
 
 .NSwag Studio beállítások
 image::images/aspnetcoreclient-nswagstudio.png[NSwag Studio beállítások]
@@ -244,37 +211,30 @@ A generált kóddal írjuk felül az _ProductsClient.cs_ tartalmát (ehhez le ke
 
 [source,csharp]
 ----
-public static async Task<Product> GetProduct2Async(int id)
+static async Task<Product> GetProduct2Async(int id)
 {
-    using (var httpClient = new HttpClient())
-    {
-        ProductsClient client= new ProductsClient(httpClient);
-        return await client.GetAsync(id);
-    }
+    using var httpClient = new HttpClient();
+    var client = new ProductClient("http://localhost:5184", httpClient);
+    return await client.GetAsync(id);
 }
 ----
 
-Használjuk az új változatot a `Main` függvényben.
+Használjuk az új változatot.
 
 [source,csharp]
 ----
-/**/static async Task Main(string[] args)
-/**/{
-/**/    //..
-        //await GetProductAsync(Int32.Parse(id));
-        var p = await GetProduct2Async(int.Parse(id));
-        Console.WriteLine($"{p.Name} {p.UnitPrice}.-");
-/**/    Console.ReadKey();
-/**/}
+//await GetProductAsync(Int32.Parse(id));
+var p = await GetProduct2Async(int.Parse(id));
+Console.WriteLine($"{p.Name}: {p.UnitPrice}");
 ----
 
-Állítsuk be, hogy a szerver és a kliensoldal is elinduljon, majd próbáljuk ki, hogy megjelenik-e a kért termék neve.
+Állítsuk be, hogy a szerver és a kliensoldal is elinduljon, majd próbáljuk ki, hogy megjelenik-e a kért termék neve és ára.
 
 TIP: Ez csak egy minimálpélda volt, az NSwag nagyon sok beállítással https://github.com/RicoSuter/NSwag/wiki[rendelkezik].
 
 A kliensre innentől nem lesz szükség, beállíthatjuk, hogy csak a szerver induljon.
 
-WARNING: A generált kliens helyes működéséhez a műveletek minden nem hibát jelző státuszkódjait (2xx) dokumentáljuk swagger-ben a `ProducesResponseType` attribútummal, különben helyes szerver oldali lefutás után is kliensoldalon _nem várt státuszkód_ hibát kaphatunk.
+WARNING: A generált kliens helyes működéséhez a műveletek minden nem hibát jelző státuszkódjait (2xx) dokumentálnunk kellene swagger-ben a `ProducesResponseType` attribútummal, különben helyes szerver oldali lefutás után is kliensoldalon _nem várt státuszkód_ hibát kaphatunk.
 
 == Hibakezelés II.
 
@@ -289,7 +249,7 @@ Ehhez vegyünk fel egy `byte[]`-t a `Product` entitás osztályba `RowVersion` n
 /**/public class Product
 /**/{
 /**/    //...
-        public byte[] RowVersion { get; set; }
+        public byte[] RowVersion { get; set; } = null!;
 /**/}
 ----
 
@@ -302,17 +262,15 @@ modelBuilder.Entity<Product>()
     .IsRowVersion();
 ----
 
-TIP: A háttérben az EF során egy plusz feltételt csempész az UPDATE SQL utasításba, mégpedig, hogy az adatbázisban lévő `RowVersion` mező adatbázisbeli értéke az ugyanaz-e mint, amit ő ismert (a kliens által látott). Ha ez a feltétel sérül, akkor konkurenciahelyzet áll fent, mivel valaki már megváltoztatta a DB-ben lévő értéket.
+TIP: A háttérben az EF során egy plusz feltételt csempész az UPDATE SQL utasításba, mégpedig, hogy az adatbázisban lévő `RowVersion` mező adatbázisbeli értéke az ugyanaz-e mint, amit ő ismert (a kliens által látott) értéke. Ha ez a feltétel sérül, akkor konkurenciahelyzet áll fent, mivel valaki már megváltoztatta a DB-ben lévő értéket.
 
-Migrálnunk kell, mert megjelent egy új mező a `Product` táblánkban. Ne felejtsük el a szokásos módon beállítani az indítandó és a kontextet tartalmazó projekteket!
+Migrálnunk kell, mert megjelent egy új mező a `Product` táblánkban. Ne felejtsük el a szokásos módon beállítani Default Projectet a DAL-ra a Package Manager Console-ban!
 
 [source,powershell]
 ----
-Add-Migration ProductRowVersion -StartupProject WebApiLab.Api
-Update-Database -StartupProject WebApiLab.Api
+Add-Migration ProductRowVersion
+Update-Database
 ----
-
-TIP: A `StartupProject` kapcsolóra csak akkor van szükség, ha több indítandó projekt van beállítva.
 
 Még a `Product` DTO osztályba is fel kell vegyük a `RowVersion` tulajdonságot és legyen ez is kötelező.
 
@@ -322,7 +280,7 @@ Még a `Product` DTO osztályba is fel kell vegyük a `RowVersion` tulajdonságo
 /**/{
 /**/    //...
         [Required(ErrorMessage = "RowVersion is required")]
-        public byte[] RowVersion { get; set; }
+        public byte[] RowVersion { get; init; } = null!;
 /**/}
 ----
 
@@ -370,7 +328,7 @@ A fenti megvalósítás összeszedi az egyes property-khez (a `Dictionary` kulcs
 
 [source,csharp]
 ----
-/**/services.AddProblemDetails(options =>
+/**/builder.Services.AddProblemDetails(options =>
 /**/{
 /**/    //..
         options.Map<DbUpdateConcurrencyException>(
@@ -378,7 +336,7 @@ A fenti megvalósítás összeszedi az egyes property-khez (a `Dictionary` kulcs
 /**/});
 ----
 
-Ezzel kész is az implementációnk, amit Postmanből fogjuk kipróbálni. A kész kód elérhető a https://github.com/bmeaut/WebApiLab/tree/net5client[_net5client_] ágon.
+Ezzel kész is az implementációnk, amit Postmanből fogjuk kipróbálni. A kész kód elérhető a https://github.com/bmeaut/WebApiLab/tree/net6-client-megoldas[_net6-client-megoldas_] ágon.
 
 TIP: A kötelezően kitöltendő konkurencia mező beszúrásnál kellemetlen, hiszen kliensoldalon még nem tudható a token kezdeti értéke. Ilyenkor használhatunk bármilyen értéket, az adatbázis fogja a kezdeti token értéket beállítani.
 
@@ -388,7 +346,7 @@ Postman segítségével összeállítunk egy olyan hívási sorozatot, ami két 
 
 === Kollekció generálás OpenAPI leíró alapján
 
-A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva, a *Link* fülön adjuk meg a OpenAPI leíró swagger.json URL-jét (ugyanazt, amit az NSwag Studio-nak is megadtunk). A felugró ablakban csak a *Generate collection from imported APIs* opciót válasszuk. Ezután megjelenik egy új Postman API és egy új kollekció is *My Tite* néven - ezeket nevezzük át *WebApiLab*-ra (menu:jobbklikk a néven[Rename]). 
+A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva, a *Link* fülön adjuk meg a OpenAPI leíró swagger.json URL-jét (amit az elindított BE /swagger oldalán a címsor alatt találunk). A felugró ablakban csak a *Generate collection from imported APIs* opciót válasszuk. Ezután megjelenik egy új Postman API és egy új kollekció is *My Title* néven - ezeket nevezzük át *WebApiLab*-ra (menu:jobbklikk a néven[Rename]). 
 
 TIP: További segítség a https://learning.postman.com/docs/getting-started/importing-and-exporting-data/#importing-api-specifications[dokumentációban].
 
@@ -409,7 +367,7 @@ Vegyük fel az alábbi változókat:
 * `u1_tej` - az előbbi azonosító alapján lekérdezett termék adata
 * `u1_tej_deluxe` - az előbbi termék módosított termékadata, amit a felhasználó menteni kíván
 
-Ne felejtsük el elmenteni a kollekció váltásait a *Save* gombbal.
+Ne felejtsük el elmenteni a kollekció váltásait a *Save* (CTRL + S) gombbal.
 
 WARNING: A Postman https://github.com/postmanlabs/postman-app-support/issues/3466[nem ment automatikusan], ezért lehetőleg mindig mentsünk (kbd:[CTRL+S]), amikor egy másik hívás, kollekció szerkesztésére térünk át.
 
@@ -430,7 +388,7 @@ Egy tipikus módosító folyamat felhasználói szempontból az alábbi lépése
 * a módosítani kívánt termék részletes adatainak megjelenítése - API: egy termék adatainak lekérdezése
 * a kívánt módosítás(ok) bevitele - API: *nincs, tisztán kliensoldali művelet*
 * mentés - API: adott termék módosítása
-* aktuális (frissített) állapot megjelenítése - API: összes termék lekérdezése
+* (vissza) navigáció + aktuális (frissített) állapot megjelenítése - API: összes termék lekérdezése
 
 A négy API hívást klónozzuk (kbd:[CTRL+D]) a generált példahívásokból. Egy adott hívásra csináljunk egy klónt (jobbklikk -> *Duplicate*), drag-and-drop-pal húzzuk rá az új mappánkra, végül nevezzük át (kbd:[CTRL+E]). Ezekre a hívásokra csináljuk meg:
 
@@ -601,7 +559,7 @@ image::images/aspnetcoreclient-postman-runres2users.png[Postman futtatási eredm
 
 TIP: Érdemes megvizsgálni a 409-es hibakódú válasz törzsét, és benne a változott mezők eredeti és megváltozott értékét.
 
-WARNING: Ha igazi klienst írunk, figyeljünk arra, hogy a konkurencia tokent mindig küldjük le a kliensre, a kliens változatlanul küldje vissza a szerverre, és a szerver pedig a módosítás során **a klienstől kapott** tokent szerepeltesse a módosítandó entitásban. A legtöbb hibás implementáció arra vezethető vissza, hogy nem követjük ezeket az elveket.
+WARNING: Ha igazi klienst írunk, figyeljünk arra, hogy a konkurencia tokent mindig küldjük le a kliensre, a kliens változatlanul küldje vissza a szerverre, és a szerver pedig a módosítás során **a klienstől kapott** tokent szerepeltesse a módosítandó entitásban. A legtöbb hibás implementáció arra vezethető vissza, hogy nem követjük ezeket az elveket. Szerencsére az adatelérési kódunkban ezeknek a problémáknak a nagy részét megoldja az EF.
 
 TIP: Hívásokból álló folyamatokat nem csak *Runnerben* állíthatunk össze, hanem https://learning.postman.com/docs/running-collections/building-workflows/[szkriptből is].
 
