@@ -714,12 +714,16 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 
 [source,csharp]
 ----
+// Service réteg - interfész
+
 /**/public interface IProductService
 /**/{
         //void UpdateProduct(int productId, Product updatedProduct);
         Task UpdateProductAsync(int productId, Product updatedProduct);
 /**/    //többi fv.
 /**/}
+
+// Service réteg - implementáció
 
     public async Task UpdateProductAsync(int productId, Product updatedProduct)
 /**/{
@@ -743,8 +747,9 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 /**/    }
 /**/}
 
+// Kontroller réteg
 
-    public async Task<IActionResult> PutAsync(int id, [FromBody] Product product)
+    public async Task<IActionResult> Put(int id, [FromBody] Product product)
 /**/{
 /**/  await _productService.
                 .UpdateProductAsync(id, product);
@@ -752,6 +757,8 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 /**/  return NoContent();
 /**/}
 ----
+
+WARNING: Az _Async_ végződés alkalmazása kontroller műveletek nevében jelenleg nem ajánlott, mert könnyen https://github.com/dotnet/aspnetcore/issues/8998[hibákba futhatunk].
 
 Próbáljuk ki, például küldjünk PUT-ot az `api/products/1` címre, állítsuk be a _Content-Type: application/json_ fejlécet és a POST-nál használt JSON-t küldjük a törzsben. Ezzel az 1-es `id`-jű termék adatait fogjuk felülírni.
 
@@ -856,29 +863,29 @@ public class ProductController : ControllerBase
 
     // GET: api/<ProductController>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetAsync()
+    public async Task<ActionResult<IEnumerable<Product>>> Get()
     {
         return (await _productService.GetProductsAsync()).ToList();
     }
 
     // GET api/<ProductController>/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> GetAsync(int id)
+    public async Task<ActionResult<Product>> Get(int id)
     {
         return await _productService.GetProductAsync(id);
     }
 
     // POST api/<ProductController>
     [HttpPost]
-    public async Task<ActionResult<Product>> PostAsync([FromBody] Product product)
+    public async Task<ActionResult<Product>> Post([FromBody] Product product)
     {
         var created = await _productService.InsertProductAsync(product);
-        return CreatedAtAction(nameof(GetAsync), new { id = created.Id }, created);
+        return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
     }
 
     // PUT api/<ProductController>/5
     [HttpPut("{id}")]
-    public async Task<ActionResult> PutAsync(int id, [FromBody] Product value)
+    public async Task<ActionResult> Put(int id, [FromBody] Product value)
     {
         await _productService.UpdateProductAsync(id, value);
         return NoContent();
@@ -886,7 +893,7 @@ public class ProductController : ControllerBase
 
     // DELETE api/<ProductController>/5
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteAsync(int id)
+    public async Task<ActionResult> Delete(int id)
     {
         await _productService.DeleteProductAsync(id);
         return NoContent();
