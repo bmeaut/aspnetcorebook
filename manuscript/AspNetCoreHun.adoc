@@ -32,9 +32,9 @@ include::chapter5.adoc[]
 include::chapter7.adoc[]
 
 include::chapter8.adoc[]
-////
-include::chapter9.adoc[]
 
+include::chapter9.adoc[]
+////
 include::afterword.adoc[]
 ////
 

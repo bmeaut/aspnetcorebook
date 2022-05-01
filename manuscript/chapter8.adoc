@@ -563,4 +563,4 @@ WARNING: Ha igazi klienst írunk, figyeljünk arra, hogy a konkurencia tokent mi
 
 TIP: Hívásokból álló folyamatokat nem csak *Runnerben* állíthatunk össze, hanem https://learning.postman.com/docs/running-collections/building-workflows/[szkriptből is].
 
-Az elkészült teljes Postman kollekció importálható https://www.getpostman.com/collections/bf6157ad59c75b592f20[erről a linkről] az OpenAPI importáláshoz hasonló módon.
+Az elkészült teljes Postman kollekció importálható https://www.getpostman.com/collections/dc58a89c4bd42e73fc8b[erről a linkről] az OpenAPI importáláshoz hasonló módon. A kollekció szinten ne felejtsük el beállítani a `baseUrl` változót a szerveralkalmazás alap URL-jére.

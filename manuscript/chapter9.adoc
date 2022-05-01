@@ -37,7 +37,7 @@ Ezen szabványokat implementálták a fejlettebb platformokra, így ASP.NET Core
 ** JWT Bearer token middleware, ASP.NET Core authorizációs rendszer - RP feladatokhoz
 * https://www.nuget.org/packages/Microsoft.AspNetCore.Identity.UI[Identity UI] - az Identity Core-hoz tartozó felület (ASP.NET Core Razor alapú)
 * https://duendesoftware.com/[Duende IdentityServer] (korábban IdentityServer) - 4-es verzióig nyílt forráskódú IDP, széleskörű támogatás tokenkezelési, IDP feladatokhoz. 5-ös verziótól kezdve licenszköteles, bár sok esetben igényelhető ingyenes licensz.
-* https://github.com/skoruba/Duende.IdentityServer.Admin[IdentityServer4 Admin UI] - adminisztrációs felület a Duende IdentityServer-hez
+* https://github.com/skoruba/Duende.IdentityServer.Admin[Duende IdentityServer Admin UI] - adminisztrációs felület a Duende IdentityServer-hez
 * https://docs.microsoft.com/en-us/azure/active-directory/develop/[Microsoft identity platform] - komponensek Microsoft IDP szolgáltatások (Azure AD, Azure AD B2C - lásd lentebb) igénybe vételéhez szerver- és kliensoldalhoz is. Nem önálló IDP megoldás, önmagában nem használható. Nem csak .NET-es platformokat támogat.
 
 Látható, hogy maga a Microsoft alapvetően csak a tokenek ellenőrzésére (RP feladat) biztosít magasszintű API-t, komponenst ASP.NET Core-ban, tokenek előállítására nem (IDP feladat). Ez utóbbira lehet jó az _IdentityServer4_, de ezen felül egyéb alternatívák is https://docs.microsoft.com/en-us/aspnet/core/security/authentication/community[elérhetők].
