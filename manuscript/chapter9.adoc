@@ -38,7 +38,7 @@ Ezen szabványokat implementálták a fejlettebb platformokra, így ASP.NET Core
 * https://www.nuget.org/packages/Microsoft.AspNetCore.Identity.UI[Identity UI] - az Identity Core-hoz tartozó felület (ASP.NET Core Razor alapú)
 * https://duendesoftware.com/[Duende IdentityServer] (korábban IdentityServer) - 4-es verzióig nyílt forráskódú IDP, széleskörű támogatás tokenkezelési, IDP feladatokhoz. 5-ös verziótól kezdve licenszköteles, bár sok esetben igényelhető ingyenes licensz.
 * https://github.com/skoruba/Duende.IdentityServer.Admin[Duende IdentityServer Admin UI] - adminisztrációs felület a Duende IdentityServer-hez
-* https://docs.microsoft.com/en-us/azure/active-directory/develop/[Microsoft identity platform] - komponensek Microsoft IDP szolgáltatások (Azure AD, Azure AD B2C - lásd lentebb) igénybe vételéhez szerver- és kliensoldalhoz is. Nem önálló IDP megoldás, önmagában nem használható. Nem csak .NET-es platformokat támogat.
+* https://docs.microsoft.com/en-us/azure/active-directory/develop/[Microsoft identity platform] - komponensek Microsoft IDP szolgáltatások (Azure AD, Azure AD B2C - lásd lentebb) igénybe vételéhez szerver- és kliensoldalhoz is. Nem önálló IDP megoldás, önmagában nem használható. Az újgenerációs komponenskönyvtárak MSAL néven érhetőek el különböző platformokra: MSAL.NET .NET-hez, MSAL.js JavaScript-hez, stb.
 
 Látható, hogy maga a Microsoft alapvetően csak a tokenek ellenőrzésére (RP feladat) biztosít magasszintű API-t, komponenst ASP.NET Core-ban, tokenek előállítására nem (IDP feladat). Ez utóbbira lehet jó az _IdentityServer4_, de ezen felül egyéb alternatívák is https://docs.microsoft.com/en-us/aspnet/core/security/authentication/community[elérhetők].
 
@@ -55,10 +55,11 @@ A megvalósítandó rendszerben:
 * az Azure B2C lesz az IDP/Authorization Server
 * egy generált ASP.NET Core alkalmazás lesz a RP/Resource Server
  ** az alkalmazásból publikált webes API-t csak autentikált felhasználók érhetik el
- ** Microsoft identity platform komponenseket használunk a B2C specifikus feladatok megoldásához
+ ** Microsoft identity platform komponenseket (MSAL.NET) használunk a B2C specifikus feladatok megoldásához. Konkrétan a https://github.com/AzureAD/microsoft-identity-web[Microsoft.Identity.Web] csomag biztosítja az ASP.NET Core általános felhasználókezelés alrendszerének és az https://github.com/AzureAD/microsoft-authentication-library-for-dotnet[MSAL.NET]-nek az https://github.com/AzureAD/microsoft-identity-web/wiki/Microsoft-Identity-Web-basics#high-level-architecture[összehangolását].
 * egy szintén generált Blazor WebAssembly alkalmazást lesz a kliens, mely
  ** a felhasználókezelési folyamatok végrehajtásához a B2C által kiszolgált felületekre irányít át
  ** az ASP.NET Core alkalmazásunk API-ját hívja
+ ** a https://www.nuget.org/packages/Microsoft.Authentication.WebAssembly.Msal[Microsoft.Authentication.WebAssembly.Msal] csomagot használunk a B2C specifikus feladatok megoldásához. Ez a csomag egy .NET-es JavaScript interop réteget ad az https://github.com/AzureAD/microsoft-authentication-library-for-js[MSAL.js] fölé.
 * az OAuth https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-diagram[*Authorization Code Flow*] folyamatot fogjuk követni. A PKCE-vel (https://datatracker.ietf.org/doc/html/rfc7636[Proof Key for Code Exchange]) kiegészített változata az ajánlott flow szinte mindenfajta kliens (vastagkliens, web, mobil) számára. SPA-k (angular, react, Blazor WebAssembly, stb.) számára gyakorlatilag csak ez számít biztonságosnak.
 
 TIP: Az Azure B2C-ben az első 50000 aktív felhasználó kiszolgálása https://azure.microsoft.com/en-us/pricing/details/active-directory-b2c/[ingyenes] minden hónapban.
