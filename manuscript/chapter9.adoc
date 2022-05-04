@@ -169,7 +169,7 @@ TIP: Az *Object ID* a tokenbe `oid` kulccsal kerül be és a felhasználót azon
 
 === Elfelejtett jelszó funkció
 
-Ezt egyszerűen csak https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended[be kell kattintani] a regisztrációs folyamat beállításai között. Próbáljuk ki a bejelentkező felületen a _Forgot your password?_ link aktiválásával. 
+Ezt egyszerűen csak https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended[be kell kattintani] a regisztrációs folyamat beállításai között. Próbáljuk ki a bejelentkező felületen a _Forgot your password?_ link aktiválásával.
 
 === Social login
 
@@ -182,3 +182,36 @@ WARNING: Az MSA integráció nehézsége, hogy első lépésben egy ún. https:/
 Az integrációt követően a folyamatainkban felhasználhatjuk a külső IDP-t, ehhez a folyamat beállításainál lévő _Identity providers_ menüpontban válasszuk ki az adott folyamatban engedélyezni kívánt IDP-ket. Ezután a regisztrációs, belépés felületeken megjelennek az engedélyezett IDP-khez tartozó felület(elem)ek.
 
 A kliensalkalmazás és a RP módosítására nincs szükség.
+
+== Védett API hívása Postmanből
+
+Hozzunk létre https://learning.postman.com/docs/sending-requests/requests/#creating-requests[új HTTP kérést (HTTP Request)] Postman-ben. A kérés legyen **GET** típusú, a cím legyen egy azonosítást igénylő (védett) művelet címe. A generált projektben ilyen a `WeatherForecastController.Get()` művelete, adjuk meg ennek a HTTPS címét, pl.: https://localhost:5001/WeatherForecast
+
+Próbáljuk meghívni elküldeni a kérést, 401-es hibakódot kell kapjunk a válaszban sikertelen azonosítás miatt.
+
+Vegyük fel az Azure portálon a kliensalkalmazáshoz a https://oauth.pstmn.io/v1/callback címet redirect URI-ként.
+
+WARNING: Mivel az alkalmazásunk HTTPS címét használjuk és ez a cím általában csak fejlesztői tanúsítvánnyal rendelkezik, szükség lehet a tanúsítványellenőrzés https://learning.postman.com/docs/sending-requests/certificates/#troubleshooting-certificate-errors[kikapcsolására] Postman-ben.
+
+A Postman kérés _Authorization_ fülén a bal oldalt töltsük ki az alábbiak szerint:
+- Type: OAuth 2.0
+- Add Authorization data to: Request Headers
+
+A jobb oldalt pedig az alábbiak szerint:
+- _Current token_ rész
+    - Access Token: ez majd a sikeres belépés után töltődik ki
+    - Header Prefix: Bearer
+- _Configure New Token - Configuration Options_ rész
+    - Token name: mi választjuk (pl. b2c), ezzel azonosítjuk a tokent a Postmanen belül
+    - Grant Type: Authorization Code (With PKCE)
+    - Callback URL: https://oauth.pstmn.io/v1/callback, illetve az _Authorize using browser_ ne legyen bepipálva. Ilyenkor a Postman saját böngészőablakot fog feldobni. Ha bepipáljuk, akkor az alapértelmezett böngészőben fog elindulni a belépési folyamat.
+    - Client ID: a kliensalkalmazás Client ID-ja (amit a projektgeneráláskor _--client-id_-ként is megadtunk)
+    - Client Secret: _maradjon üres_
+    - Code Challenge Method: SHA-256
+    - Code Verifier: _maradjon üres_
+    - Scope: az általunk felvett scope **teljes scope URL-je** (pl. https://myb2c.onmicrosoft.com/00000000-0000-0000-0000-000000000000/API.Access). Az Azure portálon a kliensalkalmazás _API permission_ menüpontjában kattintsunk rá a scope nevére. Jobb oldalon megjelenik az URL.
+    - State: _maradjon üres_
+    - Client Authentication: _maradjon az előre beállított_
+
+Alul kérjük el a tokent a _Get New Access Token_ gombbal. Egy böngészőablak fog megnyílni, az Azure B2C belépési felülettel. Lépjünk be egy olyan felhasználóval, ami jogosult a védett művelet meghívására. Miután beléptünk, a Postman ki tudja olvasni a tokent, ami bekerül a _Current token_ részre. Ezután küldjük újra a kérést. Most már sikerülnie kell, vissza kell kapnunk az időjárásadatokat.
+
