@@ -207,6 +207,8 @@ A jobb oldalt pedig az alábbiak szerint:
 ** Token name: mi választjuk (pl. b2c), ezzel azonosítjuk a tokent a Postmanen belül
 ** Grant Type: _Authorization Code (With PKCE)_
 ** Callback URL: _\https://oauth.pstmn.io/v1/callback_, illetve az _Authorize using browser_ ne legyen bepipálva. Ilyenkor a Postman saját böngészőablakot fog feldobni. Ha bepipáljuk, akkor az alapértelmezett böngészőben fog elindulni a belépési folyamat.
+** Auth URL: Az Azure portálon a kliensalkalmazás _Overview_ menüpontjában felül nyomjuk meg az _Endpoints_ gombot. Jobb oldalon megjelennek a B2C IDP URL-jei. Ezek közül a _Azure AD B2C OAuth 2.0 authorization endpoint (v2)_ URL kell. Az URL-ben a `<policy-name>` helyőrzőt le kell cserélnünk a belépési folyamat nevére. Példa: _\https://myb2c.b2clogin.com/myb2c.onmicrosoft.com/b2c_1_susi/oauth2/v2.0/authorize_
+** Access Token URL: ugyanúgy szerezzük meg, mint az Auth URL-t, csak itt a _Azure AD B2C OAuth 2.0 token endpoint (v2)_ URL kell. A helyőrzőt itt is cserélni kell. Példa: _\https://myb2c.b2clogin.com/myb2c.onmicrosoft.com/b2c_1_sg/oauth2/v2.0/token_
 ** Client ID: a kliensalkalmazás Client ID-ja (amit a projektgeneráláskor _--client-id_-ként is megadtunk)
 ** Client Secret: maradjon üres
 ** Code Challenge Method: _SHA-256_
