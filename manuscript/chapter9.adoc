@@ -46,7 +46,7 @@ Jelenleg (2022. tavasz) az ASP.NET Core projektsablonok a következő IDP techni
 
 * ASP.NET Core Web App: semmilyet, mert nem token, hanem süti alapú!
 * ASP.NET Core Web API: Microsoft identity platform vagy on-premise Active Directory (ez utóbbi lokális hálózaton működik)
-* ASP.NET Core with Angular/React.js: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization[Duende Identity Server]
+* ASP.NET Core with Angular/React.js: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization[Duende IdentityServer]
 
 Az IDP feladatok elég jól leválaszthatók, így megjelentek azok a szolgáltatások, melyek segítségével gyakorlatilag minden IDP feladatot kiszervezhetünk, beleértve a fentebb felsorolt képességeket is. Ezek az ún. _IDentity as a Service (IDaaS)_ vagy _Authentication as a Service_ szolgáltatások. Néhány példa: https://www.okta.com/[_Okta_], https://auth0.com/[_Auth0_] (2021. tavaszán felvásárolta az Okta), _Azure AD B2C_. Ezek alapvetően nem ingyenes szolgáltatások, bár többnyire bizonyos méret/felhasználószám/tokenmennyiség alatt ingyenesen használhatóak. További lehetőség saját üzemeltetésű, de külön telepíthető, kész IDP telepítése. Ez lehet akár nem .NET-es is, hiszen a kommunikáció szabványokra (OAuth, OpenID Connect) épül - ilyenre egy példa a https://www.keycloak.org/[keycloak]. Ezen gyakorlat során az Azure AD B2C szolgáltatást fogjuk használni, amivel az utolsó kivételével *minden fenti komponenst kiváltunk*.
 
@@ -189,31 +189,31 @@ Hozzunk létre https://learning.postman.com/docs/sending-requests/requests/#crea
 
 Próbáljuk meghívni elküldeni a kérést, 401-es hibakódot kell kapjunk a válaszban sikertelen azonosítás miatt.
 
-Vegyük fel az Azure portálon a kliensalkalmazáshoz a https://oauth.pstmn.io/v1/callback címet redirect URI-ként.
+Vegyük fel az Azure portálon a kliensalkalmazáshoz a _\https://oauth.pstmn.io/v1/callback_ címet redirect URI-ként.
 
-WARNING: Mivel az alkalmazásunk HTTPS címét használjuk és ez a cím általában csak fejlesztői tanúsítvánnyal rendelkezik, szükség lehet a tanúsítványellenőrzés https://learning.postman.com/docs/sending-requests/certificates/#troubleshooting-certificate-errors[kikapcsolására] Postman-ben.
+WARNING: Mivel az alkalmazásunk HTTPS címét használjuk, és ez a cím általában csak fejlesztői tanúsítvánnyal rendelkezik, szükség lehet a tanúsítványellenőrzés https://learning.postman.com/docs/sending-requests/certificates/#troubleshooting-certificate-errors[kikapcsolására] Postman-ben.
 
 A Postman kérés _Authorization_ fülén a bal oldalt töltsük ki az alábbiak szerint:
 
-- Type: OAuth 2.0
-- Add Authorization data to: Request Headers
+- Type: _OAuth 2.0_
+- Add Authorization data to: _Request Headers_
 
 A jobb oldalt pedig az alábbiak szerint:
 
 * _Current token_ rész
 ** Access Token: ez majd a sikeres belépés után töltődik ki
-** Header Prefix: Bearer
+** Header Prefix: _Bearer_
 * _Configure New Token - Configuration Options_ rész
 ** Token name: mi választjuk (pl. b2c), ezzel azonosítjuk a tokent a Postmanen belül
-** Grant Type: Authorization Code (With PKCE)
-** Callback URL: https://oauth.pstmn.io/v1/callback, illetve az _Authorize using browser_ ne legyen bepipálva. Ilyenkor a Postman saját böngészőablakot fog feldobni. Ha bepipáljuk, akkor az alapértelmezett böngészőben fog elindulni a belépési folyamat.
+** Grant Type: _Authorization Code (With PKCE)_
+** Callback URL: _\https://oauth.pstmn.io/v1/callback_, illetve az _Authorize using browser_ ne legyen bepipálva. Ilyenkor a Postman saját böngészőablakot fog feldobni. Ha bepipáljuk, akkor az alapértelmezett böngészőben fog elindulni a belépési folyamat.
 ** Client ID: a kliensalkalmazás Client ID-ja (amit a projektgeneráláskor _--client-id_-ként is megadtunk)
-** Client Secret: _maradjon üres_
-** Code Challenge Method: SHA-256
-** Code Verifier: _maradjon üres_
-** Scope: az általunk felvett scope **teljes scope URL-je** (pl. https://myb2c.onmicrosoft.com/00000000-0000-0000-0000-000000000000/API.Access). Az Azure portálon a kliensalkalmazás _API permission_ menüpontjában kattintsunk rá a scope nevére. Jobb oldalon megjelenik az URL.
-** State: _maradjon üres_
-** Client Authentication: _maradjon az előre beállított_
+** Client Secret: maradjon üres
+** Code Challenge Method: _SHA-256_
+** Code Verifier: maradjon üres
+** Scope: az általunk felvett scope **teljes scope URL-je** (pl. _\https://myb2c.onmicrosoft.com/00000000-0000-0000-0000-000000000000/API.Access_). Az Azure portálon a kliensalkalmazás _API permission_ menüpontjában kattintsunk rá a scope nevére. Jobb oldalon megjelenik az URL.
+** State: maradjon üres
+** Client Authentication: maradjon az előre beállított
 
 Alul kérjük el a tokent a _Get New Access Token_ gombbal. Egy böngészőablak fog megnyílni, az Azure B2C belépési felülettel. Lépjünk be egy olyan felhasználóval, ami jogosult a védett művelet meghívására. Miután beléptünk, a Postman ki tudja olvasni a tokent, ami bekerül a _Current token_ részre. Ezután küldjük újra a kérést. Most már sikerülnie kell, vissza kell kapnunk az időjárásadatokat.
 
