@@ -35,7 +35,7 @@ Ezen gyakorlat keretében csak integrációs teszteket fogunk készíteni.
 
 Vegyünk fel a solutionbe egy új xUnit (.NET 6) típusú projektet _WebApiLab.Tests_ néven. A létrejövő osztályt nevezzük át _ProductControllerTests_ névre, amibe a ``ProductController``hez kapcsolódó műveletekre fogunk integrációs tesztet készíteni.
 
-Vegyük fel az alábbi NuGet csomagokat a teszt projektbe. A Bugusról és a Fluent Assertionsről már volt szó. A _Microsoft.AspNetCore.Mvc.Testing_ csomag olyan segédszolgáltatásokat nyújt, amivel integrációs tesztekhez egy in-process teszt szervert tudunk futtatni, és ennek a meghívásában is segítséget nyújt. A projektfájlban a többi `PackageReference` mellé (menu:a projekten jobbklikk[Edit Project File]):
+Vegyük fel az alábbi NuGet csomagokat a teszt projektbe. A __Bogus__ról és a __Fluent Assertions__ről már volt szó. A _Microsoft.AspNetCore.Mvc.Testing_ csomag olyan segédszolgáltatásokat nyújt, amivel integrációs tesztekhez egy in-process teszt szervert tudunk futtatni, és ennek a meghívásában is segítséget nyújt. A projektfájlban a többi `PackageReference` mellé (menu:a projekten jobbklikk[Edit Project File]):
 
 [source,xml]
 ----
@@ -196,7 +196,7 @@ public async Task Should_Succeded_With_Created()
 }
 ----
 
-Az _Arrage_-ben kérjünk el egy a teszt szerverhez kapcsolódó HttpClient objektumot, illetve hozzunk létre egy felküldendő DTO-t.
+Az _Arrage_-ben kérjünk el egy a teszt szerverhez kapcsolódó `HttpClient` objektumot, illetve hozzunk létre egy felküldendő DTO-t.
 
 [source,csharp]
 ----
