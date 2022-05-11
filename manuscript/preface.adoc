@@ -23,7 +23,7 @@ A feltételezett előismeretek:
 
 A fentiek elsajátításához segítséget nyújthatnak Reiter István ingyenesen https://reiteristvan.wordpress.com[letölthető könyvei].
 
-A szövegben megtalálhatók a gyakorlatvezetőknek szóló kitételek („Röviden mondjuk el...`", „Mutassuk meg...`", stb.). Ezeket mezei olvasóként érdemes figyelmen kívül hagyni, illetve szükség esetén a kapcsolódó elméleti ismereteket az előadásanyagból átismételni.
+A szövegben megtalálhatók a gyakorlatvezetőknek szóló kitételek („Röviden mondjuk el...", „Mutassuk meg...", stb.). Ezeket mezei olvasóként érdemes figyelmen kívül hagyni, illetve szükség esetén a kapcsolódó elméleti ismereteket az előadásanyagból átismételni.
 
 == A jegyzet naprakészsége
 
