@@ -295,7 +295,7 @@ using WebApiLab.Bll.Dtos;
 /**/}
 ----
 
-Hogy ne zavarjanak be a swaggernek az `EFProductController`ben használt entitás osztályok, töröljük ki a Controllers mappából az `EFProductController`t!
+Hogy ne zavarjanak be a swaggernek az ``EFProductController``ben használt entitás osztályok, töröljük ki a Controllers mappából az ``EFProductController``t!
 
 Próbáljuk ismét meghívni böngészőből, figyeljük meg a naplóban, hogy milyen SQL lekérdezés fut le.
 
@@ -305,7 +305,7 @@ A DTO leképezést más rétegben is végezhetnénk. Egyes megközelítések sze
 
 TIP: A `ProjectTo` speciálisan `IQueryable`-n működik. Ha csak simán memóriabeli objektumok között szeretnénk leképezni, akkor az `IMapper` `Map<>` függvényét hívjuk. A memóriabeli  leképezésnek hátránya, hogy EF szinten gondoskodnunk kell róla, hogy `Include` hívásokkal a leképezéshez szükséges kapcsolódó entitásokat is lekérdezzük. A `ProjectTo` ezt is elintézi helyettünk.
 
-A `ProjectTo` metódust felfoghatjuk a továbbiakban egy LINQ-s `Select()` operátornak, annyi különbséggel, hogy az AutoMapper generálja azt az `Expression`t, ami alapján előáll majd az eredmény.
+A `ProjectTo` metódust felfoghatjuk a továbbiakban egy LINQ-s `Select()` operátornak, annyi különbséggel, hogy az AutoMapper generálja azt az ``Expression``t, ami alapján előáll majd az eredmény.
 
 == BLL funkciók implementációja
 

@@ -7,10 +7,11 @@
 
 == Bevezetés
 
- Az automatizált tesztelés az alkalmazásfejlesztés egyik fontos lépése, mivel ezzel tudunk meggyőződni arról, hogy egy-egy funkció akkor is helyesen működik, ha az alkalmazás egy másik részén valamit módosítunk. Hogy ezt az ellenőrzést ne kelljen minden egyes alkalommal manuálisan végrehajtani az alkalmazáson, programozott teszteket szoktunk írni, amelyek futtatását CI/CD folyamatokban automatizálhatjuk.
+Az automatizált tesztelés az alkalmazásfejlesztés egyik fontos lépése, mivel ezzel tudunk meggyőződni arról, hogy egy-egy funkció akkor is helyesen működik, ha az alkalmazás egy másik részén valamit módosítunk. Hogy ezt az ellenőrzést ne kelljen minden egyes alkalommal manuálisan végrehajtani az alkalmazáson, programozott teszteket szoktunk írni, amelyek futtatását CI/CD folyamatokban automatizálhatjuk.
 
- A tesztek több típusát ismerhetjük
-* **Unit test (egységteszt)** célja, hogy egy adott osztály egy metódusának a viselkedését önmagába vizsgáljuk úgy, hogy a függőségeit kimockoljuk, hogy azok a tesztesetnek megfelelően viselkedjenek vagy megfigyelhetőek legyenek.
+A tesztek több típusát ismerhetjük:
+
+* **Unit test (egységteszt)** célja, hogy egy adott osztály egy metódusának a viselkedését önmagába vizsgáljuk úgy, hogy a függőségeit https://docs.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#lets-speak-the-same-language[mock/fake objektumokkal] helyettesítjük, hogy azok a tesztesetnek megfelelően viselkedjenek vagy megfigyelhetőek legyenek.
 * **Integrációs teszt / End-2-end teszt / funkcionális teszt** esetében a célunk, hogy a teljes rendszert meghajtsuk úgy, hogy az integrációk (SQL kapcsolat, egyéb szolgáltatások) is tesztelésre kerülnek, illetve a BE szempontjából vizsgáljuk azt is, hogy a rendszer interfésze helyesen válaszol-e a különböző kérésekre.
 * **UI teszt** esetében azt vizsgáljuk, hogy a felhasználói felület a különböző felhasználói interakciókra, eseményekre helyesen rajzolja-e ki az elvárt felületeket.
 
@@ -18,23 +19,23 @@ A fenti tesztelési módok mindegyike fontos, de érdemes egy olyan egészséges
 
 == Automatizált tesztelés .NET környezetben
 
-Automatizált tesztelésre több keretrendszer is használható .NET környezetben, de ASP.NET Core alkalmazások esetében a legelterjedtebb ilyen library az **xUnit**. Ebben a keretrendszerben lehetőségünk van tesztesetek definiálására, akár a bemenetek variálásával is, illetve kellően rugalmas, ahhoz, hogy a tesztek feldolgozási mechanizmusa kiterjeszthető legyen.
+Automatizált tesztelésre több keretrendszer is használható .NET környezetben, de ASP.NET Core alkalmazások esetében a legelterjedtebb ilyen könyvtár az https://xunit.net/[**xUnit**]. Ebben a keretrendszerben lehetőségünk van tesztesetek definiálására, akár a bemenetek variálásával is, illetve kellően rugalmas, ahhoz, hogy a tesztek feldolgozási mechanizmusa kiterjeszthető legyen.
 
-Unit tesztek esetében az osztályok függőségeit ki kell mockoljuk, amire több library is lehetőséget nyújt. A legelterjedtebbek a **Moq** és az **NSubstitute**.
+Unit tesztek esetében az osztályok függőségeit le kell cseréljük, amire több library is lehetőséget nyújt. A legelterjedtebbek a https://github.com/moq[**Moq**] és az https://nsubstitute.github.io/[**NSubstitute**].
 
-Gyakran szükséges funkció, hogy a bemenő adatok előállítása során szeretnénk a valóságra hasonlító példaadatokat megadni randomizált formában. Ehhez egy bevált osztálykönyvtár a **Bogus**.
+Gyakran szükséges funkció, hogy a bemenő adatok előállítása során szeretnénk a valóságra hasonlító véletlenszerű/generált példaadatokat megadni. Ehhez egy bevált osztálykönyvtár a https://github.com/bchavez/Bogus[**Bogus**].
 
-A tesztesetek elvárt eredményének a vizsgálatát asszertálásnak nevezzük (Assert), aminek az írásához nagy segítséget tud nyújtani a **FluentAssertions** könyvtár. Ez nem csak a szintaktikát teszi olvashatóbbá fluent szintakszissal, hanem több olyan beépített segédlogikát tartalmaz, amivel tömörebbé tehető az Assert logika (pl.: objektumok mélységi összehasonlítása érték szerint).
+A tesztesetek elvárt eredményének a vizsgálatát asszertálásnak nevezzük (_assert_), aminek az írásához nagy segítséget tud nyújtani a https://fluentassertions.com[**Fluent Assertions**] könyvtár. Ez nem csak a szintaktikát teszi olvashatóbbá fluent szintakszissal, hanem több olyan beépített segédlogikát tartalmaz, amivel tömörebbé tehető az _assert_ logika (pl.: objektumok mélységi összehasonlítása érték szerint).
 
-=== Integrációs tesztelés
+== Integrációs tesztelés
 
-Elsőként készítsünk integrációs teszteket a projektünkhöz.
+Ezen gyakorlat keretében csak integrációs teszteket fogunk készíteni.
 
-==== Teszt projekt
+=== Teszt projekt
 
-Vegyünk fel a solutionbe egy új xUnit (.NET 6) típusú projektet _WebApiLab.Tests_ néven. A létrejövő osztályt nevezzük át _ProductControllerTests_ névre, amibe a ProductControllerhez kapcsolódó műveletekre fogunk integrációs tesztet készíteni.
+Vegyünk fel a solutionbe egy új xUnit (.NET 6) típusú projektet _WebApiLab.Tests_ néven. A létrejövő osztályt nevezzük át _ProductControllerTests_ névre, amibe a ``ProductController``hez kapcsolódó műveletekre fogunk integrációs tesztet készíteni.
 
-Vegyük fel az alábbi NuGet csomagokat a teszt projektbe. A Bugusról és a FluentAssertionsről már volt szó. A Microsoft.AspNetCore.Mvc.Testing csomag olyan segédszolgáltatásokat nyújt, amivel integrációs tesztekhez egy in-process teszt szervert tudunk futtatni, és ennek a meghívásában is segítséget nyújt.
+Vegyük fel az alábbi NuGet csomagokat a teszt projektbe. A Bugusról és a Fluent Assertionsről már volt szó. A _Microsoft.AspNetCore.Mvc.Testing_ csomag olyan segédszolgáltatásokat nyújt, amivel integrációs tesztekhez egy in-process teszt szervert tudunk futtatni, és ennek a meghívásában is segítséget nyújt. A projektfájlban a többi `PackageReference` mellé (menu:a projekten jobbklikk[Edit Project File]):
 
 [source,xml]
 ----
@@ -43,7 +44,7 @@ Vegyük fel az alábbi NuGet csomagokat a teszt projektbe. A Bugusról és a Flu
 <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.4" />
 ----
 
-Vegyük fel az Api projektet projekt referenciaként a teszt projektbe.
+Vegyük fel az *Api* projektet projekt referenciaként a teszt projektbe. A projektfájlban egy másik `ItemGroup` mellé:
 
 [source,xml]
 ----
@@ -52,20 +53,18 @@ Vegyük fel az Api projektet projekt referenciaként a teszt projektbe.
 </ItemGroup>
 ----
 
-==== Teszt szerver
+=== Teszt szerver
 
-Erre azért van szükség, hogy a tesztszervernek meg tudjuk mondani mi az alkalmazásunk belépési pontja. Viszont mivel Top level statement szintaktikájú a Program osztályunk, annak láthatósága internal, ami a tesztelés szempontjából nem szerencsés (InternalsVisibleTo sem lenne ebben az esetben megoldás). lásd: https://stackoverflow.com/a/69483450/1406798 Helyette tegyük a Program osztályt publikussá és partial kiegészítésben. Vegyük fel az alábbi partial kiegészítést a Program.cs fájl végére.
+A tesztszervernek meg kell tudnunk mondani, hogy melyik osztály adja az alkalmazásunk belépési pontját. Viszont mivel top level statement szintaktikájú a `Program` osztályunk, annak láthatósága internal, ami a tesztelés szempontjából nem szerencsés (a hasonló esetekben alkalmazott `InternalsVisibleTo` sem lenne https://stackoverflow.com/a/69483450/1406798[ebben az esetben megoldás]). Helyette tegyük a `Program` osztályt publikussá egy `partial` deklarációval. Vegyük fel az alábbi partial kiegészítést a legfelső szintű kód végére:
 
 [source,csharp]
 ----
-public partial class Program
-{
-}
+public partial class Program { }
 ----
 
 Az integrációs tesztünkhöz az in-process teszt szervert egy `WebApplicationFactory<TEntryPoint>` leszármazott osztály fogja létrehozni. Ez a segéd ősosztály a fenti Microsoft.AspNetCore.Mvc.Testing csomagból jön. Itt lehetőségünk van a teszt szerverünket konfigurálni, így akár a DI konfigurációt is.
 
-Hozzunk létre egy osztályt a teszt projetbe `CustomWebApplicationFactory` néven, ami származzon a `WebApplicationFactory<Program>` osztályból és definiáljuk felül a `CreateHost` metódusát.
+Hozzunk létre egy osztályt a teszt projektbe `CustomWebApplicationFactory` néven, ami származzon a `WebApplicationFactory<Program>` osztályból és definiáljuk felül a `CreateHost` metódusát. 
 
 [source,csharp]
 ----
@@ -79,7 +78,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.AddScoped(sp =>
             {
                 return new DbContextOptionsBuilder<AppDbContext>()
-                    .UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=NEPTUN_TEST;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False")
+                    .UseSqlServer(@"connection string")
                     .UseApplicationServiceProvider(sp)
                     .Options;
             });
@@ -88,20 +87,21 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         var host = base.CreateHost(builder);
 
         using var scope = host.Services.CreateScope();
-        scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
+        scope.ServiceProvider.GetRequiredService<AppDbContext>()
+            .Database.EnsureCreated();
 
         return host;
     }
 }
 ----
 
-Megfigyelhetjük, hogy itt is localdb-t használunk (mivel integrációs teszt), de a connection stringet lecseréjük a DI konfigurációban. Illetve látható, hogy az adatbázist létrehozzuk az `EnsureCreated` metódussal, ha az nem létezne.
+Megfigyelhetjük, hogy itt is LocalDB-t használunk (mivel integrációs teszt), de a connection stringet lecseréjük a DI konfigurációban. A connection string alapvetően egyezhet a tesztelendő projektben használttal, csak az adatbázisnevet változtassuk meg. Az adatbázis automatikusan létrejön és a migrációk is lefutnak az `EnsureCreated` meghívásával - az első lefutáskor.
 
-TIP: Mivel az `AppDbContext` Scoped életciklissan van regisztrálva a DI-ba, szükségünk van létrehozni egy scope-ot, hogy el tudjuk kérni a DI konténertől. Ezt természetesen ha HTTP kérés közben lennénk az ASP.NET Core automatikusan megtenné.
+TIP: Mivel az `AppDbContext` Scoped életciklussal van regisztrálva a DI-ba, szükséges létrehozni egy scope-ot, hogy el tudjuk kérni a DI konténertől. Ezt természetesen ha HTTP kérés közben lennénk az ASP.NET Core automatikusan megtenné.
 
-==== Product Controller tesztek előkészítése
+=== Product Controller tesztek előkészítése
 
-A `ProductControllerTests` osztály valósítsa meg az `IClassFixture<CustomWebApplicationFactory>` interfészt, amivel azt tudjuk jelezni az xUnit-nak, hogy kezelje a `CustomWebApplicationFactory` életciklusát (tesztek között megosztott objektum lesz), illetve pluszban lehetőségünk van ezt konstruktor injektáláson keresztül elkérni.
+Vegyünk fel egy új osztályt `ProductControllerTests` néven. Az osztály valósítsa meg az `IClassFixture<CustomWebApplicationFactory>` interfészt, amivel azt tudjuk jelezni az xUnit-nak, hogy kezelje a `CustomWebApplicationFactory` életciklusát (tesztek között megosztott objektum lesz), illetve pluszban lehetőségünk van ezt konstruktor injektáláson keresztül elkérni.
 
 [source,csharp]
 ----
@@ -116,7 +116,7 @@ public partial class ProductControllerTests : IClassFixture<CustomWebApplication
 }
 ----
 
-Hozzunk létre a Bogus könyvtárral egy olyan `Faker<Product>` objektumot, amivel az API-nak küldendő DTO objektum generálását végezzük el. Id esetében küldjünk 0 értéket, mivel a létrehozás műveletet fogjuk tesztelni, kategória esetében pedig az 1-et, mivel a felseedelt 1-es kategóriát fogjuk tudni csak haszni. A többi esetben használjuk a Bogus beépített lehetőségeit a név és a szám értékek random generálásához.
+Hozzunk létre a Bogus könyvtárral egy olyan `Faker<Product>` objektumot, amivel az API-nak küldendő DTO objektum generálását végezzük el. Azonosítóként küldjünk 0 értéket, mivel a létrehozás műveletet fogjuk tesztelni, kategória esetében pedig az 1-et, mivel a migráció által létrehozott 1-es kategóriát fogjuk tudni csak használni. A többi esetben használjuk a Bogus beépített lehetőségeit a név és a szám értékek random generálásához.
 
 [source,csharp]
 ----
@@ -126,18 +126,18 @@ private readonly Faker<Product> _dtoFaker;
 public ProductControllerTests(CustomWebApplicationFactory appFactory)
 {
     // ...
-
     _dtoFaker = new Faker<Product>()
         .RuleFor(p => p.Id, 0)
         .RuleFor(p => p.Name, f => f.Commerce.Product())
         .RuleFor(p => p.UnitPrice, f => f.Random.Int(200, 20000))
-        .RuleFor(p => p.ShipmentRegion, f => f.PickRandom<Dal.Entities.ShipmentRegion>())
+        .RuleFor(p => p.ShipmentRegion, 
+                 f => f.PickRandom<Dal.Entities.ShipmentRegion>())
         .RuleFor(p => p.CategoryId, 1)
         .RuleFor(p => p.RowVersion, f => f.Random.Bytes(5));
 }
 ----
 
-Majd amikor felküldjük a REST API-nak az adatok JSON-ként, azt megfelelő formátumban kell megtegyük. Ehhez készítsünk egy `JsonSerializerOptions` objektumot, amibe beállítjuk, hogy camelCase formázással sorosítson, illetve az enumokat stringként kezelje.
+A kliensoldali JSON sorosítást a szerveroldallal kompatibilisen kell megtegyük. Ehhez készítsünk egy `JsonSerializerOptions` objektumot, amibe beállítjuk, hogy camelCase formázással sorosítson, illetve a felsorolt típusokat stringként kezelje.
 
 [source,csharp]
 ----
@@ -147,7 +147,6 @@ private readonly JsonSerializerOptions _serializerOptions;
 public ProductControllerTests(CustomWebApplicationFactory appFactory)
 {
     // ...
-
     _serializerOptions = new JsonSerializerOptions()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -156,11 +155,13 @@ public ProductControllerTests(CustomWebApplicationFactory appFactory)
 }
 ----
 
-==== POST művelet egyenes ági tesztelése
+WARNING: Sajnos ezt a `JsonSerializerOptions` példányt minden sorosítást igénylő műveletnél át kell adnunk, mivel az alapértelmezett JSON sorosítónak https://github.com/dotnet/runtime/issues/31094[nincs publikusan elérhető API-ja] alapértelmezett sorosítási beállítások megadásához.
 
-Készítsük el az első tesztünket a ProductController Post műveletéhez. Érdemes azt az osztálystruktúrát követni, hogy minden művelethez / függvényhez külön teszt osztályokat hozunk létre, ami akár több tesztesetet is tartalmazhat. Ez a teszt osztályt beágyazott osztályként (`Post`) hozzuk létre egy külön partial fájlban (ProductIntegrationTests.Post.cs) a nagyobb egységhez tartozó tesztosztályon belül. Ezzel szépen strukturáltan tudjuk tartani a Test Explorerben is a teszteseteinket. Pluszban még származtassuk le a tartalmazó osztályból, hogy a tesztesetek elérhessék a fentebb létrehozott osztályváltozókat.
+=== POST művelet alapműködés tesztelése
 
-TIP: Érdekesség, hogy nem kell protectednek lenniük a fenti osztályváltozóknak, ha beágyazott osztály akarja elérni azokat.
+Készítsük el az első tesztünket a `ProductController` `Post` műveletéhez. Érdemes azt az osztálystruktúrát követni, hogy minden művelethez / függvényhez külön teszt osztályokat hozunk létre, ami akár több tesztesetet is tartalmazhat. Ez a teszt osztályt beágyazott osztályként (`Post`) hozzuk létre egy külön partial fájlban (*ProductIntegrationTests.Post.cs*) a nagyobb egységhez tartozó tesztosztályon belül. Ezzel szépen strukturáltan tudjuk tartani a *Test Explorerben* (lásd később) is a teszteseteinket. Pluszban még származtassuk le a tartalmazó osztályból, hogy a tesztesetek elérhessék a fentebb létrehozott osztályváltozókat.
+
+TIP: Érdekesség, hogy nem kell `protected` láthatóságúaknak lenniük a fenti osztályváltozóknak, ha beágyazott osztály akarja elérni azokat.
 
 [source,csharp]
 ----
@@ -176,11 +177,11 @@ public partial class ProductControllerTests
 }
 ----
 
-A tesztesetek a teszt osztályban metódusok fogják reprezentálni, amelyek `[Fact]` vagy `[Theory]` attribútummal rendelkeznek. A fő különbég az, hogy a Fact egy statikus tesztesetet reprezentál, míg a Theory bemenő paraméterekkel rendelkezhet.
+A tesztesetek a teszt osztályban metódusok fogják reprezentálni, amelyek `[Fact]` vagy `[Theory]` attribútummal rendelkeznek. A fő különbég az, hogy a `Fact` egy statikus tesztesetet reprezentál, míg a `Theory` bemenő paraméterekkel rendelkezhet.
 
-Elsőként az egyenes ágat teszteljük le, hogy a beszúrás helyesen lefut-e és a megfelelő válaszkódot, localion headert, és válasz DTO-t adja-e vissza. Hozzunk létre egy függvényt Fact attribútummal `Should_Succeded_With_Created` néven.
+Elsőként az egyenes ágat teszteljük le, hogy a beszúrás helyesen lefut-e, és a megfelelő HTTP válaszkódot, location headert, és válasz DTO-t adja-e vissza. Hozzunk létre egy függvényt `Fact` attribútummal `Should_Succeded_With_Created` néven.
 
-A teszteset az AAA (Arrange, Act, Assert) mintát követi, ahol 3 részre tagoljuk magát a tesztesetet. Az Arrange fázisban előkészítjük a teszteset körülményeit. Az Act fázisban elvégezzük a tesztelendő műveletet. Az Assert fázisban pedig megvizsgáljuk a végrehajtott művelet eredményeit, mellékhatásait.
+A teszteset az https://docs.microsoft.com/en-us/visualstudio/test/unit-test-basics?view=vs-2022#write-your-tests[AAA (Arrange, Act, Assert)] mintát követi, ahol 3 részre tagoljuk magát a tesztesetet. Az _Arrange_ fázisban előkészítjük a teszteset körülményeit. Az _Act_ fázisban elvégezzük a tesztelendő műveletet. Az _Assert_ fázisban pedig megvizsgáljuk a végrehajtott művelet eredményeit, mellékhatásait.
 
 [source,csharp]
 ----
@@ -195,7 +196,7 @@ public async Task Should_Succeded_With_Created()
 }
 ----
 
-Az Arrage-ben kérjünk el egy a teszt szerverhez kapcsolódó HttpClient objektumot, illetve hozzunk létre egy felküldendő DTO-t.
+Az _Arrage_-ben kérjünk el egy a teszt szerverhez kapcsolódó HttpClient objektumot, illetve hozzunk létre egy felküldendő DTO-t.
 
 [source,csharp]
 ----
@@ -204,7 +205,7 @@ var client = _appFactory.CreateClient();
 var dto = _dtoFaker.Generate();
 ----
 
-Act fázisban küldjünk el egy POST kérést a megfelelő végpontra a megfelelő sorosítási beállításokkal és olvassuk ki a választ.
+Az _Act_ fázisban küldjünk el egy POST kérést a megfelelő végpontra a megfelelő sorosítási beállításokkal és olvassuk ki a választ.
 
 [source,csharp]
 ----
@@ -213,13 +214,16 @@ var response = await client.PostAsJsonAsync("/api/product", dto, _serializerOpti
 var p = await response.Content.ReadFromJsonAsync<Product>(_serializerOptions);
 ----
 
-Az Assert fázisban pedig fogalmazzuk meg a FluentValidation könyvtár segítségével az elvárt eredmény szabályait. Gondoljunk arra is, hogy a `Category`, `Order`, `Id` és `RowVersion` property-k esetében nem az az elvárt válasz, amit felküldünk a szerverre, ezért ezeket szűrjük le az összehasonlításból és vizsgáljuk őket külön szabállyal.
+Az _Assert_ fázisban pedig fogalmazzuk meg a FluentValidation könyvtár segítségével az elvárt eredmény szabályait. Gondoljunk arra is, hogy a `Category`, `Order`, `Id` és `RowVersion` property-k esetében nem az az elvárt válasz, amit felküldünk a szerverre, ezért ezeket szűrjük le az összehasonlításból és vizsgáljuk őket külön szabállyal.
 
 [source,csharp]
 ----
 // Assert
 response.StatusCode.Should().Be(HttpStatusCode.Created);
-response.Headers.Location.Should().Be(new Uri(_appFactory.Server.BaseAddress, $"/api/Product/{p.Id}"));
+response.Headers.Location
+    .Should().Be(
+        new Uri(_appFactory.Server.BaseAddress, $"/api/Product/{p.Id}")
+    );
 
 p.Should().BeEquivalentTo(
     dto,
@@ -233,6 +237,8 @@ p.Orders.Should().BeEmpty();
 p.Id.Should().BeGreaterThan(0);
 p.RowVersion.Should().NotBeEmpty();
 ----
+
+WARNING: A Fluent Assertions https://github.com/fluentassertions/fluentassertions/issues/1115[jelenleg még nem működik együtt] a nem nullozható referencia típusokkal kapcsolatos ellenőrzési logikákkal, így az _Assert_ részen kaphatunk ennek kapcsán figyelmeztetéseket `Should().NotBeNull()` hívások után is.
 
 A POST művelet megváltoztatná az adatbázis állapotát, amit célszerű lenne elkerülni. Ezt legegyszerűbben úgy érhetjük el, hogy nyitunk egy tranzakciót a tesztben, amit nem commitolunk a teszt lefutása során. Ehhez vegyük fel az alábbi utasításokat az Arrange fázisban.
 
@@ -248,9 +254,9 @@ var dto = _dtoFaker.Generate();
 
 Tranzakciót a .NET `TransactionScope` osztállyal fogunk most nyitni, amin engedélyezzük az aszinkron támogatást is. Ahhoz pedig, hogy a tesztben létrehozott tranzakció érvényre jusson a teszt szerveren is, a `PreserveExecutionContext` tulajdonságot be kell kapcsoljuk.
 
-==== POST művelet hibaágai
+=== POST művelet hibaág tesztelése
 
-Készítsünk egy tesztesetet, ami a hibás terméknév ágat teszteli le. Mivel ez két esetet is magában foglal (null, üres sztring), használjunk paraméterezhető tesztesetet, tehát Theory-t. A teszteset bemenő paramétereit többféleképpen is meg lehet adni. Mi most válasszuk az `InlineData` megközelítést, ahol attribútumokkal a teszteset fölött közvetlenül megadhatóak a bemenő paraméter értékei. Ilyen esetben az attribútumban megadott értékeket a teszt metódus paraméterlistáján kell elkérjük. Esetünkben a név hibás értékeit várjuk első paraméterként, második paraméterként pedig az elvárt hibaüzenetet.
+Készítsünk egy tesztesetet, ami a hibás terméknév ágat teszteli le. Mivel ez két esetet is magában foglal (null, üres string), használjunk paraméterezhető tesztesetet, tehát `Theory`-t. A teszteset bemenő paramétereit többféleképpen is meg lehet adni. Mi most válasszuk az `InlineData` megközelítést, ahol attribútumokkal a teszteset fölött közvetlenül megadhatóak a bemenő paraméter értékei. Ilyen esetben az attribútumban megadott értékeket a teszt metódus paraméterlistáján kell elkérjük. Esetünkben a név hibás értékeit várjuk első paraméterként, második paraméterként pedig az elvárt hibaüzenetet.
 
 [source,csharp]
 ----
@@ -259,6 +265,11 @@ Készítsünk egy tesztesetet, ami a hibás terméknév ágat teszteli le. Mivel
 [InlineData(null, "Product name is required.")]
 public async Task Should_Fail_When_Name_Is_Invalid(string name, string expectedError)
 {
+    // Arrange
+
+    // Act
+
+    // Assert
 }
 ----
 
@@ -271,16 +282,17 @@ var client = _appFactory.CreateClient();
 var dto = _dtoFaker.RuleFor(x => x.Name, name).Generate();
 ----
 
-Az Act fázisban annyi a különbség, hogy most `ValidationProblemDetails` objektumot várunk a válaszban.
+Az _Act_ fázisban annyi a különbség, hogy most `ValidationProblemDetails` objektumot várunk a válaszban.
 
 [source,csharp]
 ----
 // Act
 var response = await client.PostAsJsonAsync("/api/product", dto, _serializerOptions);
-var p = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(_serializerOptions);
+var p = await response.Content
+            .ReadFromJsonAsync<ValidationProblemDetails>(_serializerOptions);
 ----
 
-Az Assertben pedig a HTTP státuszkódot és a ProblemDetails tartalmára vizsgáljunk.
+Az _Assert_ fázisban pedig a HTTP státuszkódot és a `ProblemDetails` tartalmára vizsgáljunk.
 
 [source,csharp]
 ----
@@ -292,3 +304,5 @@ p.Errors.Should().HaveCount(1);
 p.Errors.Should().ContainKey(nameof(Product.Name));
 p.Errors[nameof(Product.Name)].Should().ContainSingle(expectedError);
 ----
+
+Próbáljuk ki a menu:Test[Run All Test] menüpont segítségével. A https://docs.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022#run-tests-in-test-explorer[Test Explorerben] figyeljük meg az eredményt. Figyeljük meg a tesztek hierarchiáját is, a POST művelethez kapcsolódó tesztek egy csoportba lettek összefogva.
