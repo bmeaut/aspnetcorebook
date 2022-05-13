@@ -240,16 +240,16 @@ p.RowVersion.Should().NotBeEmpty();
 
 WARNING: A Fluent Assertions https://github.com/fluentassertions/fluentassertions/issues/1115[jelenleg még nem működik együtt] a nem nullozható referencia típusokkal kapcsolatos ellenőrzési logikákkal, így az _Assert_ részen kaphatunk ennek kapcsán figyelmeztetéseket `Should().NotBeNull()` hívások után is.
 
-A POST művelet megváltoztatná az adatbázis állapotát, amit célszerű lenne elkerülni. Ezt legegyszerűbben úgy érhetjük el, hogy nyitunk egy tranzakciót a tesztben, amit nem commitolunk a teszt lefutása során. Ehhez vegyük fel az alábbi utasításokat az Arrange fázisban.
+A POST művelet megváltoztatná az adatbázis állapotát, amit célszerű lenne elkerülni. Ezt legegyszerűbben úgy érhetjük el, hogy nyitunk egy tranzakciót a tesztben, amit nem commitolunk a teszt lefutása során. Ehhez vegyük fel az alábbi utasításokat az _Arrange_ fázisban.
 
 [source,csharp]
 ----
-// Arrange
-_appFactory.Server.PreserveExecutionContext = true;
-using var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+    // Arrange
+    _appFactory.Server.PreserveExecutionContext = true;
+    using var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-var client = _appFactory.CreateClient();
-var dto = _dtoFaker.Generate();
+/**/var client = _appFactory.CreateClient();
+/**/var dto = _dtoFaker.Generate();
 ----
 
 Tranzakciót a .NET `TransactionScope` osztállyal fogunk most nyitni, amin engedélyezzük az aszinkron támogatást is. Ahhoz pedig, hogy a tesztben létrehozott tranzakció érvényre jusson a teszt szerveren is, a `PreserveExecutionContext` tulajdonságot be kell kapcsoljuk.
@@ -306,3 +306,5 @@ p.Errors[nameof(Product.Name)].Should().ContainSingle(expectedError);
 ----
 
 Próbáljuk ki a menu:Test[Run All Test] menüpont segítségével. A https://docs.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022#run-tests-in-test-explorer[Test Explorerben] figyeljük meg az eredményt. Figyeljük meg a tesztek hierarchiáját is, a POST művelethez kapcsolódó tesztek egy csoportba lettek összefogva.
+
+TIP: Ennél a tesztesetnél is hasznos lenne a fentebb látott tranzakciós módszer követése. A kódduplikáció elkerülése miatt erre https://github.com/xunit/samples.xunit/blob/main/AutoRollbackExample/AutoRollbackAttribute.cs[például tesztfüggvényre tehető attribútumot] vezethetünk be.
