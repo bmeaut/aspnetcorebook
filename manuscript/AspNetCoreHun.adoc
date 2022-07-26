@@ -1,6 +1,6 @@
 = ASP.NET Core 6 gyakorlatok
-Simon Gábor <simon.gabor@vik.bme.hu>; Tóth Tibor <toth.tibor@vik.bme.hu>; Szabó Gábor <szabo.gabor@vik.bme.hu>
-v1.9, 2022.
+Simon Gábor <simon.gabor@vik.bme.hu>; Tóth Tibor <toth.tibor@vik.bme.hu>; Szabó Gábor <szabo.gabor@podnet.hu>
+v6.1.0b, 2022. július
 :doctype: book
 :!version-label:
 :source-highlighter: rouge
