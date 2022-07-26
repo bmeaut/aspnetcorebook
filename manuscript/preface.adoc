@@ -3,7 +3,7 @@
 
 == A jegyzet célja és célközönsége
 
-Ezen jegyzet elsődlegesen a BME Villamosmérnöki és Informatikai Karán oktatott *Szoftverfejlesztés .NET platformra* című tárgyhoz készült, célja, hogy segítséget nyújtson egyrészt a gyakorlatvezetőnek a gyakorlat megtartásában, másrészt a kurzus hallgatóinak a gyakorlat otthoni utólagos megismétléséhez, a tanult ismeretek átismétléséhez.
+Ezen jegyzet elsődlegesen a BME Villamosmérnöki és Informatikai Karán oktatott https://www.aut.bme.hu/Course/dotnet[Szoftverfejlesztés .NET platformra] című tárgyhoz készült, célja, hogy segítséget nyújtson egyrészt a gyakorlatvezetőnek a gyakorlat megtartásában, másrészt a kurzus hallgatóinak a gyakorlat otthoni utólagos megismétléséhez, a tanult ismeretek átismétléséhez.
 
 Ebből kifolyólag nem tekinthető egy teljesen kezdő szintű bevezető C# tankönyvnek, hiszen erőteljesen épít más kari tárgyak (pl. Szoftvertechnikák, Adatbázisok) által lefedett ismeretekre, de még inkább a Szoftverfejlesztés .NET platformra című tárgy előadásaira.
 
