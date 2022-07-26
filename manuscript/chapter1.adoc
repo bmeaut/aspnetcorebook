@@ -3,9 +3,9 @@
 
 == Célkitűzés
 
-A labor során a hallgatók elkezdenek megismerkedni a C# nyelv alapjaival, mondattanával, a Visual Studio fejlesztőeszközzel. Röviden, dióhéjban hasonlítsuk össze más programozási nyelvekkel (Java, C/C{pp}, Python, JavaScript).
+A gyakorlat során a hallgatók elkezdenek megismerkedni a C# nyelv alapjaival, mondattanával, a Visual Studio fejlesztőeszközzel. Röviden, dióhéjban hasonlítsuk össze más programozási nyelvekkel (Java, C/C{pp}, Python, JavaScript).
 
-Ezen a laboron célunk, hogy a hallgatók legalább részben megértsék és ráérezzenek a C# szintaktikájára, megismerkedjenek alapvető nyelvi elemekkel és konstrukciókkal.
+Célunk, hogy a hallgatók legalább részben megértsék és ráérezzenek a C# szintaktikájára, megismerkedjenek alapvető nyelvi elemekkel és konstrukciókkal.
 
 Bár a fő platformunk a későbbiekben a .NET 6 lesz, ezen a gyakorlaton még a klasszikus .NET Framework-öt használjuk.
 

@@ -32,13 +32,13 @@ https://www.aut.bme.hu +
 _Hibajelentések, közreműködők_ +
 https://github.com/bmeaut/aspnetcorebook
 
- +
- +
- +
- +
- +
- +
- +
- +
+{empty} +
+{empty} +
+{empty} +
+{empty} +
+{empty} +
+{empty} +
+{empty} +
+{empty} +
 [.text-center]
-ISBN 978-963-421-854-8
+ISBN ?
