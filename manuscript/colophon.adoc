@@ -41,4 +41,4 @@ https://github.com/bmeaut/aspnetcorebook
 {empty} +
 {empty} +
 [.text-center]
-ISBN ?
+ISBN 978-963-421-878-4
