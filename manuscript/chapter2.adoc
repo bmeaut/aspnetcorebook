@@ -506,4 +506,4 @@ Ellenőrizzük le a rekord tulajdonságokat:
 - A konzol kimeneten megfigyelt példányadatokon a klónozó kifejezés működését. Semmi különös, ugyanúgy működik, mint a tömör formánál.
 - A *Watch* ablakban `watson8 == watson9` egyenlőséget. Ez igaz, mert minden adattagjuk egyezik.
 
-TIP: A rekordoknak további válfajai vannak, ugyanis struktúra is lehet rekord, ilyenkor a `record struct` kulcsszó párt használjuk a típus deklarációjánál. Sőt, a `readonly record struct` egy immutábilis `record struct`. Ezen válfajok nyilván különbözőképpen viselkednek, mely viselkedéseket itt most nem részletezünk, de a https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record[dokumentációban] megtalálhatók.
+TIP: A rekordoknak további válfajai vannak, ugyanis struktúra is lehet rekord, ilyenkor a `record struct` kulcsszó párt használjuk a típus deklarációjánál. Sőt, a `readonly record struct` egy immutábilis `record struct`. Ezen válfajok nyilván különbözőképpen viselkednek, mely viselkedéseket itt most nem részletezzük, de a https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record[dokumentációban] megtalálhatók.
