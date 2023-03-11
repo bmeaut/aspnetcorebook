@@ -3,7 +3,7 @@
 
 == Előkészítés
 
-Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: a projektsablon szűrőben válasszuk a C# nyelv - Windows platform - _Console_ projekttípust. A szűrt listában válasszuk _Console App_ sablont (most már *ne* a .NET Framework-ös legyen). A neve legyen _HelloCSharp2_. A solutiont ne tegyük külön mappába (_Place solution and project in the same directory_ legyen bekapcsolva). A megcélzott framework verzió legyen .NET 6.
+Első lépésként hozzunk létre egy .NET Core C# konzolalkalmazást: a projektsablon szűrőben válasszuk a C# nyelv - Windows platform - _Console_ projekttípust. A szűrt listában válasszuk a _Console App_ sablont (most már *ne* a .NET Framework-ös legyen). A neve legyen _HelloCSharp2_. A solutiont ne tegyük külön mappába (_Place solution and project in the same directory_ legyen bekapcsolva). A megcélzott framework verzió legyen .NET 6.
 
 === Legfelső szintű utasítások, implicit globális névtér-hivatkozások
 
@@ -24,7 +24,7 @@ C# 10-ben a program belépési pontját adó forrásfájlt jelentősen lerövid�
 
 WARNING: Fontos észrevétel a fentiekből: ezen képesség nem változtatja meg a C# semmilyen alapvető jellemzőjét, például ugyanúgy minden függvénynek osztályon belül kell lennie. A fordítás során a legfelső szintű utasítások kódja úgy egészül ki, ami már minden szabálynak megfelel.
 
-WARNING: A legfelső szintű kód olyan, amit a program más részéről nem tudunk hívni, hiszen nem is ismerjük  a burkoló osztály nevét. Emiatt nincs értelme legfelső szintű kódban láthatósági beállításnak (`private`, `protcted`, stb.) vagy propertynek.
+WARNING: A legfelső szintű kód olyan, amit a program más részéről nem tudunk hívni, hiszen nem is ismerjük  a burkoló osztály nevét. Emiatt nincs értelme legfelső szintű kódban láthatósági beállításnak (`private`, `protected` stb.) vagy propertynek.
 
 Akadályozzuk meg a program azonnali lefutását egy blokkoló hívással.
 
@@ -166,7 +166,7 @@ Tegyük fel, hogy egy kutyához bármilyen, üzleti logikában nem felhasznált 
 ----
 <1> A `new` operátor utáni konstruktorhívás sok esetben elhagyható, ha a bal oldal alapján amúgy is tudható a típus.
 
-TIP: Az újabb projektsablonok sokkal kevesebb névtérdeklarációt (`using`) generálnak alapból. Ha kell vegyük fel a szükségeseket a fel nem oldott néven állva gyorsművelet (villanykörte) eszközzel (kbd:[CTRL+.])
+TIP: Az újabb projektsablonok sokkal kevesebb névtérdeklarációt (`using`) generálnak alapból. Ha kell, vegyük fel a szükségeseket a fel nem oldott néven állva a gyorsművelet (villanykörte) eszközzel (kbd:[CTRL+.])
 
 Az objektum inicializáló és az index inicializáló vegyíthető, így az alábbi módon tudunk felvenni további tulajdonságokat a kutyákhoz a legfelső szintű kódba:
 
@@ -191,7 +191,7 @@ var dogs = new Dictionary<string, Dog>
     ["watson"] = watson,
     ["unnamed"] = unnamed,
     ["unknown"] = unknown,
-    ["pinmpedli"] = pimpedli
+    ["pimpedli"] = pimpedli
 };
 
 foreach (var dog in dogs)
@@ -239,12 +239,11 @@ A szótár feltöltését megírhatjuk kollekció inicializációval is. Ehhez k
 ----
 var dogs = new Dictionary<string, Dog>
 {
-    { nameof(banan), banan},
-    { nameof(watson), watson},
-    { nameof(unnamed), unnamed},
-    { nameof(unknown), unknown},
-    { nameof(pimpedli), pimpedli}
-
+    { nameof(banan), banan },
+    { nameof(watson), watson },
+    { nameof(unnamed), unnamed },
+    { nameof(unknown), unknown },
+    { nameof(pimpedli), pimpedli }
 };
 ----
 
@@ -304,7 +303,7 @@ Ha így futtatjuk az alkalmazást, az `AgeInDays` és a származtatott tulajdons
 
 == Rekord típus
 
-A rekord típusok speciális típusok, melyek
+A rekord típusok speciális típusok, melyek:
 
 - egyenlőségvizsgálat során érték típusokra jellemző logikát követnek, azaz két példány akkor egyenlő, ha adataik egyenlőek
 - könnyen immutábilissá tehetők, könnyen kezelhetők immutábilis típusként
@@ -385,7 +384,7 @@ A `DogRec` típus alapvetően immutábilis, a példányainak alapadatai iniciali
 [source,csharp]
 ----
 /**/var watson3 = new DogRec(Guid.Empty, "Watson");
-/**/var watson4 = new DogRec(Guid.Empty, "Watson" , DateTime.Now.AddYears(-1));    
+/**/var watson4 = new DogRec(Guid.Empty, "Watson", DateTime.Now.AddYears(-1));    
     watson4.Name = watson3.Name + "_2"; //<= nem fordul
 ----
 
@@ -401,9 +400,9 @@ Ha immutábilis típusokkal dolgozunk, akkor mutáció helyett új példányt ho
     WriteLine(watson5);
 ----
 
-Futtatáskor a konzolban gyönyörködjünk a rekord típusok alapértelmezetten is olvasható szöveges kiírására.
+Futtatáskor a konzolban gyönyörködjünk a rekord típusok alapértelmezetten is olvasható szöveges kiírásában.
 
-A másoló kifejezésben a `with` operátor előtt megadjuk melyik példányt klónoznánk, majd az *inicializáció részeként* milyen értékeket állítanánk át, ehhez az objektum inicializációs szintaxist használhatjuk. Fontos eszünkbe vésni, hogy a másolás eredményeként új példány jön létre, új memóriaterület foglalódik le. Gondoljunk erre akkor, amikor egy ciklusban használjuk ezt a módszert sok egymást követő módosításra.
+A másoló kifejezésben a `with` operátor előtt megadjuk, melyik példányt klónoznánk, majd az *inicializáció részeként* milyen értékeket állítanánk át, ehhez az objektum inicializációs szintaxist használhatjuk. Fontos eszünkbe vésni, hogy a másolás eredményeként új példány jön létre, új memóriaterület foglalódik le. Gondoljunk erre akkor, amikor egy ciklusban használjuk ezt a módszert sok egymást követő módosításra.
 
 NOTE: Mire jó a rekord típus, az immutabilitás? Az immutábilis típussokkal való hatékony és eredményes munka másfajta, az imperatív nyelvekhez szokott fejlesztők számára szokatlan módszereket kíván. Vannak területek, ahol ez a befektetés megtérül, ilyen például a többszálú környezet. A legtöbb szálkezeléssel kapcsolatos probléma ugyanis a szálak által közösen használt adatstruktúrák mutációjára vezethető vissza (ún. _race condition_, versenyhelyzet). Nincs mutáció - nincs probléma. (_No mutation - no cry_)
 
@@ -463,7 +462,7 @@ TIP: Immutábilis környezetben törekedjünk arra, hogy a *teljes* adatstruktú
 
 === Normál megadás
 
-Ha nincs szükségünk a kikényszerített immutabilitásra, akkor használhatjuk a rekord normál megadását. Fogjuk az `Dog` osztályt, másoljuk le a kódját, adjunk neki más nevet és `class` helyett `record` jelölőt. A `Dog` osztály fölé:
+Ha nincs szükségünk a kikényszerített immutabilitásra, akkor használhatjuk a rekord normál megadását. Fogjuk a `Dog` osztályt, másoljuk le a kódját, adjunk neki más nevet és `class` helyett `record` jelölőt. A `Dog` osztály fölé:
 
 [source,csharp]
 ----
