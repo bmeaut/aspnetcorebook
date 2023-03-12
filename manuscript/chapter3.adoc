@@ -7,7 +7,7 @@ A gyakorlat kezdetén töltsük le a [kiinduló projektet](https://github.com/bm
 
 Megnyitás után tekintsük át a kiinduló projektben levő fájlokat:
 
-* *Program.cs*: a legfelső szintű kódot tartalmazó osztály. Található benne egy `dogs` változó, ami a `Dog` osztály statikus `Repository` tulajdonságába hív át.
+* *Program.cs*: a legfelső szintű kódot tartalmazó osztály. Található benne egy `Dogs` változó, ami a `Dog` osztály statikus `Repository` tulajdonságába hív át.
 * *Dog.cs*: a korábbi gyakorlatokon használt adatmodell (apróbb módosításokkal). Bekerült egy `Siblings` tulajdonság, a `ToString` pedig kiírja a kutyához tartozó testvérek számát is (ehhez a `TrimPad` bővítő metódust használja). A statikus `Repository` tulajdonság mögött egy lustán inicializált `Lazy<T>  RepositoryHolder` található, ami egy megfelelően formázott bemeneti CSV fájlból elkészíti számunkra az adatmodellt, amivel a későbbiekben dolgozunk. Ennek implementációját elég a gyakorlat végén megnézni. Az `Import` és `Export` függvények a kutyák sorosítását végzik el mindkét irányban.
 * *Extensions/StringExtensions.cs*: ez az osztály tartalmaz egy segédmetódust a formázott kiíráshoz. A `Dog` `ToString` metódusa használja fel. A bővítő metódusos részben lesz jelentősége.
 * *dogs.csv*: egy pontosvesszővel tagolt adathalmaz, amelyben 100 darab előre felvett kutya adata található. Innen puskázhatunk, ha ellenőrizni akarjuk, hogy helyesek-e a programunk eredményei.
@@ -121,7 +121,7 @@ Func<Dog, bool> dogFunc =
     d => d.Name.StartsWith(searchText, StringComparison.OrdinalIgnoreCase);
 ----
 
-A `dogfunc` és a `predicate` kompatibilisnek tűnhetnek (elvégre a jobboldaluk ugyanaz), ám ha lecserélnénk pl. a `ListDogsByPredicate(Dogs, predicate)` hívásban a `predicate`-et `dogFunc`-ra, a kód nem fordulna, ugyanis a két delegáttípus nem kompatibilis.
+A `dogFunc` és a `predicate` kompatibilisnek tűnhetnek (elvégre a jobboldaluk ugyanaz), ám ha lecserélnénk pl. a `ListDogsByPredicate(Dogs, predicate)` hívásban a `predicate`-et `dogFunc`-ra, a kód nem fordulna, ugyanis a két delegáttípus nem kompatibilis.
 
 Az `Action<>` hasonló elven működik, visszatérési érték nélküli függvényekre.
 
@@ -213,7 +213,7 @@ Most már használhatjuk azt a szintaxist, mintha a kollekciónak eleve lenne ö
 Console.WriteLine($"Életkorok összege: {Dogs.Sum(d => d.Age ?? 0)}");
 ----
 
-WARNING: A bővítő metódusok semmilyen módon nem bontják meg a típusok egységbezárási képességeit. A függvény implementációja a bővítendő típusok kívülről is elérhető függvényeit, propertyjeit használhatják, privát adattagokhoz, függvényekhez nem férnek hozzá.
+WARNING: A bővítő metódusok semmilyen módon nem bontják meg a típusok egységbezárási képességeit. A függvények implementációi a bővítendő típusok kívülről is elérhető függvényeit, propertyjeit használhatják, privát adattagokhoz, függvényekhez nem férnek hozzá.
 
 WARNING: A bővítő metódusok alkalmazásakor nagyon fontos, hogy bár a bővítő metódus osztályának nevét nem írjuk ki, az osztály nevének feloldhatónak kell lennie, azaz az osztály névterét `using` direktívával be kell hivatkoznunk. Egy próba erejéig kommentezzük ki a `using HelloLinq.Extensions.Enumerable;` sort és ellenőrizzük, hogy nem fordul a kódunk, a bővítő metódus nevét a fordító nem tudja feloldani.
 
@@ -301,19 +301,19 @@ Próbáljuk ki a legfelső szintű kód elején, válasszuk ki a 2010 előtt sz�
 /**/IEnumerable<Dog> Dogs = Dog.Repository.Values;
     foreach (var text in Dogs
         .Where(d => d.DateOfBirth?.Year < 2010)
-        .Select(d => $"{d.Name} ({d.Age}))"))
+        .Select(d => $"{d.Name} ({d.Age})"))
     {
         Console.WriteLine(text);
     }
 ----
 
-TIP: a `yield return` egy hasznos eszköz, ha IEnumerable-t kell produkálnunk visszatérési értékként. Segítségével mindig csak akkor állítjuk elő a következő elemet, amikor a hívó kéri. A működését debuggerrel is figyeljük meg: tegyünk breakpointot a két `yield return` sorra, majd kbd:[F10]-zel kövessük végig, ahogy a `foreach` elkéri a `Select`-től a következő elemet, ami emiatt elkéri a `Where`-től, majd újraindul a ciklus. A hívások állapotgépként működnek, a következő meghíváskor onnan folytatódnak, ahonnan az előző `yield return`-nél kiléptünk.
+TIP: A `yield return` egy hasznos eszköz, ha IEnumerable-t kell produkálnunk visszatérési értékként. Segítségével mindig csak akkor állítjuk elő a következő elemet, amikor a hívó kéri. A működését debuggerrel is figyeljük meg: tegyünk breakpointot a két `yield return` sorra, majd kbd:[F10]-zel kövessük végig, ahogy a `foreach` elkéri a `Select`-től a következő elemet, ami emiatt elkéri a `Where`-től, majd újraindul a ciklus. A hívások állapotgépként működnek, a következő meghíváskor onnan folytatódnak, ahonnan az előző `yield return`-nél kiléptünk.
 
 Nem nagy meglepetés, hogy az általunk megírt `Sum`, `Average` (melyek egyedi visszatérésűek), `Select` és `Where` (amik szekvenciális visszatérésűek, generátorok) metódusok mind a .NET keretrendszer részét képezik (a https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable[`System.Linq.Enumerable`] statikus osztályban definiált bővítő metódusok). A *LINQ* -- **L**anguage **IN**tegrated **Q**uery -- ezeket a műveleteket teszi lehetővé `IEnumerable` interfészt megvalósító objektumokon. A LINQ függvények bővítő metódusként lettek hozzáadva meglevő funkcionalitáshoz (kollekciókhoz, lekérdezésekhez), sőt, külső library-k is adnak saját LINQ bővítő metódusokat. 
 
 Cseréljük le a *Program.cs*-ben a `using HelloLinq.Extensions.Enumerable` hivatkozást `using System.Linq`-re: az általunk megírt kód továbbra is ugyanazt az eredményt produkálja! Nézzük meg, hogy hol vannak definiálva ezek a függvények a keretrendszeren belül: a kurzort tegyük a kódban oda, ahol valamelyik korábban megírt függvényünket hívnánk, majd nyomjunk kbd:[F12]-t. Próbáljuk ki, hogy továbbra is az elvárt módon működik-e a programunk.
 
-TIP: A névtércsere helyett bekapcsolhatjuk a globális implicit névtér funkciót, mert a *System.Linq* névtér is egy implicit hivatkozott névtér. Ehhez a projektfájlban a `<ImplicitUsings>disable</ImplicitUsings>` beállítást írjuk át `enable`-re, majd a `using HelloLinq` -en kívül minden névtérhivatkozást törljünk a *Program.cs*-ből.
+TIP: A névtércsere helyett bekapcsolhatjuk a globális implicit névtér funkciót, mert a *System.Linq* névtér is egy implicit hivatkozott névtér. Ehhez a projektfájlban az `<ImplicitUsings>disable</ImplicitUsings>` beállítást írjuk át `enable`-re, majd a `using HelloLinq` -en kívül minden névtérhivatkozást töröljünk a *Program.cs*-ből.
 
 == Anonim típusok
 
@@ -336,7 +336,7 @@ Az anonim típusok:
 * típusnevét nem ismerjük, így hivatkozni sem tudunk rá, csak a `var`-t tudjuk használni
 * nem használhatók ott, ahol a `var` típus se használható, többek között nem adhatjuk át függvénynek és nem lehet visszatérési érték sem
 
-Ha az egeret a `var` kulcsszavak, vagy egyes tulajdonságnevek fölé visszük, láthatjuk, hogy valóban fordítási idejű típusokról van szó.
+Ha az egeret a `var` kulcsszavak vagy egyes tulajdonságnevek fölé visszük, láthatjuk, hogy valóban fordítási idejű típusokról van szó.
 
 TIP:  Figyeljük meg, hogy az *IntelliSense* is működik ezekre a típusokra, felkínálja a típus property-jeit.
 
@@ -351,7 +351,7 @@ A `Contents` tulajdonság típusa a fenti anonim objektumaink tömbje, ezért ne
 
 [source,csharp]
 ----
-var dolog2 = new { Name = "Körte", Weight = 90, Size=12 };
+var dolog2 = new { Name = "Körte", Weight = 90, Size = 12 };
 ----
 
 TIP:  Ha végeztünk az anonim típusokkal való ismerkedéssel, az ezekkel kapcsolatos kódsorokat kikommentezhetjük.
@@ -386,13 +386,13 @@ using HelloLinq.Extensions;
 
 A query szintaxis végül a korábban is használt, ún. __fluent szintaxis__sá fordul. Ennek igazolására nézzük meg kbd:[F12]-vel, hogy hol vannak definiálva az újonnan megismert operátorok (`select`, `where`). A két szintaxist szokás ötvözni is, jellemzően akkor, ha query szintaxisban írjuk a lekérdezést, és a hiányzó funkcionalitást fluent szintaxissal pótoljuk.
 
-NOTE: A fluent szintaxis olyan kialakítású API-knál alkalmazhatjuk, ahol a függvények a tartalmazó típust várják (egyik) bemenetként és azonos (vagy leszármazott) típust adnak vissza. A LINQ-nél ez a típus az `IEnumerable<>`.
+NOTE: A fluent szintaxist olyan kialakítású API-knál alkalmazhatjuk, ahol a függvények a tartalmazó típust várják (egyik) bemenetként és azonos (vagy leszármazott) típust adnak vissza. A LINQ-nél ez a típus az `IEnumerable<>`.
 
 Ezen az órán memóriabeli adatforrásokkal dolgoztunk (konkrétan a `Dogs` nevű `Dictionary<,>` típusú változóval), a LINQ operátorok közül a memóriabeli listákon dolgozókat használtuk, melyeket az `IEnumerable<>` interfészre biggyesztettek rá bővítő metódusként. Ezt a LINQ API-t teljes nevén __LINQ-to-Objects__nek hívják, de gyakran csak LINQ-ként hivatkozzák.
 
 == Kitekintő: Expression<>, LINQ providerek
 
-Vegyük az alábbi nagyon egyszerű delegate-et és ennek `Expression<>`-s párját.
+Vegyük az alábbi nagyon egyszerű delegate-et és ennek `Expression<>`-ös párját.
 
 [source,csharp]
 ----
