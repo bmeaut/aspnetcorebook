@@ -1,7 +1,7 @@
 [#csharp4]
 = C# alapok IV.
 
-Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesfelvágott jelleggel. Az egyes fő témaköröket külön projektként dolgozzuk ki. A projekteket hozzáadhatjuk az elsőként létrehozott projekt solutionjéhez (menu:jobbklikk a projekten[Add > New project]). Hozzáadás után ne felejtsük el átállítani a futtatandó projektet: menu:jobbklikk a projekten[Set as Startup Project].
+Ezen a gyakorlaton több különféle nyelvi konstrukciót tekintünk át, vegyesfelvágott jelleggel. Az egyes fő témaköröket külön projektként dolgozzuk ki. A projekteket hozzáadhatjuk az elsőként létrehozott projekt solutionjéhez (menu:jobbklikk a solution-ön[Add > New project]). Hozzáadás után ne felejtsük el átállítani a futtatandó projektet: menu:jobbklikk a projekten[Set as Startup Project].
 
 == Bejárási problémák
 
@@ -9,7 +9,7 @@ Enumerátorok használata esetén két alapvető problémába ütközünk: az eg
 
 === Kollekció módosulása bejárása során
 
-Szűrjünk le egy szám-szám szótárat csak azokra az elemekre, amik megfelelnek egy feltételnek, és ezeket távolítsuk el a szótárból!
+Szűrjünk le egy számokat tartalmazó kollekciót csak azokra az elemekre, amik megfelelnek egy feltételnek, és ezeket távolítsuk el a kollekcióból!
 
 [source,csharp]
 ----
@@ -72,12 +72,12 @@ Ezzel a megközelítéssel futásidőben is állíthatunk össze egy időben vá
 
 Töltsünk le egy HTML oldalt, és ezen a problémán keresztül bemutatjuk az aszinkron programozási modellt. A `HttpClient` működésének a részletesebb ismertetése most nem téma, csak a legalapvetőbb funkciókat fogjuk használni.
 
-A fő gond, hogy a hosszan futó műveletek blokkolhatják a fő/UI/aktuális szál futását, mindez kliens alkalmazások esetében úgy jelentkezik, hogy nem lesz a alkalmazásunk reszponzív a felhasználói bemenetekre; szerveralkalmazások esetében pedig az adott kérést kiszolgáló szál feleslegesen blokkolódik, amikor esetleg mással is tudna foglalkozni.
+A fő gond, hogy a hosszan futó műveletek blokkolhatják a fő/UI/aktuális szál futását, mindez kliens alkalmazások esetében úgy jelentkezik, hogy nem lesz az alkalmazásunk reszponzív a felhasználói bemenetekre; szerveralkalmazások esetében pedig az adott kérést kiszolgáló szál feleslegesen blokkolódik, amikor esetleg mással is tudna foglalkozni.
 
-Ötlet a hosszan tartó műveleteket végezzük aszinkron módon, és ha az befejeződött az eredményről valamilyen módon értesüljünk. A keretrendszer többféle mintát kínál erre: Asynchronous Programming Model (APM), Event-based Asynchronous Pattern (EAP), Task-based Asynchronous Pattern (TAP). Mi most a legutóbbival foglalkozunk csak, a többi jórészt elavultnak számít ma már.
+Ötlet: a hosszan tartó műveleteket végezzük aszinkron módon, és ha az befejeződött az eredményről valamilyen módon értesüljünk. A keretrendszer többféle mintát kínál erre: Asynchronous Programming Model (APM), Event-based Asynchronous Pattern (EAP), Task-based Asynchronous Pattern (TAP). Mi most a legutóbbival foglalkozunk csak, a többi jórészt elavultnak számít ma már.
 
 A TAP-ra már C# nyelvi támogatást is kapunk az `async`/`await` kulcsszavakon keresztül.
-Vegyünk fel egy új metódust és hívjuk meg a legfelső szintű kódban. A megírt metódus írása során hivatkozzuk be a `System.Net.Http` névteret. A kód semmi mást nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott URL-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és kiírja a konzolra.
+Vegyünk fel egy új metódust és hívjuk meg a legfelső szintű kódban. A megírt metódus írása során hivatkozzuk be a `System.Net.Http` névteret. A kód semmi mást nem csinál, csak elindít aszinkron módon egy HTTP GET kérést a megadott URL-re, illetve a válasz tartalmát is aszinkron módon kiolvassa és egy részét kiírja a konzolra.
 
 [source,csharp]
 ----
@@ -100,9 +100,9 @@ static async void LoadWebPageAsync()
 
 *await:* Mindig egy `Task` `await`-elhető (vagy taszk szerű dolog: vagyis van neki `GetAwaiter` metódusa, ami meghatározott metódusokkal rendelkező objektummal tér vissza)! Akár létre is hozhatunk egy `Task`-ot, amit egy lokális változóban tárolunk, akkor azt is tudjuk `await`-elni.
 
-*async:* ha await-elni akarunk, akkor muszáj `async`-nak lennie a tartalmazó metódusnak, mert ilyenkor építi fel a fordító az aszinkron végrehajtáshoz szükséges állapotgépet.
+*async:* Ha await-elni akarunk, akkor muszáj `async`-nak lennie a tartalmazó metódusnak, mert ilyenkor építi fel a fordító az aszinkron végrehajtáshoz szükséges állapotgépet.
 
-Debuggoljuk ki! Minden `Console`, `async` sorra tegyünk töréspontot, debuggolás során (kbd:[F5]) kövessük végig milyen sorrendben éri el őket a végrehajtás. Nézzük meg melyik rész milyen szálon fut le (debug közben menu:Debug[Windows > Threads]). A `LoadWebPageAsync` utáni rész előbb fog lefutni, mint az első `await` utáni rész. Az `await` utáni rész nem a _Main Thread_-en fut. Figyeljük meg azt is, hogy az _Ez a vége_ szöveg hamarabb kiíródik, mit a HTML oldal letöltése.
+Debuggoljuk ki! Minden `Console`, `async` sorra tegyünk töréspontot, debuggolás során (kbd:[F5]) kövessük végig, milyen sorrendben éri el őket a végrehajtás. Nézzük meg, melyik rész milyen szálon fut le (debug közben menu:Debug[Windows > Threads]). A `LoadWebPageAsync` utáni rész előbb fog lefutni, mint az első `await` utáni rész. Az `await` utáni rész nem a _Main Thread_-en fut. Figyeljük meg azt is, hogy az _Ez a vége_ szöveg hamarabb kiíródik, mint a HTML oldal letöltése.
 
 Próbáljuk ki a `Console.ReadKey`-t kikommentezve is, ilyenkor jó eséllyel hamarabb leáll a process, minthogy a `Task` befejeződne. Az ilyen fire-and-forget típusú hívásoknál nem figyel arra senki, hogy itt még valami háttérművelet folyik.
 
@@ -119,7 +119,7 @@ Módosítsuk a `LoadWebPageAsync` fejlécét, hogy taszkot adjon vissza:
 public static async Task LoadWebPageAsync() //void helyett Task
 ----
 
-Várjuk be az szinkron művelet végét a legfelső szintű kódban.
+Várjuk be az aszinkron művelet végét a legfelső szintű kódban.
 
 [source,csharp]
 ----
@@ -191,7 +191,7 @@ class Person
 }
 ----
 
-Ez máris számos figyelmeztetést generál. A nem nullozható referencia típusok bekapcsolásával alapesetben nem hibák csak új figyelmeztetések generálódnak. A vezetéknév és keresztnév adatoknak nem szabadna `null` értékűnek lennie (a sima `string` típus nem nullozható típust jelent), viszont így az alapérték nem egyértelmű, explicit inicializálnunk kellene.
+Ez máris számos figyelmeztetést generál. A nem nullozható referencia típusok bekapcsolásával alapesetben nem hibák, csak új figyelmeztetések generálódnak. A vezetéknév és keresztnév adatoknak nem szabadna `null` értékűnek lennie (a sima `string` típus nem nullozható típust jelent), viszont így az alapérték nem egyértelmű, explicit inicializálnunk kellene.
 
 Fontos megértenünk, hogy a string típus fizikailag továbbra is lehet null értékű, mindössze a fordító számára jelezzük, hogy szándékunk szerint sohasem szabadna `null` értéket felvennie. A fordító cserébe figyelmeztet, ha ezt megsértő kódot detektál.
 
@@ -318,7 +318,7 @@ Mivel ez csak egy példakód, ne javítsuk ki a hibákat, csak távolítsuk el a
 
 === Tuple nyelvi szinten, lokális függvények
 
-Készítsünk Fibonacci számsor kiszámolására alkalmas függvényt, ahol használjunk ki az alábbi két új nyelvi elemet. Természetesen nagyon sokféleképpen meg lehetne valósítani ezt a metódust, de most kifejezetten a _tuple_-ök nyelvi támogatását és lokális függvényeket szeretnénk demonstrálni.
+Készítsünk Fibonacci számsor kiszámolására alkalmas függvényt, ahol használjuk ki az alábbi két új nyelvi elemet. Természetesen nagyon sokféleképpen meg lehetne valósítani ezt a metódust, de most kifejezetten a _tuple_-ök nyelvi támogatását és lokális függvényeket szeretnénk demonstrálni.
 
 * Lokális függvények: ezek a függvények csak adott metódusban láthatók. Két esetben érdemes őket használni: ha nem szeretnénk „szennyezni” a környező osztályt különféle privát segédmetódusokkal, vagy ha egy mélyebb, komplexebb hívási láncban nem szeretnénk a paramétereket folyamatosan továbbpasszolni, ugyanis ezek a metódusok elérik a külső scope-on található változókat is (a lenti esetben például az `x`-et).
 
@@ -392,7 +392,7 @@ Ha kérjük a villanykörte segítségét az `IDisposable`-ön, akkor 2x2 lehet�
 
 image::images/csharp4-dispose.png[Dispose minta implementálása IntelliSense segítségével]
 
-Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy a nem menedzselt erőforrásokat (_unmanaged objects / resources_) szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén a kommentekkel kijelölt helyen érdemes ezt elvégeznünk. Készítsük el az időmérő mechanizmust!
+Fussuk át a generált kódot, ami szépen kommentezett. A pattern lényege, hogy a nem menedzselt erőforrásokat (_unmanaged objects / resources_) szükséges felszabadítanunk, amit a `Dispose` metódusokban, illetve menedzselt kód esetén a kommentekkel kijelölt helyen érdemes elvégeznünk. Készítsük el az időmérő mechanizmust!
 
 [source,csharp]
 ----
@@ -445,7 +445,7 @@ Hívjuk meg a `foreach` ciklusból:
 ----
 /**/using (
     var sw =
-/**/      new StopwatchWrapper("Fib 0-15"))
+/**/      new StopwatchWrapper("Fib 1-15"))
 /**/{
 /**/    foreach (var n in Enumerable.Range(1, 15))
 /**/    {
