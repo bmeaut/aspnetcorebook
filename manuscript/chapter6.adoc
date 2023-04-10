@@ -2,9 +2,9 @@
 
 == Az Entity Framework leképezési módszerei
 
-Az objektum-relációs (OR) leképzés (_mapping_) két fő részből áll, az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektummodell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk _Code-First_ mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot __Reverse Engineered Code-First__nek vagy https://docs.microsoft.com/en-us/ef/core/managing-schemas/scaffolding[__scaffolding__nak] hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
+Az objektum-relációs (OR) leképzés (_mapping_) két fő részből áll: az egyik az adatbázis séma, a másik pedig egy menedzselt kódbéli objektummodell. Esetünkben a C# kódban lévő osztályokat képezzük le adatbázisbeli objektumokká, ezt hívjuk _Code-First_ mapping módszernek. A másik irány is lehetséges, ha már van egy adatbázis sémánk, akkor azt is leképezhetjük Code-First modellé. Ezt a folyamatot __Reverse Engineered Code-First__nek vagy https://docs.microsoft.com/en-us/ef/core/managing-schemas/scaffolding[__scaffolding__nak] hívjuk (ez utóbbival nem foglalkozunk ezen gyakorlat keretében).
 
-Akárhogy is, az Entity Framework Core (EF), mint OR leképező eszköz (ORM) használatához az alábbi összetevőkre van szükség:
+Akárhogy is, az Entity Framework Core (EF) mint OR leképező eszköz (ORM) használatához az alábbi összetevőkre van szükség:
 
 - objektummodell kódban
 - relációs modell az adatbázisban
@@ -24,11 +24,12 @@ Készítsünk egy .NET 6 konzolos alkalmazást (csak https://github.com/dotnet/e
 * *Product* (`Id`: `int`, `Name`: `string`, `UnitPrice`: `int`)
 * *Order* (`Id`: `int`, `OrderDate`: `DateTime`)
 * *Category* (`Id`: `int`, `Name`: `string`)
+
 Az osztályok legyenek publikusak, az attribútumok pedig egyszerű auto-implementált propertyk (_prop_ snippet).
 
 A `string` típusú property-k esetén figyelmeztet a fordító, hogy nem nullozható referencia típusú property inicializáció után is `null` értékű lehet. Ennek kivédésére az ajánlott módszer olyan konstruktor írása, ami az ilyen propertyk kezdeti értékét paraméterben megkapja és beállítja.
 
-WARNING: A konstruktort az EF is fogja hívni, neki automatikusan tudnia kell, hogy melyik paraméter melyik tulajdonságot állítja - pedig ez a konstruktor szignatúrájából alapesetben nem kikövetkeztethető. Emiatt önkéntesen tartanunk kell magunkat ahhoz, hogy konstruktorparaméter nevének és a property nevének egyeznie kell, kivéve, hogy a paramétere neve kezdődhet kisbetűvel is (*camel casing*).
+WARNING: A konstruktort az EF is fogja hívni, neki automatikusan tudnia kell, hogy melyik paraméter melyik tulajdonságot állítja - pedig ez a konstruktor szignatúrájából alapesetben nem kikövetkeztethető. Emiatt önkéntesen tartanunk kell magunkat ahhoz, hogy a konstruktorparaméter nevének és a property nevének egyeznie kell, kivéve, hogy a paramétere neve kezdődhet kisbetűvel is (*camel casing*).
 
 Példaként így néz ki a `Product` konstruktor:
 
@@ -40,11 +41,11 @@ public Product(string name)
 }
 ----
 
-TIP: A Visual Studio *Quick Action*-ként fel szokta ajánlani *Generate constructor [konstruktorfejléc]* vagy *Add parameter to [konstruktorfejléc]* gyors kódgenerálási lehetőségeket, amivel létrehozhatjuk vagy bővíthetjük a szükséges konstruktort.
+TIP: A Visual Studio *Quick Action*-ként fel szokta ajánlani a *Generate constructor [konstruktorfejléc]* vagy *Add parameter to [konstruktorfejléc]* gyors kódgenerálási lehetőségeket, amivel létrehozhatjuk vagy bővíthetjük a szükséges konstruktort.
 
 === Mapping és egyéb metaadatok megadása I.
 
-Eddig megadtuk az entitás nevét, a relációs attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen a relációs attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál ezek megadására. Az egyik módszer, hogy C# attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
+Eddig megadtuk az entitás nevét, a relációs attribútumok nevét és típusát, azonban ezen felül még sok mindent lehet/kell megadni: az entitás elsődleges kulcsa, idegen kulcsok, relációk, kényszerek és egyéb mapping információk (pl. hogy mi legyen a relációs attribútum oszlopneve az adatbázisban). A Code-First stratégia kétfajta módszert is kínál ezek megadására. Az egyik módszer, hogy C# attribútumokat helyezünk az entitásosztályok különböző részeire, a másik, hogy ún. fluent jellegű kódot alkalmazunk. Ez utóbbi módszer elsőre furcsán néz ki, de többet tud (van, amit attribútummal nem lehet megadni).
 
 A fenti két módszert kiegészíti a konvenció alapú konfiguráció, amikor az EF a rendelkezésekre álló adatokból automatikusan következteti ki a metaadatokat: például gyakori, hogy az elsődleges kulcs neve tartalmazza az _id_ szöveget. Az EF tehát a konvenció alapján kitalálhatja, hogy melyik ez elsődleges kulcs oszlop. Ha valamit rosszul találna ki, vagy változtatni akarunk a kitalált neveken, akkor azt az attribútumos vagy a fluent megadással tehetjük meg.
 
@@ -70,7 +71,7 @@ Az `Order`-`Product` több-többes kapcsolatokhoz hozzuk létre a kapcsolótábl
 
 * *OrderItem* (`Id`: `int`, `ProductId`: `int`, `OrderId`: `int`, `Quantity`: `int`)
 
-TIP: Nem kötelező létrehozni osztályt a kapcsolótáblának, https://docs.microsoft.com/en-us/ef/core/modeling/relationships?tabs=fluent-api%2Cfluent-api-simple-key%2Csimple-key#many-to-many[konfigurációval is lehet érni], hogy a kapcsolótábla létrejöjjön és az EF megfelelően használja. Ezt a módszert akkor érdemes követni ha a kapcsolótábla csupán technikai tehertétel, de ha például extra adatot is tárol,  esetünkben a rendelt mennyiséget (`Quantity`), akkor jobban követhető kódot eredményez, ha explicit létrehozzuk a kapcsolótáblának megfelelő entitástípust.
+TIP: Nem kötelező létrehozni osztályt a kapcsolótáblának, https://docs.microsoft.com/en-us/ef/core/modeling/relationships?tabs=fluent-api%2Cfluent-api-simple-key%2Csimple-key#many-to-many[konfigurációval is lehet érni], hogy a kapcsolótábla létrejöjjön és az EF megfelelően használja. Ezt a módszert akkor érdemes követni, ha a kapcsolótábla csupán technikai tehertétel, de ha például extra adatot is tárol,  esetünkben a rendelt mennyiséget (`Quantity`), akkor jobban követhető kódot eredményez, ha explicit létrehozzuk a kapcsolótáblának megfelelő entitástípust.
 
 Az így kialakult modell (konstruktorok nélkül):
 
@@ -111,15 +112,13 @@ Az automatikusan létrejövő MSSQLLocalDB nevű LocalDB példány connection st
 
 image::images/efcore-ssoe.png[Connection string megszerzése az SQL Server Object Explorer-ből]
 
-WARNING: Mivel a connection string-ben különleges karakterek (pl. '\') vannak, ne felejtsük el a @-ot a string elé írni!
-
 [source,csharp]
 ----
 public class NorthwindContext : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(@"<connstring>");
+        optionsBuilder.UseSqlServer("<connstring>");
     }
 
     public DbSet<Product> Products => Set<Product>();
@@ -153,7 +152,7 @@ Hozzuk elő a *Package Manager Console*-t. (menu:Tools[NuGet Package Manager > P
 Add-Migration Init
 ----
 
-Figyeljük meg mit generált a projektünkbe ez a parancs. Itt a migrációhoz egy osztályt készít, ami tartalmazza azokat az utasításokat (`Up` függvény), amikkel a modellünknek megfelelő táblákat fel lehet venni. Emellett külön függvényben (`Down`) olyan utasítások is vannak, melyek ugyanezen táblákat eldobják.
+Figyeljük meg, mit generált a projektünkbe ez a parancs. Itt a migrációhoz egy osztályt készít, ami tartalmazza azokat az utasításokat (`Up` függvény), amikkel a modellünknek megfelelő táblákat fel lehet venni. Emellett külön függvényben (`Down`) olyan utasítások is vannak, melyek ugyanezen táblákat eldobják.
 
 Fordítás után adjuk ki az `Update-Database` parancsot, amivel egy adott migrációs állapotig próbálja frissíteni a sémát. Ha nem adunk meg sémanevet akkor a legfrissebb migrációig frissít:
 
@@ -200,7 +199,7 @@ TIP: A fenti miatt az entitásmodellünk már nem POCO, mert EF specifikus attri
 
 TIP: Érdemes megfigyelni a táblanevek kapcsán, hogy eleve többesszámosított neveket találunk az adatbázisban. Ezt az `IPluralizer` service végzi, melyhez saját implementáció is https://docs.microsoft.com/en-us/ef/core/what-is-new/ef-core-2.0#pluralization-hook-for-dbcontext-scaffolding[írható].
 
-Mivel már létezik az adatbázisunk migráció segítségével kell frissítsük az adatbázis sémáját. Készítsünk egy új migrációs lépést az `Add-Migration` utasítással és frissítsük a sémát az `Update-Database` paranccsal.
+Mivel már létezik az adatbázisunk, migráció segítségével kell frissítsük az adatbázis sémáját. Készítsünk egy új migrációs lépést az `Add-Migration` utasítással és frissítsük a sémát az `Update-Database` paranccsal.
 
 [source,powershell]
 ----
@@ -210,11 +209,11 @@ Update-Database CategoryName_ProductName
 
 TIP: Megnézhetjük az adatbázison futtatott SQL-t is a Script-Migration paranccsal. Például ez mutatja a legutóbbi módosítást érvényesítő SQL-t: `Script-Migration -From Init`
 
-TIP: Természetesen mivel még nincsenek adataink az adatbázisban akár el is dobhatnánk az adatbázist és újra legenerálhatnánk nulláról a sémát, de most kifejezetten a migrációt szeretnénk gyakorolni. Az `Add-Migration` kimenete figyelmeztet, hogy adatvesztés is történhet. Vannak veszélyes migrációs műveletek, ezért érdemes átnézni a generálódó migrációs kódot.
+TIP: Természetesen mivel még nincsenek adataink az adatbázisban, akár el is dobhatnánk az adatbázist és újra legenerálhatnánk nulláról a sémát, de most kifejezetten a migrációt szeretnénk gyakorolni. Az `Add-Migration` kimenete figyelmeztet, hogy adatvesztés is történhet. Vannak veszélyes migrációs műveletek, ezért érdemes átnézni a generálódó migrációs kódot.
 
 WARNING: Ha valamilyen okból nem megfelelő a migrációnk, ne töröljük kézzel a generált C# kódfájlokat. Használjuk helyette a `Remove-Migration` parancsot (mindenfajta paraméter nélkül), ami a legutóbbi migrációt törli.
 
-Nézzük meg milyen migrációs osztályt generáltunk, és hogy ez milyen utasításokat tartalmaz.
+Nézzük meg, milyen migrációs osztályt generáltunk, és hogy ez milyen utasításokat tartalmaz.
 
 Ellenőrizzük, hogy a _Name_ oszlop most már az új kényszereknek megfelelően lett-e felvéve, és hogy a terméknév oszlop neve is megváltozott-e.
 
@@ -228,7 +227,7 @@ A következő feladat könnyebb követhetősége érdekében állítsuk be a nap
 ----
 /**/protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 /**/{
-/**/    optionsBuilder.UseSqlServer(@"<connstring>")
+/**/    optionsBuilder.UseSqlServer("<connstring>") // ; törölve
             .LogTo(Console.WriteLine, LogLevel.Information);
 /**/}
 ----
@@ -241,8 +240,6 @@ TIP: Ha nem a konzolt szeretnénk teleszemetelni, akkor akár a Debug kimenetre 
 
 [source,csharp]
 ----
-//using System.Linq;
-
 static void SeedDatabase(NorthwindContext ctx)
 {
     if (!ctx.Products.Any())
@@ -277,7 +274,7 @@ Console.ReadKey();
 
 Próbáljuk ki! Hibára fut, mert beszúrásnál az `Id` értékes hivatkozás alapértelmezett `int`, azaz 0 értékű lesz, hiszen a kategória is új. Az új elemeknél gyakori, hogy az adatbázis osztja ki az elsődleges kulcs értéket, addig az alapértelmezett értékű. Konvenció szerint a mi _Id_ oszlopaink is ilyenek lesznek (https://docs.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property[ún. IDENTITY oszlopok]).  A termék beszúrásakor viszont a 0 érték már nem lesz helyes, hiszen addigra a kategória kapott valamilyen kulcs értéket. Mindezt a problémát navigációs property-s hivatkozással elkerülhetjük.
 
-TIP: Figyeljük meg, hogy a konzol naplóban, hogy a `Category` beszúrása még megtörténik, de az egyik `Product` hozzáadása már elszáll. A debuggerrel, ha megállunk a `SaveChanges` híváson, akkor látható, hogy a `CategoryId` property értéke nulla.
+TIP: Figyeljük meg a konzol naplóban, hogy a `Category` beszúrása még megtörténik, de az egyik `Product` hozzáadása már elszáll. A debuggerrel, ha megállunk a `SaveChanges` híváson, akkor látható, hogy a `CategoryId` property értéke nulla.
 
 TIP: Figyeljük meg azt is, hogy a `SaveChanges` hívásig nem történik módosító adatbázisművelet. Az EF memóriában gyűjti a változásokat, amiket a SaveChanges-szel szinkronizálunk az adatbázisba.
 
@@ -287,7 +284,7 @@ Javítsuk ki:
 
 [source,csharp]
 ----
-/**/ctx.Products.Add(new Product
+/**/ctx.Products.Add(new Product("Tej")
 /**/ { Name = "Tej",
         Category = cat_drink //navigációs property-re váltottunk 
 /**/ });
@@ -296,7 +293,7 @@ Javítsuk ki:
 
 Ennek már le kell futnia. Nézzük meg a konzolon az SQL utasításokat és a változásokat az adatbázisban. Paraméterezett `INSERT` utasításokat használ az EF, így elkerülve az SQL injection támadást.
 
-TIP: a háttérben az EF minden új entitásnak kioszt egy átmeneti azonosítót, amit felhasználhatunk a fenti hiba elkerülésére, ha semmiképp sem akarjuk a navigációs property-ket használni. Így tudnánk a context-től elkérni: `ctx.Entry(cat_drink).Property(e => e.Id).CurrentValue`
+TIP: A háttérben az EF minden új entitásnak kioszt egy átmeneti azonosítót, amit felhasználhatunk a fenti hiba elkerülésére, ha semmiképp sem akarjuk a navigációs property-ket használni. Így tudnánk a context-től elkérni: `ctx.Entry(cat_drink).Property(e => e.Id).CurrentValue`
 
 WARNING: Ha egyszerre több egymásra hivatkozó elemet szúrunk be és azonosító alapján kötjük őket össze, mindig gondoljuk át, hogy a tényleges adatbázisbeli azonosítók biztosan rendelkezésre állnak-e, mert különben futásidejű kivételt kaphatunk, a fordító nem fog figyelmeztetni.
 
@@ -341,7 +338,7 @@ Ezek után a `SeedDatabase` hívásra nincs szükség, kommentezzük ki.
 
 Minden rész után az előző szakasz kódját kommentezzük ki, hogy ne keltsen felesleges zajt a kimeneten az előző utasítás, illetve ne legyenek felesleges mellékhatások.
 
-Kérdezzük le azokat a termékeket, melyeknek neve egy adott betűt tartalmaz:
+Kérdezzük le azoknak a termékeknek a nevét, melyeknek neve egy adott betűt tartalmaz:
 
 [source,csharp]
 ----
@@ -358,7 +355,7 @@ foreach (var name in q)
 }
 ----
 
-Itt figyelhető meg a korábban már tárgyalt `IEnumerable<>` - `IQueryable<>` különbség. A `Products` property típusa `DbSet`, ami IQuerable<>. Az `IQueryable<>`-n történő hívások kifejezésfát (`Expression`) építenek és szintén `IQueryable<>`-t adnak vissza. A `q` értéke egy olyan `IQueryable<>`, ami `Expression`-jében tartalmazza a teljes lekérdezést. Amikor szükség van az adatra, a kifejezésfa alapján SQL generálódik és ez az SQL fut le az adatbázison.
+Itt figyelhető meg a korábban már tárgyalt `IEnumerable<>` - `IQueryable<>` különbség. A `Products` property típusa `DbSet`, ami `IQueryable<>`. Az `IQueryable<>`-en történő hívások kifejezésfát (`Expression`) építenek és szintén `IQueryable<>`-t adnak vissza. A `q` értéke egy olyan `IQueryable<>`, ami `Expression`-jében tartalmazza a teljes lekérdezést. Amikor szükség van az adatra, a kifejezésfa alapján SQL generálódik és ez az SQL fut le az adatbázison.
 
 A debuggerrel léptessük át az egyes utasításokon a program futását. A késleltetett kiértékelés miatt csak a `foreach` végrehajtása közben fog az adatbázishoz fordulni az EF, hiszen csak ekkor van ténylegesen szükség az adatra. Nézzük meg a lefuttatott SQL-t is. Sikerült az `IQueryable<>`-ben található `Expression`-t SQL utasítássá alakítania.
 
@@ -385,7 +382,7 @@ var q = from p in ctx.Products
        select p.Name;
 ----
 
-`InvalidOperationException`-t kapunk: ezt a lekérdezést nem tudja a provider SQL-lé fordítani. Egyik lehetőségünk, ahogy a hibaüzenet is írja, hogy kikényszerítjük a kiértékelést a nem leforduló művelet elé helyezett `AsEnumerable` vagy `ToList` (illetve ezek aszinkron változatai) hívással. Próbáljuk ki - mivel a szűrést nem sikerült átfordítani, így a szűrés elé a from végére tegyük az `AsEnumerable`-t:
+`InvalidOperationException`-t kapunk: ezt a lekérdezést nem tudja a provider SQL-lé fordítani. Egyik lehetőségünk, ahogy a hibaüzenet is írja, hogy kikényszerítjük a kiértékelést a nem leforduló művelet elé helyezett `AsEnumerable` vagy `ToList` (illetve ezek aszinkron változatai) hívással. Próbáljuk ki - mivel a szűrést nem sikerült átfordítani, a szűrés elé a from végére tegyük az `AsEnumerable`-t:
 
 [source,csharp]
 ----
@@ -395,7 +392,7 @@ var q = from p in ctx.Products
 /**/        select p.Name.ToUpper();
 ----
 
-Ez működik, de a konzolon megjelenő SQL utasításon látszik, hogy a **teljes** termék táblát lekérdeztük és felolvastuk a memóriába. Az `AsEnumerable` jelentése: a lekérdezés innentől LINQ-to-Objects-ként épül tovább, a lekérdezés eddigi része memóriabeli reprezentációja lesz az adatforrás, tehát a szűrés és a projekció már memóriában fut le. Mivel a teljes lekérdezés egy része LINQ-to-Entities (adatbázis értékeli ki), a másik része LINQ-to-Objects (a .NET runtime értékeli ki), így az ilyen lekérdezéseket ún. vegyes kiértékelésűnek (_mixed evaluation_), a LINQ-to-Objects részt kliensoldali kiértékelésűnek (_client evaluation_) nevezik. A `q` típusa ebben az esetben már nem `IQueryable<>`, csak `IEnumerable<>`.
+Ez működik, de a konzolon megjelenő SQL utasításon látszik, hogy a **teljes** termék táblát lekérdeztük és felolvastuk a memóriába. Az `AsEnumerable` jelentése: a lekérdezés innentől LINQ-to-Objects-ként épül tovább, a lekérdezés eddigi részének memóriabeli reprezentációja lesz az adatforrás, tehát a szűrés és a projekció már memóriában fut le. Mivel a teljes lekérdezés egy része LINQ-to-Entities (adatbázis értékeli ki), a másik része LINQ-to-Objects (a .NET runtime értékeli ki), az ilyen lekérdezéseket ún. vegyes kiértékelésűnek (_mixed evaluation_), a LINQ-to-Objects részt kliensoldali kiértékelésűnek (_client evaluation_) nevezik. A `q` típusa ebben az esetben már nem `IQueryable<>`, csak `IEnumerable<>`.
 
 TIP: Érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12] vagy menu:jobbklikk[Go To Definition]) a két változatnál. Az első esetben `IQueryable` az adatforrás és `Expression` a feltétel, a másodiknál `IEnumerable` az adatforrás és sima delegate a feltétel.
 
@@ -427,15 +424,15 @@ A `TagWith` használatával könnyebben megtalálhatjuk a lekérdezés által ge
 
 Ismét figyeljük meg a naplóban, mikor fut le és milyen lekérdezés. Itt is látszik a késleltetett kiértékelés és a lekérdezések össze lesznek fűzve, egy lekérdezés hajtódik végre.
 
-TIP: Ez rámutat az EF egy nagy előnyére, bonyolult lekérdezéseket megírhatunk kisebb, egyszerűbb részletekben, az EF pedig összevonja, sőt optimalizálhatja is a teljes lekérdezést.
+TIP: Ez rámutat az EF egy nagy előnyére: bonyolult lekérdezéseket megírhatunk kisebb, egyszerűbb részletekben, az EF pedig összevonja, sőt optimalizálhatja is a teljes lekérdezést.
 
-Próbáljuk ki, `var q =` helyett `IEnumerable<Product> q=`-val is, ilyenkor nem fűzi össze a lekérdezést. A `q2` műveletei már memóriában fognak lefutni, hiszen a `q2` adatforrásként csak egy `IEnumerable`-t lát.
+Próbáljuk ki, `var q =` helyett `IEnumerable<Product> q =`-val is, ilyenkor nem fűzi össze a lekérdezést. A `q2` műveletei már memóriában fognak lefutni, hiszen a `q2` adatforrásként csak egy `IEnumerable`-t lát.
 
-Próbáljuk ki, `var q` = helyett `IQueryable<Product> q=` -val is, ilyenkor megint összefűzi a lekérdezést.
+Próbáljuk ki, `var q =` helyett `IQueryable<Product> q =` -val is, ilyenkor megint összefűzi a lekérdezést.
 
 TIP: Itt is érdemes összevetni a `where` operátor definícióját (kurzorral ráállva kbd:[F12] vagy menu:jobbklikk[Go To Definition]) a két lekérdezésrészben.
 
-WARNING: Nem lehet elégszer hangsúlyozni az `IQueryable` és az `IEnumerable` közti különbségeket. Az `IQueryable` kifejezések SQL-é fordulnak (amikor le tudnak), míg az IEnumerable-en végzett műveletek minden esetben memóriában hajtódnak végre.
+WARNING: Nem lehet elégszer hangsúlyozni az `IQueryable` és az `IEnumerable` közti különbségeket. Az `IQueryable` kifejezések SQL-lé fordulnak (amikor le tudnak), míg az `IEnumerable`-en végzett műveletek minden esetben memóriában hajtódnak végre.
 
 TIP: Ha nem akarunk véletlenül memóriabeli kiértékelésre váltani, az implicit típus (`var`) alkalmazása jó szolgálatot tehet.
 
@@ -471,7 +468,7 @@ Ismét figyeljük, hogy milyen SQL generálódik. Az `Order` létrehozása után
 ----
 var products = ctx.Products;
 
-foreach (Product p in products)
+foreach (var p in products)
 {
     Console.WriteLine($"{p.Name} ({p.Category.Name})");
 }
@@ -595,6 +592,7 @@ Ezután a korábbi lekérdezésünknél elhagyhatjuk az `OrderItem` betöltésé
 var products = ctx.Products
     .Include(p => p.Category)
     .Include(p => p.Orders);  
+
 foreach (var p in products)
 {
     Console.WriteLine($"{p.Name} ({p.Category.Name})");
@@ -624,9 +622,9 @@ if (pFirst != null)
 }
 ----
 
-Debuggerrel sorra-sorra lépkedve kövessük végig az EF változáskövető működését. A lekérdezések eredménye alapértelmezetten bekerül a változáskövetőbe (change tracker). Ezután az osztályon végezhetünk adatváltoztató műveletet, mindig könnyen eldönthető, hogy volt-e változás, ha összevetjük az aktuális állapotot (current value) a bekerüléskorival (original value). Figyeljük meg, hogyan kezeli az EF a hozzá tartozó objektumok állapotát.
+Debuggerrel sorról sorra lépkedve kövessük végig az EF változáskövető működését. A lekérdezések eredménye alapértelmezetten bekerül a változáskövetőbe (change tracker). Ezután az osztályon végezhetünk adatváltoztató műveletet, mindig könnyen eldönthető, hogy volt-e változás, ha összevetjük az aktuális állapotot (current value) a bekerüléskorival (original value). Figyeljük meg, hogyan kezeli az EF a hozzá tartozó objektumok állapotát.
 
-TIP: az `Entry` által adott osztályból megtudhatjuk az aktuális és a bekerüléskori értékeket az `OriginalValues` és `CurrentValues` propertyk által.
+TIP: Az `Entry` által adott osztályból megtudhatjuk az aktuális és a bekerüléskori értékeket az `OriginalValues` és `CurrentValues` propertyk által.
 
 A `Find` az elsődleges kulcs alapján keres ki egy entitást. Nem kell ismernünk az elsődleges kulcs property nevét. Ha a változáskövetőbe már korábban bekerült a keresett entitás, akkor onnan kapjuk vissza, ilyenkor adatbázishozzáférés nem történik.
 
@@ -650,7 +648,7 @@ Figyeljük meg az adatbázis adatai között, hogy az `Order` törlésével a ka
 /**/j => j
 /**/    .HasOne(oi => oi.Order)
 /**/    .WithMany(o => o.OrderItems)
-/**/    .HasForeignKey(oi => oi.OrderId)
+/**/    .HasForeignKey(oi => oi.OrderId) // , törölve
         .OnDelete(DeleteBehavior.Restrict),
 ----
 
@@ -697,7 +695,7 @@ public enum ShipmentRegion
 }
 ----
 
-A `Flags` attribútummal azt jelezzük, hogy szeretnék a bitműveleteket is alkalmazni a felsorolt értékére, így egy `ShipmentRegion` típusú változó egyszerre több értéket is felvehet (pl.: 3-as érték egyszerre tartalmazza az EU-t és Észak-Amerikát is).
+A `Flags` attribútummal azt jelezzük, hogy szeretnénk a bitműveleteket is alkalmazni a felsorolt értékére, így egy `ShipmentRegion` típusú változó egyszerre több értéket is felvehet (pl.: 3-as érték egyszerre tartalmazza az EU-t és Észak-Amerikát is).
 
 Vegyünk fel a `Product` osztályba egy új property-t az új felsorolt típussal.
 
@@ -711,13 +709,13 @@ Módosítsuk és bővítsük a kezdeti `Product`-ok listáját szállítási inf
 [source,csharp]
 ----
 /**/modelBuilder.Entity<Product>().HasData(
-/**/    new Product
+/**/    new Product("Sör")
 /**/    {
-/**/         Id =1, Name = "Sör", UnitPrice = 50, CategoryId = 1
+/**/         Id = 1, UnitPrice = 50, CategoryId = 1
              ,ShipmentRegion = ShipmentRegion.Asia
 /**/    },
-/**/    new Product { Id=2, Name = "Bor", UnitPrice = 550, CategoryId = 1 },
-/**/    new Product { Id=3, Name = "Tej", UnitPrice = 260, CategoryId = 1 }
+/**/    new Product("Bor") { Id = 2, UnitPrice = 550, CategoryId = 1 },
+/**/    new Product("Tej") { Id = 3, UnitPrice = 260, CategoryId = 1 }
         ,new Product("Whiskey")
          {
              Id = 4,
@@ -812,7 +810,7 @@ A tranzakciók kezdete-végével kapcsolatos események csak a debug szintű nap
 /**/.LogTo(Console.WriteLine, LogLevel.Debug); // LogLevel módosítva
 ----
 
-A tranzakción `Commit`-ot hívunk, ha sikeresen lefutott mindegyik `SaveChanges`, ha valamelyik hibára futott, akkor a using blokkból való kilépésig nem fog `Commit` hívódni. Ha bármilyen ok miatt a `Commit` nem hívódik meg, legkésőbb a using blokk vége `Rollback`-el *lezárja a tranzakciót*.
+A tranzakción `Commit`-ot hívunk, ha sikeresen lefutott mindegyik `SaveChanges`, ha valamelyik hibára futott, akkor a using blokkból való kilépésig nem fog `Commit` hívódni. Ha bármilyen ok miatt a `Commit` nem hívódik meg, legkésőbb a using blokk vége `Rollback`-kel *lezárja a tranzakciót*.
 
 Próbáljuk ki! Ezesetben helyesen fut le a beszúrásunk. Figyeljük meg a konzolon a tranzakciókezeléssel kapcsolatos üzeneteket.
 
