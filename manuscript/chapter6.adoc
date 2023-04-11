@@ -112,6 +112,8 @@ Az automatikusan létrejövő MSSQLLocalDB nevű LocalDB példány connection st
 
 image::images/efcore-ssoe.png[Connection string megszerzése az SQL Server Object Explorer-ből]
 
+WARNING: A connection stringben különleges karakterek (pl. '\') vannak. Ha a kimásolt connection stringet két " közé illesztjük be, a VS automatikusan escape-eli a különleges karaktereket. Ellenkező esetben (ha pl. a két " a beillesztés után kerül elhelyezésre a szöveg köré) az automatikus escape-elés nem történik meg, ilyenkor ne felejtsük el a @-ot a string elé írni, vagy manuálisan escape-elni a szükséges karaktereket!
+
 [source,csharp]
 ----
 public class NorthwindContext : DbContext
