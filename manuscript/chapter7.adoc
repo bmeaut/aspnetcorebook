@@ -23,7 +23,7 @@ A kiinduló solution két .NET 6 osztálykönyvtárat foglal magába, melyek egy
 
 Adjunk hozzá a solution-höz egy új C# nyelvű web API projektet (ASP.NET Core Web *API*, nem pedig Web App), a neve legyen _WebApiLab.Api_.
 
-A következő dialógusablakban válasszuk ki az _.NET 6_ opciót. Az extrát közül ne kérjünk: HTTPS, Docker, authentikáció. Viszont hagyjuk bepipálva a Controller és az  OpenAPI támogatást. A generált projektből törölhetjük a minta API fájljait, azaz a _Weather_ kezdetű fájlokat a projekt gyökeréből és a _Controllers_ mappából.
+A következő dialógusablakban válasszuk ki a _.NET 6_ opciót. Az extrák közül ne kérjünk: HTTPS, Docker, authentikáció. Viszont hagyjuk bepipálva a Controller és az  OpenAPI támogatást. A generált projektből törölhetjük a minta API fájljait, azaz a _Weather_ kezdetű fájlokat a projekt gyökeréből és a _Controllers_ mappából.
 
 Adjuk hozzá függőségként:
 
@@ -32,7 +32,7 @@ Adjuk hozzá függőségként:
 
 == Az EF bekötése az ASP.NET Core DI, naplózó, konfiguráló rendszereibe
 
-A kontext konfigurálása az EF gyakorlat során - mivel ott egy sima konzol alkalmazást írtunk - a kontext `OnConfiguring` függvényében történt. Mivel az ASP.NET Core projekt DI rendszert is ad, így érdemes a kontextet a DI rendszerbe regisztrálni, hogy a projekten belül a modulok/osztályok függőségként tudják használni. A regisztrálás a legfelső szintű kódban történik (lásd ASP.NET Core bevezető gyakorlatot). 
+A kontext konfigurálása az EF gyakorlat során - mivel ott egy sima konzol alkalmazást írtunk - a kontext `OnConfiguring` függvényében történt. Mivel az ASP.NET Core projekt DI rendszert is ad, érdemes a kontextet a DI rendszerbe regisztrálni, hogy a projekten belül a modulok/osztályok függőségként tudják használni. A regisztrálás a legfelső szintű kódban történik (lásd ASP.NET Core bevezető gyakorlatot). 
 
 A kontext regisztrálása a legfelső szintű kódban a DI konténerbe:
 
@@ -73,11 +73,13 @@ Az _appsettings.Development.json_-ba vegyük fel a connection string-et és a ge
 /**/}
 ----
 
-TIP: Kukac (`@`) ilyenkor nem kell a connection string elé mert ez JSON. Az adatbáziskapcsolatot azért kellhet lenyitni, hogy az SQL Server Object Explorer csatlakozzon is az új adatbázishoz, ezután tudjuk megszerezni a connection stringet.
+TIP: Kukac (`@`) ilyenkor nem kell a connection string elé, mert ez JSON. Az adatbáziskapcsolatot azért kellhet lenyitni, hogy az SQL Server Object Explorer csatlakozzon is az új adatbázishoz, ezután tudjuk megszerezni a connection stringet.
+
+WARNING: A connection string különleges karaktereit a beillesztés után a VS alapesetben automatikusan escape-eli. Ha az automatikus escape-elés mégsem történik meg, manuálisan kell ezt megtennünk, különben _A network-related or instance-specific error occurred while establishing a connection to SQL Server_ hibát kaphatunk.
 
 === Adatbázis inicializálása Code-First migrációval
 
-Fordítsuk a teljes solution-t, állítsuk be indítandó (startup) projektnek az új Web API projektet (menu:jobbklikk a projekten[Set as Startup Project]). A _Package Manager Console_-t nyissuk meg, és ellenőrizzük, állítsuk be Default Project-ként a DAL projektet. Készíttessük el a migrációt és futtassuk is le.
+Fordítsuk a teljes solution-t, állítsuk be indítandó (startup) projektnek az új Web API projektet (menu:jobbklikk a projekten[Set as Startup Project]). A _Package Manager Console_-t nyissuk meg, és állítsuk be Default Project-ként a DAL projektet. Készíttessük el a migrációt és futtassuk is le.
 
 [source,powershell]
 ----
@@ -87,21 +89,26 @@ Update-Database
 
 WARNING: Fontos, hogy a fenti parancs két projektet ismerjen: azt, amelyikben a kontext van, ill. a kontextet használó futtatható projektet. A VS Package Manager Console-jában futtatva alapértelmezésben az előbbit a Default Project értéke adja meg, utóbbit az indítandó projekt. Továbbá ezeket a projekteket meg lehet adni https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/powershell#common-parameters[paraméterként] is.
 
-TIP: Itt mutatkozik meg, hogy a migráció lényegében egy teljes alkalmazásindítást jelent a `Program` osztályon keresztül, inicializálódik a DI konténer, a konfigurációs objektum, stb.
+TIP: Itt mutatkozik meg, hogy a migráció lényegében egy teljes alkalmazásindítást jelent a `Program` osztályon keresztül: inicializálódik a DI konténer, a konfigurációs objektum stb.
 
 Ellenőrizzük az SQL Server Object Explorer-ben, hogy rendben lefutott-e a migráció, létrejöttek-e az adatbázis objektumok, feltöltődtek-e a táblák.
 
 == EF entitások használata az API felületen
 
-Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál. Ehhez használhatjuk a Visual Studio Entity Frameworkös Controller sablonjait. 
+Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál. Ehhez használhatjuk a Visual Studio Entity Framework-ös Controller sablonjait. 
 
-Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot.
+Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot. 
+
+WARNING: Mivel a csomag 7.x.x verziói függőségként megkövetelik a .NET 7-et, válasszuk a 6.0.13 verziót, mely kompatibilis a .NET 6-tal.
 
 PMC-ben telepítsük az ASP.NET Core kódgeneráló eszközt
+
+WARNING: A parancs a kódgeneráló eszköz legfrissebb verzióját telepíti, azonban a 7.x.x verzióktól kezdve az eszköz már nem kompatibilis a .NET 6-tal. Emiatt válasszuk a 6.0.13 verziót, a parancs végére helyezzük el a `--version 6.0.13` kapcsolót.
+
 [source,powershell]
 ----
 dotnet tool install -g dotnet-aspnet-codegenerator
-----
+---- 
 
 Majd lépjünk be a projekt könyvtárába
 [source,powershell]
@@ -109,7 +116,7 @@ Majd lépjünk be a projekt könyvtárába
 cd .\WebApiLab.Api
 ----
 
-Végül generáljunk a kódgenerálóval REST API (`-api`) kontrollert a `Product` entitáshoz (`-m`), mely az `AppDbContext` kontextushoz  (`-dc`) tartozik. A generált osztály neve legyen `EFProductController` (`-name`), az `WebApiLab.Api.Controllers` névtérbe  (`-namespace`) kerüljön. A generált fájl a *Controllers* mappába (`-outDir`) kerüljön.
+Végül generáljunk a kódgenerálóval REST API (`-api`) kontrollert a `Product` entitáshoz (`-m`), mely az `AppDbContext` kontextushoz  (`-dc`) tartozik. A generált osztály neve legyen `EFProductController` (`-name`), a `WebApiLab.Api.Controllers` névtérbe  (`-namespace`) kerüljön. A generált fájl a *Controllers* mappába (`-outDir`) kerüljön.
 
 [source,powershell]
 ----
@@ -118,9 +125,11 @@ dotnet aspnet-codegenerator controller -m WebApiLab.Dal.Entities.Product -dc Web
 
 WARNING: Figyeljünk rá, hogy *ne* a `Dtos` névtérből adjuk meg a DTO típust a tényleges entitástípus helyett.
 
-A legenerálódó kontroller már használható is. Állítsuk át a zöld nyíl mellett az indítási konfigurációt a projektnevesre, hogy ne IIS Express induljon és így lássuk a konzolon a naplót. Indítsuk a projektet és próbáljuk például lekérni az összes terméket az **api/efproduct** címről vagy a swagger felületről.
+WARNING: A generálás során _Unable to create an object of type 'AppDbContext'._ hibát kaphatunk. A hiba a kódgeneráló eszközben keresendő, a https://github.com/dotnet/Scaffolding/issues/1875[kapcsolódó GitHub issue-ban] találunk egy lehetséges megoldást is a problémára.
 
-TIP: Érdemes a zöld nyíl melletti lenyílóban olyan böngészőt megadni (Chrome, Firefox), ami értelmes formában meg tudja jeleníteni a nyers JSON adatokat, ha nem swagger felületről tesztelünk.
+A legenerálódó kontroller már használható is. Állítsuk át a zöld nyíl mellett az indítási konfigurációt a projektnevesre, hogy ne IIS Express induljon és így lássuk a konzolon a naplót. Indítsuk a projektet és próbáljuk például lekérni az összes terméket az **api/efproduct** címről vagy a Swagger felületről.
+
+TIP: Érdemes a zöld nyíl melletti lenyíló menüben olyan böngészőt megadni (Chrome, Firefox), ami értelmes formában meg tudja jeleníteni a nyers JSON adatokat, ha nem Swagger felületről tesztelünk.
 
 TIP: Az alapértelmezésben megnyitandó URL útvonalat a projekt tulajdonságok között adhatjuk meg: menu:zöld nyíl melletti legördülő menü[<Projektnév> Debug Properties]. Ide egy a gyökércímhez képesti relatív útvonalrészt kell beírni. (pl. _api/efproduct_)
 
@@ -171,14 +180,14 @@ public ProductsController(IProductService productService)
 }
 ----
 
-Adjuk meg a DI alrendszernek, hogy hogyan kell egy `IProductService` típusú függőséget létrehozni. A `ConfigureServices` függvénybe:
+Adjuk meg a DI alrendszernek, hogy hogyan kell egy `IProductService` típusú függőséget létrehozni. A legfelső szintű kódba:
 
 [source,csharp]
 ----
 builder.Services.AddTransient<IProductService, ProductService>();
 ----
 
-A függőség injektálás úgy működik, hogy kontrollereket is a központi DI komponens példányosítja, és ilyenkor megvizsgálja a konstruktor paramétereket. Ha a konténerben talál alkalmas beregisztrált osztályt, akkor azt létrehozza és átadja a konstruktornak. Ezt hívjuk konstruktor injektálásnak. Ha a létrehozandó függőségnek is vannak konstruktor paraméterei, akkor azokat is megpróbálja feloldani, így rekurzívan a teljes függőségi objektum hierarchiát le tudja kezelni (ha abban nincs irányított kör).
+A függőséginjektálás úgy működik, hogy a kontrollereket is a központi DI komponens példányosítja, és ilyenkor megvizsgálja a konstruktor paramétereket. Ha a konténerben talál alkalmas beregisztrált osztályt, akkor azt létrehozza és átadja a konstruktornak. Ezt hívjuk konstruktor injektálásnak. Ha a létrehozandó függőségnek is vannak konstruktor paraméterei, akkor azokat is megpróbálja feloldani, így rekurzívan a teljes függőségi objektum hierarchiát le tudja kezelni (ha abban nincs irányított kör). Ezt hívjuk autowiring-nek.
 
 A regisztráció során több lehetőségünk is van. Egyrészt nem kötelező interfészt megadni egy osztály beregisztrálásához, az osztályt önmagában is be lehet regisztrálni, ilyenkor a konstruktorban is osztályként kell elkérni a függőségeket.
 
@@ -199,17 +208,17 @@ public IEnumerable<Product> Get()
 }
 ----
 
-Próbáljuk ki (`api/products`). Hibát kapunk, mert a `ProductService` lekérdező függvénye eager loading-gal (`Include`) navigációs property-ket is kitölt, így könnyen hivatkozási kör jön létre, amit a JSON sorosító alapértelmezésben kivétellel jutalmaz. A sorosítást a keretrendszer végzi, a kontrollerfüggvény visszatérési értékét sorosítja a HTTP tartalomegyeztetési szabályok szerint. Böngésző kliens esetén alapesetben JSON formátum lesz a befutó. Persze a sorosítás ennél közvetlenebbül is https://docs.microsoft.com/en-us/aspnet/core/web-api/advanced/formatting[konfigurálható], ha szükséges.
+Próbáljuk ki (`api/products`). Hibát kapunk, mert a `ProductService` lekérdező függvénye eager loading-gal (`Include`) navigációs property-ket is kitölt, így könnyen hivatkozási kör jön létre, amit a JSON sorosító alapértelmezésben kivétellel jutalmaz. A sorosítást a keretrendszer végzi, a kontrollerfüggvény visszatérési értékét sorosítja a HTTP tartalomegyeztetési szabályok szerint. Böngésző kliens esetén alapesetben a JSON formátum lesz a befutó. Persze a sorosítás ennél közvetlenebbül is https://docs.microsoft.com/en-us/aspnet/core/web-api/advanced/formatting[konfigurálható], ha szükséges.
 
-A kontrollerek által használt JSON sorosítót konfigurálhatjuk a `Startup.ConfigureServices`-ben, például beállíthatjuk, hogy ha egy objektumot már korábban sorosított, akkor csak hivatkozzon rá és ne sorosítsa újra.
+A kontrollerek által használt JSON sorosítót konfigurálhatjuk a legfelső szintű kódban, például beállíthatjuk, hogy ha egy objektumot már korábban sorosított, akkor csak hivatkozzon rá és ne sorosítsa újra.
 
 [source,csharp]
 ----
-/**/builder.Services.AddControllers()
+/**/builder.Services.AddControllers() //; törölve
     .AddJsonOptions(o => o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 ----
 
-Így már sikerülni fog a sorosítást, egy elég furcsa JSON-t láthatunk, ahol az első elem egy nagyobb objektumgráfot leíró rész, a többi elem pedig csak hivatkozás.
+Így már sikerülni fog a sorosítás, egy elég furcsa JSON-t láthatunk, ahol az első elem egy nagyobb objektumgráfot leíró rész, a többi elem pedig csak hivatkozás.
 
 Ennek a megoldásnak a hátránya, hogy a kliensoldali sorosítónak is támogatnia kell ezt a sorosítási logikát, a JSON-on belüli kereszthivatkozások kezelését. 
 
@@ -219,18 +228,18 @@ Emiatt kommentezzük is ki ezt a beállítást, keressünk más megoldást.
 
 Láthattuk, hogy az entitástípusok közvetlen sorosítása gyakran nehézségekbe ütközik. A modell kifejezetten az EF számára lett megalkotva, illetve hogy a lekérdező műveleteket minél kényelmesebben végezhessük. A kliensoldal számára érdemes külön modellt megalkotni, egy ún. DTO (_Data Transfer Object_) modellt, ami a kliensoldal igényeit veszi figyelembe: **pontosan** annyi adatot és **olyan szerkezetben** tartalmaz, amire a kliensnek szüksége van.
 
-A _BLL_ projektben jelenleg egy nagyon egyszerű DTO modell található a _DTOs_ mappában:
+A _BLL_ projektben jelenleg egy nagyon egyszerű DTO modell található a _Dtos_ mappában:
 
 * rekord típusok alkotják a modellt
 * nincs benne minden navigációs property, pl. `Category.Products`
 * nincs benne a kapcsolótáblát reprezentáló entitás
 * a termékből közvetlenül elérhetők a megrendelések
 
-A különféle modellek közötti leképezésnél jól jönnek az ún. __object mapper__-ek, melyek segítenek elkerülni a leképezésnél nagyon gyakori repetitív kódokat, mint amilyen az `x.Prop=y.Prop` jellegű propertyérték-másolgatás.
+A különféle modellek közötti leképezésnél jól jönnek az ún. __object mapper__-ek, melyek segítenek elkerülni a leképezésnél nagyon gyakori repetitív kódokat, mint amilyen az `x.Prop = y.Prop` jellegű propertyérték-másolgatás.
 
 Adjuk hozzá az API projekthez az _AutoMapper.Extensions.Microsoft.DependencyInjection_ csomagot, a BLL projekthez pedig az _AutoMapper_ csomagot. 
 
-A leképezési konfigurációkat profilokba szervezve adhatjuk meg. Adjunk hozzá a projekthez egy új osztályt `WebApiProfile` néven a BLL projekt _DTOs_ mappába. Az AutoMapper konvenció alapon működik, tehát a DTO-entitás párokon kívül nem kell megadni például egyesével a property- vagy konstruktorparaméter-leképezéseket, ha a nevek alapján a leképezés kikövetkeztethető. Külön konfigurálásra csak a nem-triviális esetekben van szükség.
+A leképezési konfigurációkat profilokba szervezve adhatjuk meg. Adjunk hozzá a BLL projekthez egy új osztályt `WebApiProfile` néven a _Dtos_ mappába. Az AutoMapper konvenció alapon működik, tehát a DTO-entitás párokon kívül nem kell megadni például egyesével a property- vagy konstruktorparaméter-leképezéseket, ha a nevek alapján a leképezés kikövetkeztethető. Külön konfigurálásra csak a nem-triviális esetekben van szükség.
 
 [source,csharp]
 ----
@@ -263,10 +272,10 @@ Injektáltassuk be a leképzőt reprezentáló `IMapper` típusú objektumot a `
 
 [source,csharp]
 ----
-/**/private readonly NorthwindContext _context;
+/**/private readonly AppDbContext _context;
     private readonly IMapper _mapper;
 /**/
-/**/public ProductService(NorthwindContext context
+/**/public ProductService(AppDbContext context
                         , IMapper mapper)
 /**/{
 /**/    _context = context;
@@ -295,7 +304,7 @@ using WebApiLab.Bll.Dtos;
 /**/}
 ----
 
-Hogy ne zavarjanak be a swaggernek az ``EFProductController``ben használt entitás osztályok, töröljük ki a Controllers mappából az ``EFProductController``t!
+Hogy ne zavarjanak be a Swaggernek az `EFProductController`-ben használt entitás osztályok, töröljük ki a Controllers mappából az `EFProductController`-t!
 
 Próbáljuk ismét meghívni böngészőből, figyeljük meg a naplóban, hogy milyen SQL lekérdezés fut le.
 
@@ -303,9 +312,9 @@ TIP: A többrétegű architektúránál elméletben minden rétegnek külön obj
 
 A DTO leképezést más rétegben is végezhetnénk. Egyes megközelítések szerint a kontroller réteg feladata lenne, azonban, ha az EF lekérdezésekkel összevonva végezzük a leképezést, akkor kiaknázhatjuk a _query result shaping_ előnyeit, azaz csak azt kérdezzük le az adatbázisból, amire a leképezésnek szüksége van. Az AutoMapper `ProjectTo` függvénye ráadásul mindezt el is intézi helyettünk a leképezési konfiguráció alapján.
 
-TIP: A `ProjectTo` speciálisan `IQueryable`-n működik. Ha csak simán memóriabeli objektumok között szeretnénk leképezni, akkor az `IMapper` `Map<>` függvényét hívjuk. A memóriabeli  leképezésnek hátránya, hogy EF szinten gondoskodnunk kell róla, hogy `Include` hívásokkal a leképezéshez szükséges kapcsolódó entitásokat is lekérdezzük. A `ProjectTo` ezt is elintézi helyettünk.
+TIP: A `ProjectTo` speciálisan `IQueryable`-en működik. Ha csak simán memóriabeli objektumok között szeretnénk leképezni, akkor az `IMapper` `Map<>` függvényét hívjuk. A memóriabeli  leképezésnek hátránya, hogy EF szinten gondoskodnunk kell róla, hogy `Include` hívásokkal a leképezéshez szükséges kapcsolódó entitásokat is lekérdezzük. A `ProjectTo` ezt is elintézi helyettünk.
 
-A `ProjectTo` metódust felfoghatjuk a továbbiakban egy LINQ-s `Select()` operátornak, annyi különbséggel, hogy az AutoMapper generálja azt az ``Expression``t, ami alapján előáll majd az eredmény.
+A `ProjectTo` metódust felfoghatjuk a továbbiakban egy LINQ-s `Select()` operátornak, annyi különbséggel, hogy az AutoMapper generálja azt az `Expression`-t, ami alapján előáll majd az eredmény.
 
 == BLL funkciók implementációja
 
@@ -330,13 +339,13 @@ Ez hasonló az EF gyakorlaton látottakhoz, csak itt nem kell legyártanunk az �
 
 [source,csharp]
 ----
-public Product InsertProduct(Product newProduct)
-{
-    var efProduct = _mapper.Map<Dal.Entities.Product>(newProduct);
-    _context.Products.Add(efProduct);
-    _context.SaveChanges();
-    return GetProduct(efProduct.Id);
-}
+/**/public Product InsertProduct(Product newProduct)
+/**/{
+        var efProduct = _mapper.Map<Dal.Entities.Product>(newProduct);
+        _context.Products.Add(efProduct);
+        _context.SaveChanges();
+        return GetProduct(efProduct.Id);
+/**/}
 ----
 
 === Módosítás
@@ -345,16 +354,16 @@ Konvenció szerint külön paraméterként szokták átadni a módosítandó ele
 
 [source,csharp]
 ----
-public void UpdateProduct(int productId, Product updatedProduct)
-{
-    var efProduct = _mapper.Map<Dal.Entities.Product>(updatedProduct);
-    efProduct.Id = productId;
-    _context.Entry(efProduct).State = EntityState.Modified;
-    _context.SaveChanges();
-}
+/**/public void UpdateProduct(int productId, Product updatedProduct)
+/**/{
+        var efProduct = _mapper.Map<Dal.Entities.Product>(updatedProduct);
+        efProduct.Id = productId;
+        _context.Attach(efProduct).State = EntityState.Modified;
+        _context.SaveChanges();
+/**/}
 ----
 
-TIP: Alternatíva lehetne még ennél a függvény esetében, hogy lekérdezzük azonosító (`Id`) alapján az entitást és AutoMapperrel a lekérdezett objektumba mappeljük a DTO-t. Ebben az esetben nincs szükség `Attach`-ra és állapotkezelésre sem, viszont extra lekérdezéssel jár.
+TIP: Alternatíva lehetne még ennél a függvénynél, hogy lekérdezzük azonosító (`Id`) alapján az entitást és AutoMapperrel a lekérdezett objektumba mappeljük a DTO-t. Ebben az esetben nincs szükség `Attach`-ra és állapotkezelésre sem, viszont extra lekérdezéssel jár.
 
 === Törlés
 
@@ -362,11 +371,11 @@ Egy trükkel elkerülhetjük, hogy le kelljen kérdezni a törlendő terméket. 
 
 [source,csharp]
 ----
-public void DeleteProduct(int productId)
-{
-    _context.Products.Remove(new Dal.Entities.Product(null!) { Id = productId });
-    _context.SaveChanges();
-}
+/**/public void DeleteProduct(int productId)
+/**/{
+        _context.Products.Remove(new Dal.Entities.Product(null!) { Id = productId });
+        _context.SaveChanges();
+/**/}
 ----
 
 == REST konvenciók alkalmazása
@@ -379,7 +388,7 @@ TIP: A HTTP kérést érintő irányelvekről egy jó összefoglaló elérhető 
 
 Az eddig megírt `Get()` függvényünk most is *200 (OK)*-ot ad, ezt le is ellenőrizhetjük a böngészőnk hálózati monitorozó eszközében.
 
-TIP: A HTTP kommunikáció megfigyelésére használhatjuk a böngészők beépített eszközeit, minta amilyen a https://developer.mozilla.org/en-US/docs/Tools[Firefox Developer Tools], illetve https://developers.google.com/web/tools/chrome-devtools/[Chrome DevTools]. Általában az kbd:[F12] billentyűvel aktiválhatók. Emellett, ha egy teljesértékű HTTP kliensre van szükségünk, amivel például könnyen tudunk nem csak GET kéréseket küldeni, akkor a https://www.getpostman.com/[Postman] és a https://www.telerik.com/download/fiddler[Fiddler Classic] külön telepítendő eszközök ajánlhatók. A Fiddler, mint proxy megoldás, egy Windows gépen folyó HTTP kommunikáció megfigyelésére is alkalmas.
+TIP: A HTTP kommunikáció megfigyelésére használhatjuk a böngészők beépített eszközeit, mint amilyen a https://developer.mozilla.org/en-US/docs/Tools[Firefox Developer Tools], illetve https://developers.google.com/web/tools/chrome-devtools/[Chrome DevTools]. Általában az kbd:[F12] billentyűvel aktiválhatók. Emellett, ha egy teljesértékű HTTP kliensre van szükségünk, amivel például könnyen tudunk nem csak GET kéréseket küldeni, akkor a https://www.getpostman.com/[Postman] és a https://www.telerik.com/download/fiddler[Fiddler Classic] külön telepítendő eszközök ajánlhatók. A Fiddler mint proxy megoldás egy Windows gépen folyó HTTP kommunikáció megfigyelésére is alkalmas.
 
 Első körben a két lekérdező függvényt írjuk át úgy, hogy a HTTP válaszkódokat explicit megadjuk. A jelenlegi legmodernebb mód ehhez az `ActionResult<>` használata. Elég `T`-t visszaadnunk a függvényben, automatikusan `ActionResult<T>` típussá konvertálódik. Tehát elvileg írhatnánk ezt:
 
@@ -409,7 +418,7 @@ Azonban ez nem fordul, mert interfész típus esetén nem működik a konverzió
 
 [source,csharp]
 ----
-/**/[HttpGet("{id}", Name = "Get")]
+/**/[HttpGet("{id}")]
     public ActionResult<Product> Get(int id)
         //ActionResult<Product> visszatérési érték
 /**/{
@@ -436,7 +445,7 @@ Most viszont következzen egy létrehozó művelet:
 
 Itt már látszik az `ActionResult` haszna. A konvenciónak megfelelően 201-es kódot akarunk visszaadni. Ehhez a `ControllerBase` ősosztály biztosít segédfüggvényt. A segédfüggvény olyan `ActionResult` leszármazottat ad vissza, ami 201-es kódot szolgáltat a kliensnek. Másik konvenció, hogy a _Location_ HTTP fejlécben legyen egy URL az új termék lekérdező műveletének meghívásához. Ezt az URL-t rakjuk össze a `CreatedAtAction` paraméterei révén.
 
-Gyakori, hogy a lefele irányú (kliens felé) bővebb adathalmaz kerül leküldésre, mint amit egy létrehozáskor vagy módosításkor várunk. Esetünkben is az `Orders` és a `Category` propertyk létrehozáskor feleslegesek. Erre a célra jobb egy külön DTO-t létrehozni, ami csak a megfelelő adatokat tartalmazza. Most ideiglenesen tegyük nullozhatóvá ezt a két propertyt.
+Gyakori, hogy a lefele irányú kommunikáció során (kliens felé) bővebb adathalmaz kerül leküldésre, mint amit egy létrehozáskor vagy módosításkor várunk. Esetünkben is az `Orders` és a `Category` propertyk létrehozáskor feleslegesek. Erre a célra jobb egy külön DTO-t létrehozni, ami csak a megfelelő adatokat tartalmazza. Most ideiglenesen tegyük nullozhatóvá ezt a két propertyt.
 
 [source,csharp]
 ----
@@ -448,7 +457,7 @@ public record Product
 }
 ----
 
-Próbáljuk ki a műveletet Swagger felületről. Egy `Product`-ot kell felküldenünk. erre egy példa érték:
+Próbáljuk ki a műveletet Swagger felületről. Egy `Product`-ot kell felküldenünk. Erre egy példa érték:
 
 [source,javascript]
 ----
@@ -491,7 +500,7 @@ TIP: PUT mellett a módosításhoz használatos a PATCH is. A PUT konvenció sze
 
 TIP: Gyakori, hogy a PUT művelet esetében nem 204 No Content válasszal térünk vissza, hanem 200 OK státuszkóddal és a módosított erőforrással, hogy a kliens a tényleges érvényre jutott értékekkel befrissíthesse a saját adatait.
 
-Próbáljuk kitörölni az újonnan felvett terméket Swaggerből/Fiddler/Postman-ből (_DELETE_ igés kérés az `api/products/<új id>` címre, üres törzzsel). Sikerülnie kell, mert még nincs rá idegen kulcs hivatkozás.
+Próbáljuk kitörölni az újonnan felvett terméket Swaggerből/Fiddler-ből/Postman-ből (_DELETE_ igés kérés az `api/products/<új id>` címre, üres törzzsel). Sikerülnie kell, mert még nincs rá idegen kulcs hivatkozás.
 
 == Hibakezelés
 
@@ -499,14 +508,14 @@ Eddig főleg csak a hibamentes ágakat (happy path) néztük. A REST konvenciók
 
 === 400 Bad Request
 
-Kezdjük a kliens által küldött nem helyes adatokkal. Ez a hibakód nem összekeverendő a 415-tel, ahol az adat formátuma nem megfelelő (XML vagy JSON): ezt általában nem kell kézzel lekezeljük, mivel ezt az ASP.NET megteszi helyettünk. 400-zal olyan hibákat szoktunk lekezelni, ahol a küldött adat formátuma megfelelő, de valamilyen saját validációs logikának nem felel meg a kapott objektum pl.: egységár nem lehet negatív stb.
+Kezdjük a kliens által küldött nem helyes adatokkal. Ez a hibakód nem összekeverendő a 415-tel, ahol az adat formátuma nem megfelelő (XML vagy JSON): ezt általában nem kell kézzel lekezeljük, mivel ezt az ASP.NET megteszi helyettünk. 400-zal olyan hibákat szoktunk lekezelni, ahol a küldött adat formátuma megfelelő, de valamilyen saját validációs logikának nem felel meg a kapott objektum, pl.: egységár nem lehet negatív stb.
 
-Itt használjuk fel a .NET ún. https://docs.microsoft.com/en-us/aspnet/core/mvc/models/validation#built-in-attributes[_Data Annotation_ attribútumait], amiket a DTO-kon érvényesíthetünk, és az ASP.NET Core figyelembe vesz a művelet végrehajtása során. Vegyük fel a `Product` DTO osztályban néhány megkötést attribútumok formájában.
+Itt használjuk fel a .NET ún. https://docs.microsoft.com/en-us/aspnet/core/mvc/models/validation#built-in-attributes[_Data Annotation_ attribútumait], amiket a DTO-kon érvényesíthetünk, és az ASP.NET Core figyelembe vesz a művelet végrehajtása során. Vegyünk fel a `Product` DTO osztályban néhány megkötést attribútumok formájában.
 
 [source,csharp]
 ----
     [Required(ErrorMessage = "Product name is required.", AllowEmptyStrings = false)]
-/**/public string Name { get; init; }
+/**/public string Name { get; init; } = null!;
 
     [Range(1, int.MaxValue, ErrorMessage = "Unit price must be higher than 0.")]
 /**/public int UnitPrice { get; init; }
@@ -554,7 +563,7 @@ Legegyszerűbb módszer a kontroller műveletben érvényesíteni a konvenciót:
 
 [source,csharp]
 ----
-/**/[HttpGet("{id}", Name = "Get")]
+/**/[HttpGet("{id}")]
 /**/public ActionResult<Product> Get(int id)
 /**/{
         try
@@ -570,7 +579,7 @@ Legegyszerűbb módszer a kontroller műveletben érvényesíteni a konvenciót:
 
 TIP: Alternatív megoldás, hogy a `ProductService` egy `null` értékkel jelezné, hogy nincs találat. Ezesetben a fenti kódban a `null` értékre kellene vizsgálni, pl. `if` szerkezettel.
 
-Próbáljuk ki egy, hogy 404-es státuszkódot és annak megfelelő _problem details_-t kapunk-e, ha egy nem létező termékazonosítóval hívjuk a fenti műveletet.
+Próbáljuk ki, hogy 404-es státuszkódot és annak megfelelő _problem details_-t kapunk-e, ha egy nem létező termékazonosítóval hívjuk a fenti műveletet.
 
 Ha saját _problem details_-t szeretnénk a 404-es kód mellé, akkor kézzel összerakhatjuk és visszaküldhetjük.
 
@@ -624,7 +633,7 @@ Térjünk vissza a korábbi, nem kivétel-elkapós változatra, az előzőt komm
 
 [source,csharp]
 ----
-[HttpGet("{id}", Name = "Get")]
+[HttpGet("{id}")]
 public ActionResult<Product> Get(int id)
 {
     return _productService.GetProduct(id);
@@ -676,17 +685,17 @@ Készítsük fel a módosító és törlő műveleteket is a nem létező azonos
 /**/}
 ----
 
-Ez egy optimista megközelítés: feltételezzük, hogy helyes azonosítót kapunk. Ha kivételes esetben mégsem, akkor az UPDATE/INSERT utasítás nem a megfelelő számú sort módosítja és `DbUpdateConcurrencyException`-t kapunk. Ekkor vizsgáljuk csak meg, hogy az azonosító helyes-e.
+Ez egy optimista megközelítés: feltételezzük, hogy helyes azonosítót kapunk. Ha kivételes esetben mégsem, akkor az UPDATE/DELETE utasítás nem a megfelelő számú sort módosítja és `DbUpdateConcurrencyException`-t kapunk. Ekkor vizsgáljuk csak meg, hogy az azonosító helyes-e.
 
-TIP: Egy másik megközelítés szerint a DELETE műveletnek idempotensnek kellene lennie, tehát egymás után többször végrehajtva is sikeres eredményt kell kapjunk. Ez azt is jelenti, hogy 404-es hiba helyet 204 No Content státuszkódot kell küldenünk akkor is, ha nem található adott ID-val entitás. Ez a jelenlegi kódban egyszerűen implementálhatjuk, hogy nem dobunk kivételt az megfelelő ágban.
+TIP: Egy másik megközelítés szerint a DELETE műveletnek idempotensnek kellene lennie, tehát egymás után többször végrehajtva is sikeres eredményt kell kapjunk. Ez azt is jelenti, hogy 404-es hiba helyet 204 No Content státuszkódot kell küldenünk akkor is, ha nem található adott ID-val entitás. Ezt a jelenlegi kódban egyszerűen implementálhatjuk, hogy nem dobunk kivételt a megfelelő ágban.
 
 === Saját hibaüzenet
 
-Módosítsuk a hibakezelő MW konfigurációját a `Startup.ConfigureServices` függvényben, hogy a kivétel szövege bekerüljön a válaszba. Ez akkor lehet hasznos, ha a felhasználónak kiírandó hibaüzenetet is vissza akarjuk küldeni (másik lehetőség, hogy a kliens állítja elő, pl. a státuszkód alapján).
+Módosítsuk a hibakezelő MW konfigurációját a legfelső szintű kódban, hogy a kivétel szövege bekerüljön a válaszba. Ez akkor lehet hasznos, ha a felhasználónak kiírandó hibaüzenetet is vissza akarjuk küldeni (másik lehetőség, hogy a kliens állítja elő, pl. a státuszkód alapján).
 
 [source,csharp]
 ----
-/**/services.AddProblemDetails(options =>
+/**/builder.Services.AddProblemDetails(options =>
 /**/{
 /**/    options.IncludeExceptionDetails = (ctx, ex) => false;
         options.Map<EntityNotFoundException>(
@@ -702,11 +711,11 @@ Módosítsuk a hibakezelő MW konfigurációját a `Startup.ConfigureServices` f
 
 WARNING: Az _exception shielding_ elv miatt csak olyan kivételeknél alkalmazzuk, ahol a felhasználók számára hasznos, de nem technikai jellegű információt tartalmaz a kivétel szövege.
 
-Próbáljuk ki, hogy az egy termék lekérdezésénél, a módosításnál és a törlésnél is, a rossz azonosító egységesen működik-e: 404-es hibát ad vissza, a Problem Details-ben a kivétel szövegével.
+Próbáljuk ki, hogy az egy termék lekérdezésénél, a módosításnál és a törlésnél is a rossz azonosító egységesen működik-e: 404-es hibát ad vissza, a Problem Details-ben a kivétel szövegével.
 
 == Aszinkron műveletek
 
-Aszinkron műveletek alkalmazásával hatékonyságjavulást érhetünk el: nem feltétlenül az egyes műveletink lesznek gyorsabbak, hanem időegység alatt több műveletet tudunk kiszolgálni. Ennek oka, hogy az `await`-nél (például egy adatbázis művelet elküldésekor) a várakozási idejére történő kiugrásnál, ha vissza tudunk ugrálni egészen az ASP.NET engine szintjéig, akkor a végrehajtó környezet a kiszolgáló szálat a várakozás idejére más kérés kiszolgálására felhasználhatja.
+Aszinkron műveletek alkalmazásával hatékonyságjavulást érhetünk el: nem feltétlenül az egyes műveleteink lesznek gyorsabbak, hanem időegység alatt több műveletet tudunk kiszolgálni. Ennek oka, hogy az `await`-nél (például egy adatbázis művelet elküldésekor) a várakozási idejére történő kiugrásnál, ha vissza tudunk ugrálni egészen az ASP.NET engine szintjéig, akkor a végrehajtó környezet a kiszolgáló szálat a várakozás idejére más kérés kiszolgálására felhasználhatja.
 
 TIP: Ökölszabály, hogy ha elköteleztük magunkat az aszinkronitás mellett, akkor ha megoldható, az aszinkronitást vezessük végig a kontrollertől az adatbázis művelet végrehajtásáig minden rétegben. Ha egy API-nak van _TAP_ jellegű változata, akkor azt részesítsük előnyben (pl. `SaveChanges` helyett `SaveChangesAsync`). Ha aszinkronból szinkronba váltunk, csökkentjük a hatékonyságot, rosszabb esetben deadlock-ot is https://blog.stephencleary.com/2012/07/dont-block-on-async-code.html[előidézhetünk].
 
@@ -718,8 +727,8 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 
 /**/public interface IProductService
 /**/{
-        //void UpdateProduct(int productId, Product updatedProduct);
-        Task UpdateProductAsync(int productId, Product updatedProduct);
+        //public void UpdateProduct(int productId, Product updatedProduct);
+        public Task UpdateProductAsync(int productId, Product updatedProduct);
 /**/    //többi fv.
 /**/}
 
@@ -729,8 +738,7 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 /**/{
 /**/    var efProduct = _mapper.Map<Dal.Entities.Product>(updatedProduct);
 /**/    efProduct.Id = productId;
-/**/    var entry = _context.Attach(efProduct);
-/**/    entry.State = EntityState.Modified;
+/**/    _context.Attach(efProduct).State = EntityState.Modified;
 /**/
 /**/    try
 /**/    {
@@ -749,7 +757,7 @@ Vezessük végig az aszinkronitást egy művelet teljes végrehajtásán:
 
 // Kontroller réteg
 
-    public async Task<IActionResult> Put(int id, [FromBody] Product product)
+    public async Task<ActionResult> Put(int id, [FromBody] Product product)
 /**/{
 /**/  await _productService.
                 .UpdateProductAsync(id, product);
@@ -764,7 +772,7 @@ Próbáljuk ki, például küldjünk PUT-ot az `api/products/1` címre, állíts
 
 == Végállapot
 
-A többi műveletet aszinkronizálva az alábbi a végállapot (elérhető a kapcsolódó GitHun repo https://github.com/bmeaut/WebApiLab/tree/net6[net6-os ágán] is):
+A többi műveletet aszinkronizálva az alábbi a végállapot (elérhető a kapcsolódó GitHub repo https://github.com/bmeaut/WebApiLab/tree/net6[net6-os ágán] is):
 
 [source,csharp]
 ----
