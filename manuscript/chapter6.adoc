@@ -100,6 +100,8 @@ Az entitásokat definiáltuk, a mapping-et az EF eszére bíztuk, a következő 
 
 TIP: NuGet csomagok telepítéséhez segítség a https://docs.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-in-visual-studio#nuget-package-manager[dokumentációban].
 
+WARNING: Olyan csomagoknál, ahol a verziószámozás követi az alap keretrendszer verziószámozását, törekedjünk arra, hogy a csomagok verziói konzisztensek legyenek egymással és a keretrendszer verziójával is - akkor is, ha egyébként a függőségi szabályok engednék a verziók keverését. Ha a projektünk például .NET 6-os keretrendszert használ, akkor az Entity Framework Core és egyéb extra ASP.NET Core csomagok közül is olyan verziót válasszunk, ahol legalább a főverzió egyezik, tehát valamilyen 6.x verziót. Ez nem azt jelenti, hogy az inkonzisztens verziók mindig hibát eredményeznek, inkább a projekt általában stabilabb, ha a főverziók közötti váltást egyszerre, külön migrációs folyamat (https://learn.microsoft.com/en-us/aspnet/core/migration/31-to-60[példa]) keretében végezzük.
+
 Az Entity Framework önmagában független az adatbázis implementációktól, azokhoz különböző, adatbázisgyártó-specifikus https://docs.microsoft.com/en-us/ef/core/providers/[_adatbázis providereken_] keresztül kapcsolódik. A *Microsoft.EntityFrameworkCore.SqlServer* csomag hivatkozza az EF absztrakt relációs komponensét (_EntityFrameworkCore.Relational_), és tartalmazza az _MS SQL Server_-hez tartozó providert. A providert a `DbContext` `OnConfiguring` metódusában adhatjuk meg, esetünkben a `UseSqlServer` metódussal, ami egy connection stringet vár.
 
 https://www.microsoft.com/en-us/sql-server[MS SQL Server] helyett a _LocalDB_ nevű fejlesztői adatbázist használjuk, mely fejlesztői szempontból gyakorlatilag megegyezik az MS SQL Server-rel. A LocalDB a Visual Studio-val együtt települ, minden Windows felhasználónak külön LocalDB példány indítható el. A Visual Studio az _SQL Server Object Explorer_ ablak megnyitásakor automatikusan létrehozza a felhasználónkhoz tartozó, _MSSQLLocalDB_ nevű példányt.
@@ -131,7 +133,7 @@ public class NorthwindContext : DbContext
 
 TIP: A nagyobb rugalmasság érdekében érdemes a connection stringet konfigurációs fájlba helyezni, majd az ASP.NET Core konfigurációs megoldásaival felolvasni. Erre egy későbbi gyakorlaton nézünk példát.
 
-INFO: A `DbSet<>` típusú tulajdonságoknak látszólag csak kényelmi funkciójuk van, a `Set<>()` függvényhívásokat egyszerűsítik, azonban valójában nagyobb a jelentőségük. Többek között ezek alapján deríti fel az EF, hogy melyek az entitásosztályok, hiszen alapvetően nincsen semmilyen megkülönböztető jellemzőjük. Alapvetően a `DbSet<>` típusú property-k típusparaméterei és az így felderített entitástípusokban lévő navigációs propertyk típusa alapján áll össze az entitástípusok köre.
+TIP: A `DbSet<>` típusú tulajdonságoknak látszólag csak kényelmi funkciójuk van, a `Set<>()` függvényhívásokat egyszerűsítik, azonban valójában nagyobb a jelentőségük. Többek között ezek alapján deríti fel az EF, hogy melyek az entitásosztályok, hiszen alapvetően nincsen semmilyen megkülönböztető jellemzőjük. Alapvetően a `DbSet<>` típusú property-k típusparaméterei és az így felderített entitástípusokban lévő navigációs propertyk típusa alapján áll össze az entitástípusok köre.
 
 Az első verziós adatelérési (DAL) rétegünk ezzel kész is van.
 
@@ -187,7 +189,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 Ezzel a `Name` property hosszát állítottuk be.
 
-INFO: Az `OnModelCreating` függvényben hivatkozott típusokat is figyelembe veszi az EF az entitástípusok felderítésekor.
+TIP: Az `OnModelCreating` függvényben hivatkozott típusokat is figyelembe veszi az EF az entitástípusok felderítésekor.
 
 A fluent mellett próbáljuk ki az attribútumos konfigurációt is. Állítsunk át egy oszlopnevet a `Product` osztályban a `Column` attribútummal.
 

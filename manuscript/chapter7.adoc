@@ -23,12 +23,14 @@ A kiinduló solution két .NET 6 osztálykönyvtárat foglal magába, melyek egy
 
 Adjunk hozzá a solution-höz egy új C# nyelvű web API projektet (ASP.NET Core Web *API*, nem pedig Web App), a neve legyen _WebApiLab.Api_.
 
-A következő dialógusablakban válasszuk ki az _.NET 6_ opciót. Az extrát közül ne kérjünk: HTTPS, Docker, authentikáció. Viszont hagyjuk bepipálva a Controller és az  OpenAPI támogatást. A generált projektből törölhetjük a minta API fájljait, azaz a _Weather_ kezdetű fájlokat a projekt gyökeréből és a _Controllers_ mappából.
+A következő dialógusablakban válasszuk ki az _.NET 6_ opciót. Az extrák közül ne kérjük: HTTPS, Docker, authentikáció. Viszont hagyjuk bepipálva a Controller és az  OpenAPI támogatást. A generált projektből törölhetjük a minta API fájljait, azaz a _Weather_ kezdetű fájlokat a projekt gyökeréből és a _Controllers_ mappából.
 
 Adjuk hozzá függőségként:
 
 * a _BLL_ projektet (menu:projekten jobbklikk[Dependencies > Add Project Reference...])
-* a _Microsoft.EntityFrameworkCore.Tools_ NuGet csomagot
+* a _Microsoft.EntityFrameworkCore.Tools_ NuGet csomagot. Válasszunk olyan verziót, ami egyezik a DAL projekt Entity Framework Core függőségének verziójával.
+
+WARNING: Olyan csomagoknál, ahol a verziószámozás követi az alap keretrendszer verziószámozását, törekedjünk arra, hogy a csomagok verziói konzisztensek legyenek egymással és a keretrendszer verziójával is - akkor is, ha egyébként a függőségi szabályok engednék a verziók keverését. Ha a projektünk például .NET 6-os keretrendszert használ, akkor az Entity Framework Core és egyéb extra ASP.NET Core csomagok közül is olyan verziót válasszunk, ahol legalább a főverzió egyezik, tehát valamilyen 6.x verziót. Ez nem azt jelenti, hogy az inkonzisztens verziók mindig hibát eredményeznek, inkább a projekt általában stabilabb, ha a főverziók közötti váltást egyszerre, külön migrációs folyamat (https://learn.microsoft.com/en-us/aspnet/core/migration/31-to-60[példa]) keretében végezzük.
 
 == Az EF bekötése az ASP.NET Core DI, naplózó, konfiguráló rendszereibe
 
@@ -95,7 +97,7 @@ Ellenőrizzük az SQL Server Object Explorer-ben, hogy rendben lefutott-e a migr
 
 Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál. Ehhez használhatjuk a Visual Studio Entity Frameworkös Controller sablonjait. 
 
-Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot.
+Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot. Válasszunk olyan verziót, ami egyezik a DAL projekt Entity Framework Core függőségének verziójával.
 
 PMC-ben telepítsük az ASP.NET Core kódgeneráló eszközt
 [source,powershell]
