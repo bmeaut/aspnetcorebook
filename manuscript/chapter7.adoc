@@ -23,7 +23,7 @@ A kiinduló solution két .NET 6 osztálykönyvtárat foglal magába, melyek egy
 
 Adjunk hozzá a solution-höz egy új C# nyelvű web API projektet (ASP.NET Core Web *API*, nem pedig Web App), a neve legyen _WebApiLab.Api_.
 
-A következő dialógusablakban válasszuk ki a _.NET 6_ opciót. Az extrák közül ne kérjünk: HTTPS, Docker, authentikáció. Viszont hagyjuk bepipálva a Controller és az  OpenAPI támogatást. A generált projektből törölhetjük a minta API fájljait, azaz a _Weather_ kezdetű fájlokat a projekt gyökeréből és a _Controllers_ mappából.
+A következő dialógusablakban válasszuk ki a _.NET 6_ opciót. Az extrák közül ne kérjük ezeket: HTTPS, Docker, authentikáció. Viszont hagyjuk bepipálva a Controller és az OpenAPI támogatást. A generált projektből törölhetjük a minta API fájljait, azaz a _Weather_ kezdetű fájlokat a projekt gyökeréből és a _Controllers_ mappából.
 
 Adjuk hozzá függőségként:
 
@@ -99,13 +99,9 @@ Ellenőrizzük az SQL Server Object Explorer-ben, hogy rendben lefutott-e a migr
 
 Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mellőzve közvetlenül is használhatjuk az EF entitásokat a kontrollerek megvalósításánál. Ehhez használhatjuk a Visual Studio Entity Framework-ös Controller sablonjait. 
 
-Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot. 
-
 Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot. Válasszunk olyan verziót, ami egyezik a DAL projekt Entity Framework Core függőségének verziójával.
 
 PMC-ben telepítsük az ASP.NET Core kódgeneráló eszközt
-
-WARNING: A parancs a kódgeneráló eszköz legfrissebb verzióját telepíti, azonban a 7.x.x verzióktól kezdve az eszköz már nem kompatibilis a .NET 6-tal. Emiatt válasszuk a 6.0.13 verziót, a parancs végére helyezzük el a `--version 6.0.13` kapcsolót.
 
 [source,powershell]
 ----
