@@ -348,7 +348,7 @@ Ez hasonló az EF gyakorlaton látottakhoz, csak itt nem kell legyártanunk az �
 
 === Módosítás
 
-Konvenció szerint külön paraméterként szokták átadni a módosítandó elem azonosítóját és az új értékeket összefogó példányt. Leképezés után összeállítunk egy olyan entitás példányt, mint amilyet az adatbázisból kérdeztünk volna le - viszont ez a példány nem lesz a kontext látókörében. Az `Attach` függvény hasonló az `Add`-hoz, hozzáadja a kontext nyilvántartásához a példányt, de az `Attach` alapesetben nem jelöli meg a státuszt, marad változatlan (_Unchanged_). Explicit megjelöljük változottként, a változást végül a SaveChanges érvényesíti.
+Konvenció szerint külön paraméterként szokták átadni a módosítandó elem azonosítóját és az új értékeket összefogó példányt. Leképezés után összeállítunk egy olyan entitás példányt, mint amilyet az adatbázisból kérdeztünk volna le - viszont ez a példány nem lesz a kontext látókörében. Az `Attach` függvény hasonló az `Add`-hoz, hozzáadja a kontext nyilvántartásához a példányt, de az `Attach` alapesetben nem jelöli meg a státuszt, marad változatlan (_Unchanged_). Explicit megjelöljük változottként, a változást végül a `SaveChanges` érvényesíti.
 
 [source,csharp]
 ----
