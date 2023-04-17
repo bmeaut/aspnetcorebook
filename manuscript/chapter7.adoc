@@ -28,7 +28,9 @@ A következő dialógusablakban válasszuk ki a _.NET 6_ opciót. Az extrák kö
 Adjuk hozzá függőségként:
 
 * a _BLL_ projektet (menu:projekten jobbklikk[Dependencies > Add Project Reference...])
-* a _Microsoft.EntityFrameworkCore.Tools_ NuGet csomagot
+* a _Microsoft.EntityFrameworkCore.Tools_ NuGet csomagot. Válasszunk olyan verziót, ami egyezik a DAL projekt Entity Framework Core függőségének verziójával.
+
+WARNING: Olyan csomagoknál, ahol a verziószámozás követi az alap keretrendszer verziószámozását, törekedjünk arra, hogy a csomagok verziói konzisztensek legyenek egymással és a keretrendszer verziójával is - akkor is, ha egyébként a függőségi szabályok engednék a verziók keverését. Ha a projektünk például .NET 6-os keretrendszert használ, akkor az Entity Framework Core és egyéb extra ASP.NET Core csomagok közül is olyan verziót válasszunk, ahol legalább a főverzió egyezik, tehát valamilyen 6.x verziót. Ez nem azt jelenti, hogy az inkonzisztens verziók mindig hibát eredményeznek, inkább a projekt általában stabilabb, ha a főverziók közötti váltást egyszerre, külön migrációs folyamat (https://learn.microsoft.com/en-us/aspnet/core/migration/31-to-60[példa]) keretében végezzük.
 
 == Az EF bekötése az ASP.NET Core DI, naplózó, konfiguráló rendszereibe
 
@@ -99,7 +101,7 @@ Bár architektúra szempontból nem a legszebb, a BLL réteget gyakorlatilag mel
 
 Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot. 
 
-WARNING: Mivel a csomag 7.x.x verziói függőségként megkövetelik a .NET 7-et, válasszuk a 6.0.13 verziót, mely kompatibilis a .NET 6-tal.
+Adjuk hozzá az API projekthez a *Microsoft.VisualStudio.Web.CodeGeneration.Design* NuGet csomagot. Válasszunk olyan verziót, ami egyezik a DAL projekt Entity Framework Core függőségének verziójával.
 
 PMC-ben telepítsük az ASP.NET Core kódgeneráló eszközt
 
