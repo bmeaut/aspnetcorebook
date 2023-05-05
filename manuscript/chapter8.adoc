@@ -39,7 +39,7 @@ static async Task GetProductAsync(int id)
     using var client = new HttpClient();
 
     /*A portot írjuk át a szervernek megfelelően*/
-    var response = await client.GetAsync(new Uri($"http://localhost:5184/api/Product/{id}"));
+    var response = await client.GetAsync(new Uri($"http://localhost:5184/api/Products/{id}"));
     response.EnsureSuccessStatusCode();
     var jsonStream = await response.Content.ReadAsStreamAsync();
     var json = await JsonDocument.ParseAsync(jsonStream);
@@ -69,7 +69,8 @@ Az OpenAPI nem .NET specifikus, különféle nyelven írt szervert és klienst i
 * https://github.com/RicoSuter/NSwag[NSwag] - leíró-, szerver-, és kliensoldali generálás is. Részleges OAS v3 támogatás.
 * https://github.com/domaindrivendev/Swashbuckle.AspNetCore[Swashbuckle] - csak leíró generálás. OAS v3 támogatott.
 * https://github.com/Azure/autorest[AutoRest] - _npm_ csomag .NET Core függőséggel, csak kliensoldali kódgeneráláshoz. Részleges OAS v3 támogatás.
-* https://github.com/swagger-api/swagger-codegen[Swagger codegen] - java alapú kliensoldali generátor. C# támogatás https://github.com/swagger-api/swagger-codegen-generators/issues/172[csak OpenAPI v2-höz].
+* https://github.com/swagger-api/swagger-codegen[Swagger codegen] - java alapú kliensoldali generátor. C# támogatás https://github.com/swagger-api/swagger-codegen-generators/issues/172[csak OpenAPI v2-höz]
+* https://learn.microsoft.com/en-us/openapi/kiota[Kiota] - új, Microsoft fejlesztésű C# alapú kliensoldali generátor. OAS v3 támogatott.
 
 Első lépésként a szerveroldali kódunk alapján swagger leírást generálunk _NSwag_ segítségével. Kommentezzük ki a `ProductsController`-en kívül a többi kontroller teljes kódját.
 
@@ -182,7 +183,7 @@ Ellenőrizzük, hogy a dokumentációs felületen a fentieknek megfelelő státu
 
 == OpenAPI/Swagger kliensoldal
 
-A kliensoldalt az _NSwag Studio_ eszközzel generáltatjuk. Ez a generátor egy egyszerűen használható eszköz, azonban van pár hiányossága:
+A kliensoldalt az _NSwag Studio_ eszközzel generáltatjuk. Ez a generátor egy egyszerűen használható, de mégis sok beállítást támogató eszköz, azonban van pár hiányossága:
 
 * egyetlen fájlt https://github.com/RicoSuter/NSwag/issues/1398[generál]
 * nem támogatja az új JSON sorosítót, csak a https://github.com/RicoSuter/NSwag/issues/2243[régebbit]
@@ -195,9 +196,9 @@ Előkészítésként adjuk a projekthez az alábbiakat:
 Indítsuk el a projektünket (a szerveroldalra lesz most szükség) és az NSwag Studio-t és adjuk meg az alábbi beállításokat:
 
 * Input rész (bal oldal): válasszuk az _OpenAPI/Swagger Specification_ fület és adjuk meg a OpenAPI leírónk címét (pl.: http://localhost:5000/swagger/v1/swagger.json). Nyomjuk meg a *Create local Copy* gombot.
-* Input rész (bal oldal) - Runtime: Default
-* Output rész (jobb oldal) - jelöljük be a CSharp Client jelölőt
-* Output rész (jobb oldal) - CSharp Client fül - Settings alfül: fölül a _Namespace_ mezőben adjunk meg egy névteret, pl. _WebApiLab.Client.Api_, lentebb a _Use the base URl for the request_ ne legyen bepipálva
+* Input rész (bal oldal) - Runtime: Net60
+* Output rész (jobb oldal) - jelöljük be a _CSharp Client_ jelölőt
+* Output rész (jobb oldal) - _CSharp Client_ fül - Settings alfül: fölül a _Namespace_ mezőben adjunk meg egy névteret, pl. _WebApiLab.Client.Api_, lentebb a _Use the base URl for the request_ ne legyen bepipálva
 
 .NSwag Studio beállítások
 image::images/aspnetcoreclient-nswagstudio.png[NSwag Studio beállítások]
@@ -212,7 +213,7 @@ static async Task<Product> GetProduct2Async(int id)
 {
     using var httpClient = new HttpClient() 
         { BaseAddress = new Uri("http://localhost:5000/") };
-    var client = new ProductClient(httpClient);
+    var client = new ProductsClient(httpClient);
     return await client.GetAsync(id);
 }
 ----
