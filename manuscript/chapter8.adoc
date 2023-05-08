@@ -4,7 +4,7 @@
 
 * kapcsolódó GitHub repo: https://github.com/bmeaut/WebApiLab
 ** elég csak https://github.com/bmeaut/WebApiLab/archive/refs/heads/net6-client-init.zip[zip-ként letölteni] a `net6-client-init` ágat, nem kell klónozni 
-* https://github.com/RicoSuter/NSwag/wiki/NSwagStudio[NSwag Studio] - itt is elég csak a https://github.com/RicoSuter/NSwag/releases/latest[legfrissebb zip verziót] az *Assets* részről letölteni.
+* https://github.com/RicoSuter/NSwag/wiki/NSwagStudio[NSwag Studio] - itt is elég csak a https://github.com/RicoSuter/NSwag/releases/latest[legfrissebb zip verziót] az *Assets* részről letölteni
 * https://www.getpostman.com/[Postman] HTTP kérések küldéséhez
 
 == Kiinduló projektek beüzemelése
@@ -21,7 +21,7 @@ A tárgy tematikájának ugyan nem része a kliensoldal, de demonstrációs cél
 
 A fentiekhez szinte minden manapság használt kliensoldali technológia ad támogatást. Mi most egy sima, .NET 6 alapú konzol alkalmazást írunk kliens gyanánt.
 
-A két képességet könnyen lefedhetjük a *System.Net.Http* (HTTP kommunikáció) és a *System.Text.Json* csomagokkal. Mindkettő a *Microsoft.NetCore.App* shared framework része, így általában nem kell külön beszereznünk őket.
+A két képességet könnyen lefedhetjük a *System.Net.Http* (HTTP kommunikáció) és a *System.Text.Json* (JSON sorosítás) csomagokkal. Mindkettő a *Microsoft.NetCore.App* shared framework része, így általában nem kell külön beszereznünk őket.
 
 Adjunk a solution-höz egy konzolos projektet (Console App (.NET 6), **nem .NET Framework!**) _WebApiLab.Client_ néven. A _Program.cs_-ben írjuk meg az egy terméket lekérdező függvényt (`GetProductAsync`) és hívjuk meg.
 
@@ -55,26 +55,27 @@ TIP: Az elterjedtebb .NET alapú kliensek, a WinForms, WPF alkalmazások a legut
 Jelenleg csak alapszintű (nem típusos) JSON sorosítást alkalmazunk. A következő lépés az lenne, hogy a JSON alapján visszasorosítanánk egy konkrétabb objektumba. Ehhez kliensoldalon is kellene lennie egy `Product` DTO-nak megfelelő osztálynak. Hogyan jöhetnek létre a kliensoldali modellosztályok?
 
 * kézzel létrehozzuk őket a JSON alapján - macerás, bár vannak rá https://www.meziantou.net/visual-studio-tips-and-tricks-paste-as-json.htm[eszközök], amik segítenek 
-* a DTO-kat osztálykönyvtárba szervezzük, mindkét oldal hivatkozza - csak akkor működik, ha mindkét oldal .NET-es, ráadásul könnyen kaphat az osztálykönyvtár olyan függőséget, ami igazából csak az egyik oldalnak kell csak, így meg mindkét oldal meg fogja kapni.
+* a DTO-kat osztálykönyvtárba szervezzük, mindkét oldal hivatkozza - csak akkor működik, ha mindkét oldal .NET-es, ráadásul könnyen kaphat az osztálykönyvtár olyan függőséget, ami igazából az egyik oldalnak kell csak, így meg mindkét oldal meg fogja kapni
 * generáltatjuk valamilyen eszközzel a szerveroldal alapján - ezt próbáljuk most ki
 
 Állítsuk be, hogy csak a szerveroldal (_Api_ projekt) induljon.
 
 == OpenAPI/Swagger szerveroldal
 
-Az _OpenAPI_ (eredeti nevén: _swagger_) eszközkészlet segítségével egy JSON alapú leírását tudjuk előállítani a szerveroldali API-nknak. A leírás alapján generálhatunk dokumentációt, sőt kliensoldali kódot is a kliensoldali fejlesztők számára. Jelenleg a legfrissebb specifikáció az OpenAPI v3-as (OAS v3). Az egyes verziók dokumentációja elérhető https://github.com/OAI/OpenAPI-Specification/tree/master/versions[itt].
+Az _OpenAPI_ (eredeti nevén: _Swagger_) eszközkészlet segítségével egy JSON alapú leírását tudjuk előállítani a szerveroldali API-nknak. A leírás alapján generálhatunk dokumentációt, sőt kliensoldali kódot is a kliensoldali fejlesztők számára. Jelenleg a legfrissebb specifikáció az OpenAPI v3-as (OAS v3). Az egyes verziók dokumentációja elérhető https://github.com/OAI/OpenAPI-Specification/tree/master/versions[itt].
 
-Az OpenAPI nem .NET specifikus, különféle nyelven írt szervert és klienst is támogat. Ugyanakkor készültek kifejezetten a .NET-hez is OpenAPI eszközök, ezek közül használunk párat most. .NET környezetben legelterjedtebb eszközkészletek:
+Az OpenAPI nem .NET specifikus, különféle nyelven írt szervert és klienst is támogat. Ugyanakkor készültek kifejezetten a .NET-hez is OpenAPI eszközök, ezek közül használunk párat most. .NET környezetben a legelterjedtebb eszközkészletek:
 
 * https://github.com/RicoSuter/NSwag[NSwag] - leíró-, szerver-, és kliensoldali generálás is. Részleges OAS v3 támogatás.
 * https://github.com/domaindrivendev/Swashbuckle.AspNetCore[Swashbuckle] - csak leíró generálás. OAS v3 támogatott.
 * https://github.com/Azure/autorest[AutoRest] - _npm_ csomag .NET Core függőséggel, csak kliensoldali kódgeneráláshoz. Részleges OAS v3 támogatás.
 * https://github.com/swagger-api/swagger-codegen[Swagger codegen] - java alapú kliensoldali generátor. C# támogatás https://github.com/swagger-api/swagger-codegen-generators/issues/172[csak OpenAPI v2-höz]
+* https://learn.microsoft.com/en-us/openapi/kiota[Kiota] - új, Microsoft fejlesztésű C# alapú kliensoldali generátor. OAS v3 támogatott.
 * https://learn.microsoft.com/en-us/openapi/kiota[Kiota] - új, Microsoft fejlesztésű, C# alapú kliensoldali generátor. OAS v3 támogatott.
 
-Első lépésként a szerveroldali kódunk alapján swagger leírást generálunk _NSwag_ segítségével.
+Első lépésként a szerveroldali kódunk alapján Swagger leírást generálunk _NSwag_ segítségével.
 
-Adjuk hozzá a projekthez az *NSwag.AspNetCore* csomagot a `Package Manager Console`-ból vagy az API projekt Manage NuGet packages UI-on, és töröljük ki a *Swashbuckle* csomagot.
+Adjuk hozzá a projekthez az *NSwag.AspNetCore* csomagot a `Package Manager Console`-ból vagy az API projekt Manage NuGet packages UI-on, és töröljük ki a *Swashbuckle.AspNetCore* csomagot.
 
 Konfiguráljuk a szükséges szolgáltatásokat a DI rendszerbe.
 
@@ -85,7 +86,7 @@ Konfiguráljuk a szükséges szolgáltatásokat a DI rendszerbe.
 builder.Services.AddOpenApiDocument();
 ----
 
-Az OpenAPI leíró, illetve a dokumentációs felület kiszolgálására regisztráljunk egy-egy NSwag middleware-t az *Endpoint MW elé*. Az eddigi Swagger támogatással kapcsolatok kódot törölhetők.
+Az OpenAPI leíró, illetve a dokumentációs felület kiszolgálására regisztráljunk egy-egy NSwag middleware-t az *Endpoint MW elé*. Az eddigi Swagger támogatással kapcsolatos kódok törölhetők.
 
 [source,csharp]
 ----
@@ -101,7 +102,7 @@ Az OpenAPI leíró, illetve a dokumentációs felület kiszolgálására regiszt
 
 A Swagger UI a /swagger útvonalon lesz elérhető. Próbáljuk ki, hogy működik-e a dokumentációs felület a */swagger* útvonalon, illetve a leíró elérhető-e a */swagger/v1/swagger.json* útvonalon.
 
-TIP: A swagger leíró linkje megtalálható a dokumentációs felület címsora alatt.
+TIP: A Swagger leíró linkje megtalálható a dokumentációs felület címsora alatt.
 
 A dokumentációs felületen fedezzük fel a `ProductsController` műveleteit (*Products* felirat kinyitásával), a visszatérési értékek leírását (példa, illetve modell-leíró), illetve a modell-leírókat a műveletlista alatt. Hívjuk is meg a */api/Products/{id}* változatot, kitöltve a szükséges paramétert.
 
@@ -126,26 +127,24 @@ Az NSwag képes a kódunk https://docs.microsoft.com/en-us/dotnet/csharp/codedoc
 /**/public async Task<ActionResult<Product>> Get(int id){/*...*/}
 ----
 
-A swagger komponensünk az XML kommenteket nem a forráskódból, hanem egy generált állományból képes kiolvasni. Állítsuk be ennek a generálását a projekt build beállításai között ( menu:Build[XML documentation file]). Az alatta lévő textbox-ot üresen hagyhatjuk.
+A Swagger komponensünk az XML kommenteket nem a forráskódból, hanem egy generált állományból képes kiolvasni. Állítsuk be ennek a generálását a projekt build beállításai között ( menu:Build[XML documentation file]). Az alatta lévő textbox-ot üresen hagyhatjuk.
 
 .Projektbeállítások (Build lap) - XML dokumentációs fájl generálása
 image::images/aspnetcoreclient-xmlcomment.png[Projektbeállítások - XML dokumentációs fájl generálása]
 
 === Testreszabás - Felsorolt típusok sorosítása szövegként
 
-Következő kis testreszabási lehetőség, amit kipróbálunk, a felsorolt típusok szövegként való generálása (az egész számos kódolás helyett). Ez általában bevált módszer a kliensek számára https://softwareengineering.stackexchange.com/questions/220091/how-to-represent-enum-types-in-a-public-api[kifejezőbb]. A DI-ban a JSON sorosítást konfiguráljuk:
+Következő kis testreszabási lehetőség, amit kipróbálunk, a felsorolt típusok szövegként való generálása (az egész számos kódolás helyett). Ez általában a bevált módszer, mivel a kliensek számára https://softwareengineering.stackexchange.com/questions/220091/how-to-represent-enum-types-in-a-public-api[kifejezőbb]. A DI-ban a JSON sorosítást konfiguráljuk:
 
 [source,csharp]
 ----
-/**/builder.Services.AddControllers()
-    .AddJsonOptions(opts =>
+/**/builder.Services.AddControllers() //; törölve
+    .AddJsonOptions(o =>
     {
-        //opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        //o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 ----
-
-WARNING: Sajnos a dokumentáció *Example Value* és *Schema* részein megmarad az `int` típus. Ez egyelőre https://github.com/RicoSuter/NJsonSchema/issues/890[bug].
 
 Próbáljuk ki, hogy az XML kommentünk megjelenik-e a megfelelő műveletnél, illetve a válaszban a `Product.ShipmentRegion` szöveges értékeket vesz-e fel.
 
@@ -170,12 +169,12 @@ Ehhez elég egy (vagy több) `ProducesResponseType` attribútumot felrakni a mű
 
 /**/[HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-/**/public async Task<IActionResult> Put(int id, [FromBody] Product product)
+/**/public async Task<ActionResult> Put(int id, [FromBody] Product value)
     {/*...*/}
 
 /**/[HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-/**/public async Task<IActionResult> Delete(int id)
+/**/public async Task<ActionResult> Delete(int id)
     {/*...*/}
 ----
 
@@ -188,24 +187,24 @@ A kliensoldalt az _NSwag Studio_ eszközzel generáltatjuk. Ez a generátor egy 
 * egyetlen fájlt https://github.com/RicoSuter/NSwag/issues/1398[generál]
 * nem támogatja az új JSON sorosítót, csak a https://github.com/RicoSuter/NSwag/issues/2243[régebbit]
 
-Előkészítésként adjuk a projekthez az alábbiakat:
+Előkészítésként adjuk a Client projekthez az alábbiakat:
 
-* _Newtonsoft.Json_ NuGet csomagot.
+* _Newtonsoft.Json_ NuGet csomagot
 * egy osztályt `ApiClients` néven
 
-Indítsuk el a projektünket (a szerveroldalra lesz most szükség) és az NSwag Studio-t és adjuk meg az alábbi beállításokat:
+Indítsuk el a projektünket (a szerveroldalra lesz most szükség) és az NSwag Studio-t, és adjuk meg az alábbi beállításokat:
 
 * Input rész (bal oldal): válasszuk az _OpenAPI/Swagger Specification_ fület és adjuk meg a OpenAPI leírónk címét (pl.: http://localhost:5000/swagger/v1/swagger.json). Nyomjuk meg a *Create local Copy* gombot.
 * Input rész (bal oldal) - Runtime: Net60
 * Output rész (jobb oldal) - jelöljük be a _CSharp Client_ jelölőt
-* Output rész (jobb oldal) - _CSharp Client_ fül - Settings alfül: fölül a _Namespace_ mezőben adjunk meg egy névteret, pl. _WebApiLab.Client.Api_, lentebb a _Use the base URl for the request_ ne legyen bepipálva
+* Output rész (jobb oldal) - _CSharp Client_ fül - Settings alfül: fölül a _Namespace_ mezőben adjunk meg egy névteret, pl. _WebApiLab.Client.Api_, lentebb a _Use the base URL for the request_ ne legyen bepipálva
 
 .NSwag Studio beállítások
 image::images/aspnetcoreclient-nswagstudio.png[NSwag Studio beállítások]
 
 Jobb oldalt alul a _Generate Outputs_ gombbal generáltathatjuk a kliensoldali kódot.
 
-A generált kóddal írjuk felül az _ApiClient.cs_ tartalmát (ehhez le kell állítani a futtatást). Ezután a projektnek fordulnia kell. Írjuk meg a _Program.cs_-ben a `GetProduct` új változatát:
+A generált kóddal írjuk felül az _ApiClients.cs_ tartalmát (ehhez le kell állítani a futtatást). Ezután a projektnek fordulnia kell. Írjuk meg a _Program.cs_-ben a `GetProduct` új változatát:
 
 [source,csharp]
 ----
@@ -237,7 +236,7 @@ TIP: Ez csak egy minimálpélda volt, az NSwag nagyon sok beállítással https:
 
 A kliensre innentől nem lesz szükség, beállíthatjuk, hogy csak a szerver induljon.
 
-WARNING: A generált kliens helyes működéséhez a műveletek minden nem hibát jelző státuszkódjait (2xx) dokumentálnunk kellene swagger-ben a `ProducesResponseType` attribútummal, különben helyes szerver oldali lefutás után is kliensoldalon _nem várt státuszkód_ hibát kaphatunk.
+WARNING: A generált kliens helyes működéséhez a műveletek minden nem hibát jelző státuszkódjait (2xx) dokumentálnunk kellene Swagger-ben a `ProducesResponseType` attribútummal, különben helyes szerver oldali lefutás után is kliensoldalon _nem várt státuszkód_ hibát kaphatunk.
 
 == Hibakezelés II.
 
@@ -256,7 +255,7 @@ Ehhez vegyünk fel egy `byte[]`-t a `Product` entitás osztályba `RowVersion` n
 /**/}
 ----
 
-Állítsuk be, hogy az EF kontextben (`OnModelCreating`), hogy minden módosításnál frissítse ezt a mezőt és ez legyen a konkurencia token, az `IsRowVersion` függvény ezt egyben el is intézi:
+Állítsuk be az EF kontextben (`OnModelCreating`), hogy minden módosításnál frissítse ezt a mezőt és ez legyen a konkurenciatoken, az `IsRowVersion` függvény ezt egyben el is intézi:
 
 [source,csharp]
 ----
@@ -267,7 +266,7 @@ modelBuilder.Entity<Product>()
 
 TIP: A háttérben az EF a módosítás során egy plusz feltételt csempész az UPDATE SQL utasításba, mégpedig, hogy az adatbázisban lévő `RowVersion` mező adatbázisbeli értéke az ugyanaz-e mint, amit ő ismert (a kliens által látott) értéke. Ha ez a feltétel sérül, akkor konkurenciahelyzet áll fent, mivel valaki már megváltoztatta az adatbázisban lévő értéket.
 
-Migrálnunk kell, mert megjelent egy új mező a `Product` táblánkban. Ne felejtsük el a szokásos módon beállítani _Default Projectet_ a DAL-ra a _Package Manager Console_-ban!
+Migrálnunk kell, mert megjelent egy új mező a `Products` táblánkban. Ne felejtsük el a szokásos módon beállítani a Default Project-et a DAL-ra a Package Manager Console-ban!
 
 [source,powershell]
 ----
@@ -279,7 +278,7 @@ Még a `Product` DTO osztályba is fel kell vegyük a `RowVersion` tulajdonságo
 
 [source,csharp]
 ----
-/**/public class Product
+/**/public record Product
 /**/{
 /**/    //...
         [Required(ErrorMessage = "RowVersion is required")]
@@ -338,7 +337,7 @@ A fenti megvalósítás összeszedi az egyes property-khez (a `Dictionary` kulcs
 /**/});
 ----
 
-Ezzel kész is az implementációnk, amit Postmanből fogjuk kipróbálni. A kész kód elérhető a https://github.com/bmeaut/WebApiLab/tree/net6-client-megoldas[_net6-client-megoldas_] ágon.
+Ezzel kész is az implementációnk, amit Postman-ből fogjuk kipróbálni. A kész kód elérhető a https://github.com/bmeaut/WebApiLab/tree/net6-client-megoldas[_net6-client-megoldas_] ágon.
 
 TIP: A kötelezően kitöltendő konkurencia mező beszúrásnál kellemetlen, hiszen kliensoldalon még nem tudható a token kezdeti értéke. Ilyenkor használhatunk bármilyen értéket, az adatbázis fogja a kezdeti token értéket beállítani.
 
@@ -348,7 +347,7 @@ Postman segítségével összeállítunk egy olyan hívási sorozatot, ami két 
 
 === Kollekció generálás OpenAPI leíró alapján
 
-A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva adjuk meg a OpenAPI leíró swagger.json URL-jét (amit az elindított BE /swagger oldalán a címsor alatt találunk). A felugró ablakban csak a *Generate collection from imported APIs* opciót válasszuk. Ezután megjelenik egy új Postman API és egy új kollekció is a *My Title* néven - ezeket nevezzük át *WebApiLab*-ra (menu:jobbklikk a néven[Rename]). 
+A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva adjuk meg az OpenAPI leíró swagger.json URL-jét (amit az elindított BE /swagger oldalán a címsor alatt találunk). A felugró ablakban csak a *Generate collection from imported APIs* opciót válasszuk. Ezután megjelenik egy új Postman API és egy új kollekció is *My Title* néven - ezeket nevezzük át *WebApiLab*-ra (menu:jobbklikk a néven[Rename]). 
 
 TIP: További segítség a https://learning.postman.com/docs/designing-and-developing-your-api/importing-an-api/#importing-api-definitions[dokumentációban].
 
@@ -358,7 +357,7 @@ A kollekcióban mind az öt műveletre található példahívás.
 
 A változókat a kéréseken belüli és a kérések közötti adatátadásra használhatjuk. Több hatókör (scope) közül választhatunk, amikor definiálunk egy változót: globális, kollekción belüli, környezeten belüli, kérésen belüli lokális. Sőt, egy adott nevű változót is definiálhatunk több szinten is - ilyenkor a specifikusabb felülírja az általánosabbat. Ebben a példában mi most csak a kollekció szintet fogjuk használni.
 
-A kollekció kiválasztva egy új fül jelenik meg, itt a *Variables* fülön állíthatjuk a változókat, illetve megnézhetjük az aktuális értéküket.
+A kollekciót kiválasztva egy új fül jelenik meg, itt a *Variables* fülön állíthatjuk a változókat, illetve megnézhetjük az aktuális értéküket.
 
 TIP: További segítség a kollekció változók felvételéhez a https://learning.postman.com/docs/sending-requests/variables/#defining-collection-variables[dokumentációban].
 
@@ -369,7 +368,7 @@ Vegyük fel az alábbi változókat:
 * `u1_tej` - az előbbi azonosító alapján lekérdezett termék adata
 * `u1_tej_deluxe` - az előbbi termék módosított termékadata, amit a felhasználó menteni kíván
 
-Ne felejtsük el elmenteni a kollekció váltásait a *Save* (CTRL + S) gombbal.
+Ne felejtsük el elmenteni a kollekció változtatásait a *Save* (CTRL + S) gombbal.
 
 WARNING: A Postman https://github.com/postmanlabs/postman-app-support/issues/3466[nem ment automatikusan], ezért lehetőleg mindig mentsünk (kbd:[CTRL+S]), amikor egy másik hívás, kollekció szerkesztésére térünk át.
 
@@ -377,7 +376,7 @@ WARNING: A Postman https://github.com/postmanlabs/postman-app-support/issues/346
 
 A kéréseinket külön mappákba szervezve elkülöníthetjük a kollekción belül az egyes (rész)folyamatokat. Mappákat a kollekció extra menüjén (a kollekció neve mellett a *...* ikont megnyomva) belül az *Add Folder* menüpont segítségével vehetünk fel.
 
-Vegyük fel a kollekciónkba egy új mappát *Update Tej* néven.
+Vegyünk fel a kollekciónkba egy új mappát *Update Tej* néven.
 
 TIP: További segítség új mappa felvételéhez a https://learning.postman.com/docs/collections/using-collections/#adding-folders-to-a-collection[dokumentációban].
 
@@ -408,13 +407,13 @@ WARNING: Vegyük észre, hogy az elnevezések az OpenAPI leíró alapján gener�
 
 Az **[U1]GetAllProductsBefore** hívás már most is kipróbálható külön a https://learning.postman.com/docs/getting-started/sending-the-first-request/#sending-a-request[*Send* gombbal] és az alsó *Body* részen látható az eredmény formázott (*Pretty*) és nyers (*Raw*) nézetben.
 
-Saját vizualizációt is írhatunk, ehhez a kérés *Tests* fülét használhatjuk. Az ide írt _javascript_ nyelvű kód a kérés után fog lefutni. Általában a válaszra vonatkozó teszteket szoktuk ide írni.
+Saját vizualizációt is írhatunk, ehhez a kérés *Tests* fülét használhatjuk. Az ide írt _JavaScript_ nyelvű kód a kérés után fog lefutni. Általában a válaszra vonatkozó teszteket szoktuk ide írni.
 
 Írjuk be a kérés **Tests** fülén lévő szövegdobozba az alábbi kódot, ami egy táblázatos formába formázza a válasz JSON fontosabb adatait:
 
 [source,javascript]
 ----
-var template = `
+const template = `
     <table bgcolor="#FFFFFF">
         <tr>
             <th>Name</th>
@@ -431,7 +430,7 @@ var template = `
         {{/each}}
     </table>
 `;
-var respJson = pm.response.json();
+const respJson = pm.response.json();
 pm.visualizer.set(template, {
     response: respJson
 });
@@ -447,10 +446,10 @@ A visszakapott adatokra a későbbi lépéseknek is szükségük lesz, ezért me
 /**/    response: respJson
 /**/});
 
-pm.collectionVariables.set("u1_allprods",  JSON.stringify(respJson));
+pm.collectionVariables.set("u1_allprods", JSON.stringify(respJson));
 ----
 
-WARNING: Változóba mindig sorosított (pl. egyszerű szöveg típusú) adatot mentsünk, ne közvetlenül a javascript változókat.
+WARNING: Változóba mindig sorosított (pl. egyszerű szöveg típusú) adatot mentsünk, ne közvetlenül a JavaScript változókat.
 
 Próbáljuk ki így a kérést, alul a *Body* fül *Visualize* alfülén táblázatos megjelenítésnek kell megjelennie, illetve a kollekció változókezelő felületén az `u1_allprods` értékbe be kellett íródnia a teljes válasz törzsnek.
 
@@ -464,31 +463,31 @@ A forgatókönyvünk szerint a felhasználó a termékek listájából kiválasz
 
 [source,javascript]
 ----
-var allProds= JSON.parse(pm.collectionVariables.get("u1_allprods"));
-var tejid=allProds.find(({ name }) => name.startsWith('Tej')).id;
-pm.collectionVariables.set("u1_tejid",tejid);
+const allProds = JSON.parse(pm.collectionVariables.get("u1_allprods"));
+const tejid = allProds.find(({ name }) => name.startsWith('Tej')).id;
+pm.collectionVariables.set("u1_tejid", tejid);
 ----
 
-Tehát kiolvassuk az elmentett terméklistát, kikeressük a _Tej_ nevű elemet, vesszük annak azonosítóját, amit elmentünk a `u1_tejid` változóba. Ezt a változót már fel is használjuk a kérés paramétereként: a *Params* fülön az `id` nevű URL paraméter (*Path Variable*) értéke legyen `{{u1_tejid}}`
+Tehát kiolvassuk az elmentett terméklistát, kikeressük a _Tej_ nevű elemet, vesszük annak azonosítóját, amit elmentünk az `u1_tejid` változóba. Ezt a változót már fel is használjuk a kérés paramétereként: a *Params* fülön az `id` nevű URL paraméter (*Path Variable*) értéke legyen `{{u1_tejid}}`
 
 A kérés lefutása után mentsük el a válasz törzsét az `u1_tej` változóba. A *Tests* fülön lévő szövegdobozba:
 
 [source,javascript]
 ----
-pm.collectionVariables.set("u1_tej",  pm.response.text());
+pm.collectionVariables.set("u1_tej", pm.response.text());
 ----
 
-TIP: ezt a fázist ki is lehetne hagyni, mert a listában már minden szükséges adat benne volt a módosításhoz, de általánosságban gyakori, hogy egy részletes nézeten lehet a módosítást elvégezni, ami a részletes adatok lekérdezésével jár.
+TIP: Ezt a fázist ki is lehetne hagyni, mert a listában már minden szükséges adat benne volt a módosításhoz, de általánosságban gyakori, hogy egy részletes nézeten lehet a módosítást elvégezni, ami a részletes adatok lekérdezésével jár.
 
 === Módosított termék mentése
 
-A módosított termék a szervernek való elküldése előtt szimuláljuk magát a felhasználói módosítást. Az *[U1]UpdateTej* hívás *Pre-request Script*-je legyen ez:
+Mielőtt a módosított terméket elküldenénk a szervernek, szimuláljuk magát a felhasználói módosítást. Az *[U1]UpdateTej* hívás *Pre-request Script*-je legyen ez:
 
 [source,javascript]
 ----
-var tej= JSON.parse(pm.collectionVariables.get("u1_tej"));
+const tej = JSON.parse(pm.collectionVariables.get("u1_tej"));
 tej.unitPrice++;
-pm.collectionVariables.set("u1_tej_deluxe",JSON.stringify(tej));
+pm.collectionVariables.set("u1_tej_deluxe", JSON.stringify(tej));
 ----
 
 Látható, hogy a módosított termékadatot egy új változóba (`u1_tej_deluxe`) mentjük. Ennél a hívásnál is a *Params* fülön az `id` nevű URL paraméter (*Path Variable*) értéke legyen `{{u1_tejid}}`. Viszont itt már a kérés törzsét is ki kell tölteni a módosított termékadattal. Mivel ez meg is van változóban, így elég a *Body* fül szövegdobozába (*Raw* nézetben) csak ennyit beírni: `{{u1_tej_deluxe}}`.
@@ -516,7 +515,7 @@ image::images/aspnetcoreclient-postman-runres1user.png[Postman futtatási eredm�
 Az alábbi lépésekkel állítsuk elő a második felhasználó folyamatát:
 
 * vegyünk fel minden `u1` változó alapján új változót `u2` névkezdettel
-* duplikáljuk minden *[U1]* hívást, a klónok neve legyen ugyanaz, mint az eredetié, de kezdődjön *[U2]*-vel
+* duplikáljunk minden *[U1]* hívást, a klónok neve legyen ugyanaz, mint az eredetié, de kezdődjön *[U2]*-vel
 * a klónok minden szkriptjében, illetve paraméterében írjunk át **minden** `u1`-es változónevet `u2`-esre
 ** az *[U2]GetAllProductsBefore* hívásban a *Tests* fülön egy helyen
 ** az *[U2]GetTejDetails* hívásban a *Pre-request Script*  fülön két helyen, a *Tests* fülön egy helyen, illetve a *Params* fülön egy helyen
@@ -525,7 +524,7 @@ Az alábbi lépésekkel állítsuk elő a második felhasználó folyamatát:
 
 [source,javascript]
 ----
-tej.name='Tej ' +new Date().getTime();
+tej.name = "Tej " + new Date().getTime();
 ----
 
 .Postman hívások - mindkét felhasználó folyamata
@@ -559,9 +558,9 @@ Az alábbi sorrend viszont hibát ad, hiszen a második felhasználó már elavu
 .Postman Runner lefutás konkurenciahelyzettel
 image::images/aspnetcoreclient-postman-runres2users.png[Postman futtatási eredmény - konkurenciahelyzet]
 
-TIP: Érdemes megvizsgálni a 409-es hibakódú válasz törzsét, és benne a változott mezők eredeti és megváltozott értékét.
+TIP: Érdemes megvizsgálni a 409-es hibakódú válasz törzsét és benne a változott mezők eredeti és megváltozott értékét.
 
-WARNING: Ha igazi klienst írunk, figyeljünk arra, hogy a konkurencia tokent mindig küldjük le a kliensre, a kliens változatlanul küldje vissza a szerverre, és a szerver pedig a módosítás során **a klienstől kapott** tokent szerepeltesse a módosítandó entitásban. A legtöbb hibás implementáció arra vezethető vissza, hogy nem követjük ezeket az elveket. Szerencsére az adatelérési kódunkban ezeknek a problémáknak a nagy részét megoldja az EF.
+WARNING: Ha igazi klienst írunk, figyeljünk arra, hogy a konkurenciatokent mindig küldjük le a kliensnek, a kliens változatlanul küldje vissza a szerverre, és a szerver pedig a módosítás során **a klienstől kapott** tokent szerepeltesse a módosítandó entitásban. A legtöbb hibás implementáció arra vezethető vissza, hogy nem követjük ezeket az elveket. Szerencsére az adatelérési kódunkban ezeknek a problémáknak a nagy részét megoldja az EF.
 
 TIP: Hívásokból álló folyamatokat nem csak *Runnerben* állíthatunk össze, hanem https://learning.postman.com/docs/running-collections/building-workflows/[szkriptből is]. Ha épp ellenkezőleg, kevesebb szkriptelést szeretnénk, akkor a https://learning.postman.com/docs/postman-flows/gs/flows-overview[Postman Flows] ajánlott.
 
