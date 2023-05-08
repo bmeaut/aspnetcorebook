@@ -38,7 +38,7 @@ static async Task GetProductAsync(int id)
 {
     using var client = new HttpClient();
 
-    /*A portot írjuk át a szervernek megfelelően*/
+    /*Ha eltér, a portot írjuk át a szervernek megfelelően*/
     var response = await client.GetAsync(new Uri($"http://localhost:5184/api/Products/{id}"));
     response.EnsureSuccessStatusCode();
     var jsonStream = await response.Content.ReadAsStreamAsync();
@@ -70,9 +70,9 @@ Az OpenAPI nem .NET specifikus, különféle nyelven írt szervert és klienst i
 * https://github.com/domaindrivendev/Swashbuckle.AspNetCore[Swashbuckle] - csak leíró generálás. OAS v3 támogatott.
 * https://github.com/Azure/autorest[AutoRest] - _npm_ csomag .NET Core függőséggel, csak kliensoldali kódgeneráláshoz. Részleges OAS v3 támogatás.
 * https://github.com/swagger-api/swagger-codegen[Swagger codegen] - java alapú kliensoldali generátor. C# támogatás https://github.com/swagger-api/swagger-codegen-generators/issues/172[csak OpenAPI v2-höz]
-* https://learn.microsoft.com/en-us/openapi/kiota[Kiota] - új, Microsoft fejlesztésű C# alapú kliensoldali generátor. OAS v3 támogatott.
+* https://learn.microsoft.com/en-us/openapi/kiota[Kiota] - új, Microsoft fejlesztésű, C# alapú kliensoldali generátor. OAS v3 támogatott.
 
-Első lépésként a szerveroldali kódunk alapján swagger leírást generálunk _NSwag_ segítségével. Kommentezzük ki a `ProductsController`-en kívül a többi kontroller teljes kódját.
+Első lépésként a szerveroldali kódunk alapján swagger leírást generálunk _NSwag_ segítségével.
 
 Adjuk hozzá a projekthez az *NSwag.AspNetCore* csomagot a `Package Manager Console`-ból vagy az API projekt Manage NuGet packages UI-on, és töröljük ki a *Swashbuckle* csomagot.
 
@@ -211,8 +211,9 @@ A generált kóddal írjuk felül az _ApiClient.cs_ tartalmát (ehhez le kell á
 ----
 static async Task<Product> GetProduct2Async(int id)
 {
+    /*Ha eltér, a portot írjuk át a szervernek megfelelően*/
     using var httpClient = new HttpClient() 
-        { BaseAddress = new Uri("http://localhost:5000/") };
+        { BaseAddress = new Uri("http://localhost:5184/") };  
     var client = new ProductsClient(httpClient);
     return await client.GetAsync(id);
 }
@@ -226,7 +227,7 @@ Használjuk az új változatot.
     {
         //await GetProductAsync(int.Parse(id));
         var p = await GetProduct2Async(int.Parse(id));
-        Console.WriteLine($"{p.Name}: {p.UnitPrice}");
+        Console.WriteLine($"{p.Name}: {p.UnitPrice}.-");
     }
 ----
 
@@ -264,9 +265,9 @@ modelBuilder.Entity<Product>()
     .IsRowVersion();
 ----
 
-TIP: A háttérben az EF során egy plusz feltételt csempész az UPDATE SQL utasításba, mégpedig, hogy az adatbázisban lévő `RowVersion` mező adatbázisbeli értéke az ugyanaz-e mint, amit ő ismert (a kliens által látott) értéke. Ha ez a feltétel sérül, akkor konkurenciahelyzet áll fent, mivel valaki már megváltoztatta a DB-ben lévő értéket.
+TIP: A háttérben az EF a módosítás során egy plusz feltételt csempész az UPDATE SQL utasításba, mégpedig, hogy az adatbázisban lévő `RowVersion` mező adatbázisbeli értéke az ugyanaz-e mint, amit ő ismert (a kliens által látott) értéke. Ha ez a feltétel sérül, akkor konkurenciahelyzet áll fent, mivel valaki már megváltoztatta az adatbázisban lévő értéket.
 
-Migrálnunk kell, mert megjelent egy új mező a `Product` táblánkban. Ne felejtsük el a szokásos módon beállítani Default Projectet a DAL-ra a Package Manager Console-ban!
+Migrálnunk kell, mert megjelent egy új mező a `Product` táblánkban. Ne felejtsük el a szokásos módon beállítani _Default Projectet_ a DAL-ra a _Package Manager Console_-ban!
 
 [source,powershell]
 ----
@@ -347,9 +348,9 @@ Postman segítségével összeállítunk egy olyan hívási sorozatot, ami két 
 
 === Kollekció generálás OpenAPI leíró alapján
 
-A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva, a *Link* fülön adjuk meg a OpenAPI leíró swagger.json URL-jét (amit az elindított BE /swagger oldalán a címsor alatt találunk). A felugró ablakban csak a *Generate collection from imported APIs* opciót válasszuk. Ezután megjelenik egy új Postman API és egy új kollekció is a *My Title* néven - ezeket nevezzük át *WebApiLab*-ra (menu:jobbklikk a néven[Rename]). 
+A Postman képes az OpenAPI leíró alapján példahívásokat generálni. Ehhez indítsuk el a szerveralkalmazásunkat és a Postman-t is. A Postman-ben fölül az *Import* gombot választva adjuk meg a OpenAPI leíró swagger.json URL-jét (amit az elindított BE /swagger oldalán a címsor alatt találunk). A felugró ablakban csak a *Generate collection from imported APIs* opciót válasszuk. Ezután megjelenik egy új Postman API és egy új kollekció is a *My Title* néven - ezeket nevezzük át *WebApiLab*-ra (menu:jobbklikk a néven[Rename]). 
 
-TIP: További segítség a https://learning.postman.com/docs/getting-started/importing-and-exporting-data/#importing-api-specifications[dokumentációban].
+TIP: További segítség a https://learning.postman.com/docs/designing-and-developing-your-api/importing-an-api/#importing-api-definitions[dokumentációban].
 
 A kollekcióban mind az öt műveletre található példahívás.
 
@@ -378,7 +379,7 @@ A kéréseinket külön mappákba szervezve elkülöníthetjük a kollekción be
 
 Vegyük fel a kollekciónkba egy új mappát *Update Tej* néven.
 
-TIP: További segítség új mappa felvételéhez a https://learning.postman.com/docs/sending-requests/intro-to-collections/#managing-collections[dokumentációban].
+TIP: További segítség új mappa felvételéhez a https://learning.postman.com/docs/collections/using-collections/#adding-folders-to-a-collection[dokumentációban].
 
 === Egy felhasználó folyamata
 
@@ -498,7 +499,7 @@ Az utolsó folyamatlépésnél már nincs sok teendő, ha akarunk vizualizáció
 
 Egy kéréssorozat futtatásához használható a *Collection Runner* funkció, ami a kollekció vagy egy almappájának oldaláról (ami a kollekció/almappa kiválasztásakor jelenik meg) a jobb szélen a *Save* melletti *Run* gombra nyomva hozható elő. A megjelenő ablak bal oldalán megjelennek a választott kollekció/mappa alatti hívások, amiket szűrhetünk (a hívások előtti jelölődobozzal), illetve sorrendezhetünk (a sor legelején lévő fogantyúval). 
 
-TIP: További segítség kollekciók futtatásához a https://learning.postman.com/docs/running-collections/intro-to-collection-runs/#starting-a-collection-run[dokumentációban].
+TIP: További segítség kollekciók futtatásához a https://learning.postman.com/docs/collections/running-collections/intro-to-collection-runs/[dokumentációban].
 
 Az eddig elkészült folyamatunk futtatásához válasszuk ki az *Update Tej* mappát. Érdemes beállítani a jobb részen a *Save responses* jelölőt, így a lefutás után megvizsgálhatjuk az egyes kérésekre jött válaszokat. 
 
@@ -562,6 +563,6 @@ TIP: Érdemes megvizsgálni a 409-es hibakódú válasz törzsét, és benne a v
 
 WARNING: Ha igazi klienst írunk, figyeljünk arra, hogy a konkurencia tokent mindig küldjük le a kliensre, a kliens változatlanul küldje vissza a szerverre, és a szerver pedig a módosítás során **a klienstől kapott** tokent szerepeltesse a módosítandó entitásban. A legtöbb hibás implementáció arra vezethető vissza, hogy nem követjük ezeket az elveket. Szerencsére az adatelérési kódunkban ezeknek a problémáknak a nagy részét megoldja az EF.
 
-TIP: Hívásokból álló folyamatokat nem csak *Runnerben* állíthatunk össze, hanem https://learning.postman.com/docs/running-collections/building-workflows/[szkriptből is].
+TIP: Hívásokból álló folyamatokat nem csak *Runnerben* állíthatunk össze, hanem https://learning.postman.com/docs/running-collections/building-workflows/[szkriptből is]. Ha épp ellenkezőleg, kevesebb szkriptelést szeretnénk, akkor a https://learning.postman.com/docs/postman-flows/gs/flows-overview[Postman Flows] ajánlott.
 
-Az elkészült teljes Postman kollekció importálható https://www.getpostman.com/collections/dc58a89c4bd42e73fc8b[erről a linkről] az OpenAPI importáláshoz hasonló módon. A kollekció szinten ne felejtsük el beállítani a `baseUrl` változót a szerveralkalmazásunk alap URL-jére.
+Az elkészült teljes Postman kollekció importálható https://raw.githubusercontent.com/bmeaut/WebApiLab/net6-client-megoldas/Postman/WebAPILab.postman_collection.json[erről a linkről] az OpenAPI importáláshoz hasonló módon. A kollekció szinten ne felejtsük el beállítani a `baseUrl` változót a szerveralkalmazásunk alap URL-jére.
