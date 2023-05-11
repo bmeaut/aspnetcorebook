@@ -72,7 +72,6 @@ Az OpenAPI nem .NET specifikus, különféle nyelven írt szervert és klienst i
 * https://github.com/Azure/autorest[AutoRest] - _npm_ csomag .NET Core függőséggel, csak kliensoldali kódgeneráláshoz. Részleges OAS v3 támogatás.
 * https://github.com/swagger-api/swagger-codegen[Swagger codegen] - java alapú kliensoldali generátor. C# támogatás https://github.com/swagger-api/swagger-codegen-generators/issues/172[csak OpenAPI v2-höz]
 * https://learn.microsoft.com/en-us/openapi/kiota[Kiota] - új, Microsoft fejlesztésű C# alapú kliensoldali generátor. OAS v3 támogatott.
-* https://learn.microsoft.com/en-us/openapi/kiota[Kiota] - új, Microsoft fejlesztésű, C# alapú kliensoldali generátor. OAS v3 támogatott.
 
 Első lépésként a szerveroldali kódunk alapján Swagger leírást generálunk _NSwag_ segítségével.
 
