@@ -32,21 +32,21 @@ Tipikus az ilyen rendszerekben, hogy egy kitüntetett entitás az ún. *identity
 
 Ezen szabványokat implementálták a fejlettebb platformokra, így ASP.NET Core-ra is, tipikusan az alábbi technológiákat/komponenseket alkalmazhatjuk:
 
-* https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity[ASP.NET Core Identity] (a Shared Framework része)
+* https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity[ASP.NET Core Identity] (a Shared Framework része)
 ** adatelérési és üzleti logikai réteg a felhasználói adatok kezelésére
 ** JWT Bearer token middleware, ASP.NET Core authorizációs rendszer - RP feladatokhoz
 * https://www.nuget.org/packages/Microsoft.AspNetCore.Identity.UI[Identity UI] - az Identity Core-hoz tartozó felület (ASP.NET Core Razor alapú)
-* https://duendesoftware.com/[Duende IdentityServer] (korábban IdentityServer) - 4-es verzióig nyílt forráskódú IDP, széleskörű támogatás tokenkezelési, IDP feladatokhoz. 5-ös verziótól kezdve licenszköteles, bár sok esetben igényelhető ingyenes licensz.
+* https://duendesoftware.com/[Duende IdentityServer] (korábban IdentityServer) - 4-es főverzióig nyílt forráskódú IDP, széleskörű támogatás tokenkezelési, IDP feladatokhoz. 5-ös verziótól kezdve licenszköteles, bár sok esetben igényelhető ingyenes licensz.
 * https://github.com/skoruba/Duende.IdentityServer.Admin[Duende IdentityServer Admin UI] - adminisztrációs felület a Duende IdentityServer-hez
-* https://docs.microsoft.com/en-us/azure/active-directory/develop/[Microsoft identity platform] - komponensek Microsoft IDP szolgáltatások (Azure AD, Azure AD B2C - lásd lentebb) igénybe vételéhez szerver- és kliensoldalhoz is. Nem önálló IDP megoldás, önmagában nem használható. Az újgenerációs komponenskönyvtárak MSAL néven érhetőek el különböző platformokra: MSAL.NET .NET-hez, MSAL.js JavaScript-hez, stb.
+* https://learn.microsoft.com/en-us/azure/active-directory/develop/[Microsoft identity platform] - komponensek Microsoft IDP szolgáltatások (Azure AD, Azure AD B2C - lásd lentebb) igénybe vételéhez szerver- és kliensoldalhoz is. Nem önálló IDP megoldás, önmagában nem használható. Az újgenerációs komponenskönyvtárak MSAL néven érhetőek el különböző platformokra: MSAL.NET .NET-hez, MSAL.js JavaScript-hez, stb.
 
-Látható, hogy maga a Microsoft alapvetően csak a tokenek ellenőrzésére (RP feladat) biztosít magasszintű API-t, komponenst ASP.NET Core-ban, tokenek előállítására nem (IDP feladat). Ez utóbbira lehet jó a _Duende IdentityServer_, de ezen felül egyéb alternatívák is https://docs.microsoft.com/en-us/aspnet/core/security/authentication/community[elérhetők].
+Látható, hogy maga a Microsoft alapvetően csak a tokenek ellenőrzésére (RP feladat) biztosít magasszintű API-t, illetve komponenst ASP.NET Core-ban, tokenek előállítására nem (IDP feladat). Ez utóbbira lehet jó a _Duende IdentityServer_, de ezen felül egyéb alternatívák is https://learn.microsoft.com/en-us/aspnet/core/security/authentication/community[elérhetők].
 
 Jelenleg (2022. tavasz) az ASP.NET Core projektsablonok a következő IDP technikákat használják:
 
 * ASP.NET Core Web App: semmilyet, mert nem token, hanem süti alapú!
 * ASP.NET Core Web API: Microsoft identity platform vagy on-premise Active Directory (ez utóbbi lokális hálózaton működik)
-* ASP.NET Core with Angular/React.js: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization[Duende IdentityServer]
+* ASP.NET Core with Angular/React.js: https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization[Duende IdentityServer]
 
 Az IDP feladatok elég jól leválaszthatók, így megjelentek azok a szolgáltatások, melyek segítségével gyakorlatilag minden IDP feladatot kiszervezhetünk, beleértve a fentebb felsorolt képességeket is. Ezek az ún. _IDentity as a Service (IDaaS)_ vagy _Authentication as a Service_ szolgáltatások. Néhány példa: https://www.okta.com/[_Okta_], https://auth0.com/[_Auth0_] (2021. tavaszán felvásárolta az Okta), _Azure AD B2C_. Ezek alapvetően nem ingyenes szolgáltatások, bár többnyire bizonyos méret/felhasználószám/tokenmennyiség alatt ingyenesen használhatóak. További lehetőség saját üzemeltetésű, de külön telepíthető, kész IDP telepítése. Ez lehet akár nem .NET-es is, hiszen a kommunikáció szabványokra (OAuth, OpenID Connect) épül - ilyenre egy példa a https://www.keycloak.org/[keycloak]. Ezen gyakorlat során az Azure AD B2C szolgáltatást fogjuk használni, amivel az utolsó kivételével *minden fenti komponenst kiváltunk*.
 
@@ -60,19 +60,17 @@ A megvalósítandó rendszerben:
  ** a felhasználókezelési folyamatok végrehajtásához a B2C által kiszolgált felületekre irányít át
  ** az ASP.NET Core alkalmazásunk API-ját hívja
  ** a https://www.nuget.org/packages/Microsoft.Authentication.WebAssembly.Msal[Microsoft.Authentication.WebAssembly.Msal] csomagot használunk a B2C specifikus feladatok megoldásához. Ez a csomag egy .NET-es JavaScript interop réteget ad az https://github.com/AzureAD/microsoft-authentication-library-for-js[MSAL.js] fölé.
-* az OAuth https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-diagram[*Authorization Code Flow*] folyamatot fogjuk követni. A PKCE-vel (https://datatracker.ietf.org/doc/html/rfc7636[Proof Key for Code Exchange]) kiegészített változata az ajánlott flow szinte mindenfajta kliens (vastagkliens, web, mobil) számára. SPA-k (angular, react, Blazor WebAssembly, stb.) számára gyakorlatilag csak ez számít biztonságosnak.
+* az OAuth https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-diagram[*Authorization Code Flow*] folyamatot fogjuk követni. A PKCE-vel (https://datatracker.ietf.org/doc/html/rfc7636[Proof Key for Code Exchange]) kiegészített változata az ajánlott flow szinte mindenfajta kliens (vastagkliens, web, mobil) számára. SPA-k (angular, react, Blazor WebAssembly, stb.) számára gyakorlatilag csak ez számít biztonságosnak.
 
 TIP: Az Azure B2C-ben az első 50000 aktív felhasználó kiszolgálása https://azure.microsoft.com/en-us/pricing/details/active-directory-b2c/[ingyenes] minden hónapban.
 
 == Hosted WebAssembly alkalmazásból védett API hívása
 
-Kövessük a hivatalos https://docs.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/hosted-with-azure-active-directory-b2c?view=aspnetcore-6.0[Microsoft útmutatót], itt csak az eltéréseket emeljük ki. A következő alcímek megfelelnek az útmutató alcímeinek.
+Kövessük a hivatalos https://learn.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/hosted-with-azure-active-directory-b2c?view=aspnetcore-6.0[Microsoft útmutatót], itt csak az eltéréseket emeljük ki. A következő alcímek megfelelnek az útmutató alcímeinek.
 
 === Előkészítés: Azure B2C Tenant létrehozása
 
-TIP: Érdemes https://docs.microsoft.com/en-us/azure/azure-portal/set-preferences#change-language-and-regional-settings[angolra állítani] az Azure portál nyelvét, értelmesebb hibaüzeneteket kaphatunk.
-
-WARNING: Az erőforrások létrehozása, kezelése a portálról indítva is API hívásokkal történik. Számos ilyen API van, ezeket _resource provider_-eknek hívjuk. A B2C-hez kapcsolódó _resource provider_ gyakran le van tiltva alapértelmezésben. Ilyenkor a létrehozás hibára fut (_The subscription is not registered to use namespace 'Microsoft.AzureActiveDirectory'_). A javításhoz https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider-1[engedélyezzük (regisztráljuk)] a hibaüzenetben jelzett _providert_.
+TIP: Érdemes https://learn.microsoft.com/en-us/azure/azure-portal/set-preferences#change-language-and-regional-settings[angolra állítani] az Azure portál nyelvét, értelmesebb hibaüzeneteket kaphatunk.
 
 === A RP regisztrálása Azure B2C-be
 
@@ -80,11 +78,11 @@ Bár még nincs meg az RP alkalmazásunkból semmi, a regisztrációját elkész
 
 === A kliensalkalmazás regisztrálása Azure B2C-be
 
-Bár még nincs meg a kliensalkalmazásunkból sem semmi, a regisztrációját elkészítjük. Ha szeretnénk a B2C tesztfelületéről tesztelni a felhasználókezeléses felületeket, akkor a szakasz végén az _implicit grant flowt_ is https://docs.microsoft.com/en-us/azure/active-directory-b2c/tutorial-register-spa#enable-the-implicit-flow[engedélyezzük] az alkalmazás **Authentication** menüpontjában és ugyanitt redirect URL-ként a `https://jwt.ms` címet is vegyük fel.
+Bár még nincs meg a kliensalkalmazásunkból sem semmi, a regisztrációját elkészítjük. Ha szeretnénk a B2C tesztfelületéről tesztelni a felhasználókezeléses felületeket, akkor a szakasz végén az _implicit grant flowt_ is https://learn.microsoft.com/en-us/azure/active-directory-b2c/tutorial-register-spa#enable-the-implicit-flow[engedélyezzük] az alkalmazás **Authentication** menüpontjában és ugyanitt redirect URL-ként a `https://jwt.ms` címet is vegyük fel.
 
 TIP: A https://jwt.ms[jwt.ms] oldalon dekódolhatjuk a JWT tokenjeinket, de az authorization code flow-t redirect URI-ként nem támogatja.
 
-WARNING: Az https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow#protocol-diagram[implicit grant flowt] csak azért engedélyezzük, hogy a _jwt.ms_ oldalon történő tesztelés majd működjön (lásd a következő szakasz), de ez már egy elavult folyamat (ezért nincs is alapból engedélyezve) - csak tesztelési célból kapcsoljuk be.
+WARNING: Az https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow#protocol-diagram[implicit grant flowt] csak azért engedélyezzük, hogy a _jwt.ms_ oldalon történő tesztelés majd működjön (lásd a következő szakasz), de ez már egy elavult folyamat (ezért nincs is alapból engedélyezve) - csak tesztelési célból kapcsoljuk be.
 
 ==== User flow / policy létrehozása, kipróbálása
 
@@ -100,38 +98,40 @@ Ezeket az extra adatokat kódoltassuk bele a tokenbe (Return claim):
 
 * keresztnév (Given name)
 * vezetéknév (Surname)
-* email címek (Email addresses)
 * felhasználónév (Display Name)
+* email címek (Email addresses)
 
-Ha korábban engedélyeztük az implicit flow-t, próbáljuk ki az új folyamatot a https://docs.microsoft.com/en-us/azure/active-directory-b2c/tutorial-create-user-flows?pivots=b2c-user-flow[linkelt útmutató] alapján (_Test the user flow_ alcím). Válasszuk ki a kliensalkalmazást tesztelendő alkalmazásként. Regisztráljunk és lépjünk be. Ellenőrizzük a https://jwt.ms[JWT dekóder oldalon] a tokenbe kerülő claim-eket.
+Ha korábban engedélyeztük az implicit flow-t, próbáljuk ki az új folyamatot a https://learn.microsoft.com/en-us/azure/active-directory-b2c/tutorial-create-user-flows?pivots=b2c-user-flow[linkelt útmutató] alapján (_Test the user flow_ alcím). Válasszuk ki a kliensalkalmazást tesztelendő alkalmazásként. Regisztráljunk és lépjünk be. Ellenőrizzük a https://jwt.ms[JWT dekóder oldalon] a tokenbe kerülő claim-eket.
 
 Derítsük fel a B2C _Users_ oldalát. Ez egy adminisztratív felület, a regisztrált felhasználók adatait látjuk, módosíthatjuk, valamint a jelszavukat is visszaállíthatjuk.
 
-WARNING: A Blazor WebAssembly az MSAL JavaScript verzióját használja (MSAL.js), azonban ennek https://github.com/dotnet/aspnetcore/issues/38122[sem minden funkcióját teszi elérhetővé]. Emiatt több B2C-s beépített user flow https://github.com/dotnet/aspnetcore/issues/27549[sem használható] (egyszerűen) Blazor WebAssembly-ből (például jelszóvisszaállítás, profilszerkesztés).
+WARNING: A Blazor WebAssembly az MSAL JavaScript verzióját használja (MSAL.js), azonban ennek https://github.com/dotnet/aspnetcore/issues/38122[sem minden funkcióját teszi elérhetővé]. Emiatt több B2C-s beépített user flow https://github.com/dotnet/aspnetcore/issues/27549[sem használható] (egyszerűen) Blazor WebAssembly-ből (például profilszerkesztés).
 
 === Kliens és szerver alkalmazás generálása
 
-Ebben a fázisban a beépített .NET sablonok segítségével egy alapszinten működő, konfigurált felhasználókezelést-hozzáférésszabályozást kapunk mind szerver-, mind kliensoldalon.
+Ebben a fázisban a beépített .NET sablonok segítségével egy alapszinten működő, konfigurált felhasználókezelést-hozzáférésszabályozást kapunk mind szerver-, mind kliensoldalon. 
 
-TIP: Az Azure B2C kommunikáció szabványokra épül, így szinte bármilyen (nem csak .NET alapú) klienstechnológiát használhatunk. Számos https://docs.microsoft.com/en-us/azure/active-directory-b2c/code-samples[mintaprojekt] elérhető különböző technológiákhoz. Az MSAL komponens is számos fejlesztői platformra https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview[elérhető]. A legtöbb mintaprojektet próba B2C tenanttal is https://github.com/Azure-Samples/active-directory-b2c-dotnet-desktop#using-the-demo-environment[ki lehet próbálni], ilyenkor nem is kell Azure előfizetés.
+TIP: A `-f` parancssori kapcsolóval beállíthatjuk a projektek által használt .NET verziót, például a 6-os verzióhoz használjuk a `-f net6.0` kapcsolót.
 
-=== Szerveralkalmazás felderítése
+TIP: Az Azure B2C kommunikáció szabványokra épül, így szinte bármilyen (nem csak .NET alapú) klienstechnológiát használhatunk. Számos https://learn.microsoft.com/en-us/azure/active-directory-b2c/code-samples[mintaprojekt] elérhető különböző technológiákhoz. Az MSAL komponens is számos fejlesztői platformra https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-overview[elérhető]. A legtöbb mintaprojektet próba B2C tenanttal is https://github.com/Azure-Samples/active-directory-b2c-dotnet-desktop#using-the-demo-environment[ki lehet próbálni], ilyenkor nem is kell Azure előfizetés.
 
-A szakasz végén ki is próbálhatjuk, hogy a `/WeatherForecast` címre hívva böngészőből 401-es hibát kapunk, míg ha az `Authorize`, `RequiredScope` attribútumokat ideiglenesen levesszük a WeatherForecastController osztályról, akkor visszakapjuk az adatokat.
+=== Az alkalmazás kipróbálása
 
-=== Kliensalkalmazás felderítése
+A szakasz végén ki is próbálhatjuk az alábbiakat.
 
-A szakasz végén próbáljuk ki a bal oldali **Fetch Data** és/vagy a jobb felső sarokban a **Log in/Logout** menüpontos segítségével a főbb folyamatokat: regisztráció, belépés, kilépés. Próbáljuk ki, hogy belépés után megjelennek-e az időjárásadatok.
+A `/WeatherForecast` címre hívva böngészőből 401-es hibát kapunk, míg ha az `Authorize`, `RequiredScope` attribútumokat ideiglenesen levesszük a `WeatherForecastController` osztályról, akkor visszakapjuk az adatokat.
+
+A bal oldali **Fetch Data** és/vagy a jobb felső sarokban a **Log in/Logout** menüpontok segítségével tesztelhetjük a főbb folyamatokat: regisztráció, belépés, kilépés. Próbáljuk ki, hogy belépés után megjelennek-e az időjárásadatok.
 
 === Felhasználói adatok megfigyelése kliensoldalon
 
-Az https://docs.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/hosted-with-azure-active-directory-b2c?view=aspnetcore-6.0#inspect-the-user[útmutatót] követve Blazor projekt **Pages** mappájába vegyünk fel egy új Razor komponenst (_Razor component_, nem _Razor page_!) **User.cshtml** névvel. Ebbe másoljuk bele a https://github.com/dotnet/aspnetcore/blob/v6.0.4/src/Components/WebAssembly/testassets/Wasm.Authentication.Client/Pages/User.razor[mintakomponens kódját]. Ezután a `/User` címre navigálva az access token adatait láthatjuk.
+Az https://learn.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/hosted-with-azure-active-directory-b2c?view=aspnetcore-6.0#inspect-the-user[útmutatót] követve Blazor projekt **Pages** mappájába vegyünk fel egy új Razor komponenst (_Razor component_, nem _Razor page_!) **User.razor** névvel. Ebbe másoljuk bele a https://github.com/dotnet/aspnetcore/blob/v6.0.4/src/Components/WebAssembly/testassets/Wasm.Authentication.Client/Pages/User.razor[mintakomponens kódját]. Ezután a `/User` címre navigálva az access token adatait láthatjuk.
 
 == Egyéb Azure B2C funkciók
 
 === Felhasználó/csoport szintű hozzáférés-szabályozás
 
-A felhasználókat tipikusan csoportokba soroljuk és az egyes csoportokra nézve osztjuk ki a hozzáférést. Az Azure AD B2C nem rendelkezik csoportadminisztrációs képességgel, azonban a kapcsolódó Azure AD-ba fel lehetne venni csoportokat, a felhasználók csoportba rendezhetnénk, kivehetnénk stb. Ehhez egyrészt az Azure AD-ban is magas szintű jogok kellenének, másrészt saját https://docs.microsoft.com/en-us/azure/active-directory-b2c/custom-policy-overview[B2C-beli policy-t] (nem ugyanaz, mint az ASP.NET Core authentikációs házirend) kellene implementálni, amivel a tokenelőállítást tudnánk testre szabni, hogy az AD csoporttagság is bekerüljön a tokenbe. Ez elég macerás, még úgy is, hogy van rá https://github.com/azure-ad-b2c/samples/tree/master/policies/groups[hivatalos példaimplementáció], ezért egy sokkal fapadosabb megoldást követünk.
+A felhasználókat tipikusan csoportokba soroljuk és az egyes csoportokra nézve osztjuk ki a hozzáférést. Az Azure AD B2C nem rendelkezik csoportadminisztrációs képességgel, azonban a kapcsolódó Azure AD-ba fel lehetne venni csoportokat, a felhasználók csoportba rendezhetnénk, kivehetnénk stb. Ehhez egyrészt az Azure AD-ban is magas szintű jogok kellenének, másrészt saját https://learn.microsoft.com/en-us/azure/active-directory-b2c/custom-policy-overview[B2C-beli policy-t] (nem ugyanaz, mint az ASP.NET Core authentikációs házirend) kellene implementálni, amivel a tokenelőállítást tudnánk testre szabni, hogy az AD csoporttagság is bekerüljön a tokenbe. Ez elég macerás, még úgy is, hogy van rá https://github.com/azure-ad-b2c/samples/tree/master/policies/groups[hivatalos példaimplementáció], ezért egy jóval fapadosabb megoldást követünk.
 
 Küldjük le a tokenben a felhasználó B2C-beli azonosítóját. A regisztrációs-belépési folyamat (_User flows_) beállításai között az _Application claims_ menüpontban jelöljük ki az *User's Object ID* claim-et. Mentsünk.
 
@@ -163,21 +163,21 @@ Követeljük meg az új házirendet a kontrolleren.
 
 TIP: Műveleteken is elhelyezhetünk `Authorize` attribútumot. Minden elemre (kontroller, művelet) nézve a lefutásának feltétele, hogy az összes szülőelemen megkövetelt minden házirend teljesüljön.
 
-A Blazor alkalmazásban lépjünk ki, majd be, végül próbáljuk ki az API hívást előbb egy az új házirendben elvárt *Object ID*-val rendelkező felhasználóval, majd egy egyéb felhasználóval (például egy újonnan regisztrálttal). Utóbbi esetben nem szabad eredményt kapnunk, de a szerveralkalmazás konzolján naplózódik a kérés elutasítása.
+A Blazor alkalmazásban lépjünk ki, majd be, végül próbáljuk ki az API hívást előbb egy az új házirendben elvárt *Object ID*-val rendelkező felhasználóval, majd egy egyéb felhasználóval (például egy újonnan regisztrálttal). Utóbbi esetben nem szabad eredményt kapnunk, de a szerveralkalmazás konzolján naplózódik a kérés elutasítása (ha a naplózásunk elég részletes).
 
-TIP: Az *Object ID* a tokenbe `oid` kulccsal kerül be és a felhasználót azonosítja. Hasonló, bár nem teljesen azonos a `sub` kulcs, ami alkalmazás-felhasználó kombinációra https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens#payload-claims[egyedi].
+TIP: Az *Object ID* a tokenbe `oid` kulccsal kerül be és a felhasználót azonosítja. Hasonló, bár nem teljesen azonos a `sub` kulcs, ami alkalmazás-felhasználó kombinációra https://learn.microsoft.com/en-us/azure/active-directory/develop/access-tokens#payload-claims[egyedi].
 
 === Elfelejtett jelszó funkció
 
-Ezt egyszerűen csak https://docs.microsoft.com/en-us/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended[be kell kattintani] a regisztrációs folyamat beállításai között. Próbáljuk ki a bejelentkező felületen a _Forgot your password?_ link aktiválásával.
+Ezt egyszerűen csak https://learn.microsoft.com/en-us/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended[be kell kattintani] a regisztrációs folyamat beállításai között. Próbáljuk ki a bejelentkező felületen a _Forgot your password?_ link aktiválásával.
 
 === Social login
 
-A B2C számos külső identitásszolgáltatóval (IDP) képes együttműködni, például Google, Twitter, GitHub, Facebook, stb. És persze Microsoft.
+A B2C számos külső identitásszolgáltatóval (IDP) képes együttműködni, például Google, Twitter, GitHub, Facebook stb. És persze Microsoft.
 
-Az integrációhoz szükségünk lesz egy felhasználói/fejlesztői fiókra a kiválasztott identitásszolgáltatónál. Az integrációhoz kövessük a hivatalos útmutatót, például a https://docs.microsoft.com/hu-hu/azure/active-directory-b2c/active-directory-b2c-setup-msa-app[Microsoft Account-ra (MSA) vonatkozót].
+Az integrációhoz szükségünk lesz egy felhasználói/fejlesztői fiókra a kiválasztott identitásszolgáltatónál. Az integrációhoz kövessük a hivatalos útmutatót, például a https://learn.microsoft.com/hu-hu/azure/active-directory-b2c/active-directory-b2c-setup-msa-app[Microsoft Account-ra (MSA) vonatkozót].
 
-WARNING: Az MSA integráció nehézsége, hogy első lépésben egy ún. https://docs.microsoft.com/en-us/azure/active-directory-b2c/identity-provider-microsoft-account?pivots=b2c-user-flow#create-a-microsoft-account-application[Microsoft account application-t] kell létrehozni, de ehhez a B2C-s tenant nem jó, egyetemi, céges tenantoknál pedig körülményes, mert a szükséges Azure AD felületeket gyakran letiltják. Megoldás lehet, ha a privát MS fiókkal (@hotmail.com, @outlook.com) lépünk be az Azure portálra és így a saját tenantunkban hozzuk létre az MS account application-t.
+WARNING: Az MSA integráció nehézsége, hogy első lépésben egy ún. https://learn.microsoft.com/en-us/azure/active-directory-b2c/identity-provider-microsoft-account?pivots=b2c-user-flow#create-a-microsoft-account-application[Microsoft account application-t] kell létrehozni, de ehhez a B2C-s tenant nem jó, egyetemi, céges tenantoknál pedig körülményes, mert a szükséges Azure AD felületeket gyakran letiltják. Megoldás lehet, ha a privát MS fiókkal (@hotmail.com, @outlook.com) lépünk be az Azure portálra és így a saját tenantunkban hozzuk létre az MS account application-t.
 
 Az integrációt követően a folyamatainkban felhasználhatjuk a külső IDP-t, ehhez a folyamat beállításainál lévő _Identity providers_ menüpontban válasszuk ki az adott folyamatban engedélyezni kívánt IDP-ket. Ezután a regisztrációs, belépés felületeken megjelennek az engedélyezett IDP-khez tartozó felület(elem)ek.
 
