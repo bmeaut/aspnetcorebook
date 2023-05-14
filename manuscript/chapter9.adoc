@@ -142,7 +142,7 @@ Vegyünk fel egy új házirendet a szerveroldal legfelső szintű kódjába úgy
 builder.Services.AddAuthorization(options=>
     options.AddPolicy("Admin", policy =>
         policy.RequireClaim(
-            "http://schemas.microsoft.com/identity/claims/objectidentifier"
+           ClaimConstants.ObjectId
             //Vegyünk fel egy-két Object ID-t a regisztrált felhasználók közül
             , "00000000-0000-0000-0000-000000000000"
             , "00000000-0000-0000-0000-000000000000" ))
