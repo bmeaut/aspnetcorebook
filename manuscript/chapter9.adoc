@@ -105,8 +105,6 @@ Ha korábban engedélyeztük az implicit flow-t, próbáljuk ki az új folyamato
 
 Derítsük fel a B2C _Users_ oldalát. Ez egy adminisztratív felület, a regisztrált felhasználók adatait látjuk, módosíthatjuk, valamint a jelszavukat is visszaállíthatjuk.
 
-WARNING: A Blazor WebAssembly az MSAL JavaScript verzióját használja (MSAL.js), azonban ennek https://github.com/dotnet/aspnetcore/issues/38122[sem minden funkcióját teszi elérhetővé]. Emiatt több B2C-s beépített user flow https://github.com/dotnet/aspnetcore/issues/27549[sem használható] (egyszerűen) Blazor WebAssembly-ből (például profilszerkesztés).
-
 === Kliens és szerver alkalmazás generálása
 
 Ebben a fázisban a beépített .NET sablonok segítségével egy alapszinten működő, konfigurált felhasználókezelést-hozzáférésszabályozást kapunk mind szerver-, mind kliensoldalon. 
