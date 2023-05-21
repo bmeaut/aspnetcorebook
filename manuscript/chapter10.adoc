@@ -33,7 +33,7 @@ Ezen gyakorlat keretében csak integrációs teszteket fogunk készíteni.
 
 === Teszt projekt
 
-Vegyünk fel a solutionbe egy új xUnit (.NET 6) típusú projektet _WebApiLab.Tests_ néven. A létrejövő osztályt nevezzük át _ProductControllerTests_ névre, amibe a ``ProductController``hez kapcsolódó műveletekre fogunk integrációs tesztet készíteni.
+Vegyünk fel a solutionbe egy új xUnit (.NET 6) típusú projektet _WebApiLab.Tests_ néven. A létrejövő tesztosztályt nevezzük át _ProductControllerTests_ névre, amibe a ``ProductController``hez kapcsolódó műveletekre fogunk integrációs tesztet készíteni.
 
 Vegyük fel az alábbi NuGet csomagokat a teszt projektbe. A __Bogus__ról és a __Fluent Assertions__ről már volt szó. A _Microsoft.AspNetCore.Mvc.Testing_ csomag olyan segédszolgáltatásokat nyújt, amivel integrációs tesztekhez egy in-process teszt szervert tudunk futtatni, és ennek a meghívásában is segítséget nyújt. A projektfájlban a többi `PackageReference` mellé (menu:a projekten jobbklikk[Edit Project File]):
 
@@ -98,7 +98,7 @@ TIP: Mivel az `AppDbContext` Scoped életciklussal van regisztrálva a DI-ba, sz
 
 === Kontrollertesztek előkészítése
 
-Vegyünk fel egy új osztályt `ProductControllerTests` néven. Az osztály valósítsa meg az `IClassFixture<CustomWebApplicationFactory>` interfészt, amivel azt tudjuk jelezni az xUnit-nak, hogy kezelje a `CustomWebApplicationFactory` életciklusát (tesztek között megosztott objektum lesz), illetve pluszban lehetőségünk van ezt konstruktor injektáláson keresztül elkérni.
+Vegyünk fel egy új osztályt `ProductControllerTests` néven. Az osztály valósítsa meg az `IClassFixture<CustomWebApplicationFactory>` interfészt, amivel azt tudjuk jelezni az xUnit-nak, hogy kezelje a `CustomWebApplicationFactory` életciklusát (tesztek között https://xunit.net/docs/shared-context#class-fixture[megosztott objektum] lesz), illetve pluszban lehetőségünk van ezt a tesztosztályokban konstruktoron keresztül elkérni.
 
 [source,csharp]
 ----
@@ -112,6 +112,8 @@ public partial class ProductControllerTests : IClassFixture<CustomWebApplication
     }
 }
 ----
+
+WARNING: Az xUnit nem tartalmaz DI konténert. Csak azok a konstruktorparaméterek töltődnek ki, amelyek a dokumentációban megtalálhatók. A `CustomWebApplicationFactory` típusú paraméter azért töltődik ki, mert az osztály az interfészében jelzi, hogy megosztott kontextusként `CustomWebApplicationFactory`-t vár.
 
 Hozzunk létre a Bogus könyvtárral egy olyan `Faker<Product>` objektumot, amivel az API-nak küldendő DTO objektum generálását végezzük el. Azonosítóként küldjünk 0 értéket, mivel a létrehozás műveletet fogjuk tesztelni, kategória esetében pedig az 1-et, mivel a migráció által létrehozott 1-es kategóriát fogjuk tudni csak használni. A többi esetben használjuk a Bogus beépített lehetőségeit a név és a szám értékek random generálásához.
 
@@ -163,7 +165,7 @@ public ProductControllerTests(CustomWebApplicationFactory appFactory)
 }
 ----
 
-WARNING: Sajnos ezt a `JsonSerializerOptions` példányt minden sorosítást igénylő műveletnél majd át kell adnunk, mivel az alapértelmezett JSON sorosítónak https://github.com/dotnet/runtime/issues/31094[nincs publikusan elérhető API-ja] alapértelmezett sorosítási beállítások megadásához. Ugyanakkor fontos, hogy kerüljük a `JsonSerializerOptions` https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/configure-options?pivots=dotnet-6-0#reuse-jsonserializeroptions-instances[felesleges példányosítását]. Ugyanolyan beállításokat igénylő műveletek lehetőleg ugyanazt a példányt használják. Ezt most az XUnit https://xunit.net/docs/shared-context#class-fixture[`IClassFixture`] megosztott kontextusával oldottuk meg.
+WARNING: Sajnos ezt a `JsonSerializerOptions` példányt minden sorosítást igénylő műveletnél majd át kell adnunk, mivel az alapértelmezett JSON sorosítónak https://github.com/dotnet/runtime/issues/31094[nincs publikusan elérhető API-ja] alapértelmezett sorosítási beállítások megadásához. Ugyanakkor fontos, hogy kerüljük a `JsonSerializerOptions` https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/configure-options?pivots=dotnet-6-0#reuse-jsonserializeroptions-instances[felesleges példányosítását]. Ugyanolyan beállításokat igénylő műveletek lehetőleg ugyanazt a példányt használják. Ezt most az XUnit megosztott kontextusával oldottuk meg.
 
 === POST művelet alapműködés tesztelése
 
