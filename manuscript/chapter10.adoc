@@ -11,7 +11,7 @@ Az automatizált tesztelés az alkalmazásfejlesztés egyik fontos lépése, miv
 
 A tesztek több típusát ismerhetjük:
 
-* **Unit test (egységteszt)** célja, hogy egy adott osztály egy metódusának a viselkedését önmagába vizsgáljuk úgy, hogy a függőségeit https://docs.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#lets-speak-the-same-language[mock/fake objektumokkal] helyettesítjük, hogy azok a tesztesetnek megfelelően viselkedjenek vagy megfigyelhetőek legyenek.
+* **Unit test (egységteszt)** célja, hogy egy adott osztály egy metódusának a viselkedését önmagába vizsgáljuk úgy, hogy a függőségeit https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#lets-speak-the-same-language[mock/fake objektumokkal] helyettesítjük, hogy azok a tesztesetnek megfelelően viselkedjenek vagy megfigyelhetőek legyenek.
 * **Integrációs teszt / End-2-end teszt / funkcionális teszt** esetében a célunk, hogy a teljes rendszert meghajtsuk úgy, hogy az integrációk (SQL kapcsolat, egyéb szolgáltatások) is tesztelésre kerülnek, illetve a BE szempontjából vizsgáljuk azt is, hogy a rendszer interfésze helyesen válaszol-e a különböző kérésekre.
 * **UI teszt** esetében azt vizsgáljuk, hogy a felhasználói felület a különböző felhasználói interakciókra, eseményekre helyesen rajzolja-e ki az elvárt felületeket.
 
@@ -55,7 +55,7 @@ Vegyük fel az *Api* projektet projekt referenciaként a teszt projektbe. A proj
 
 === Teszt szerver
 
-A tesztszervernek meg kell tudnunk mondani, hogy melyik osztály adja az alkalmazásunk belépési pontját. Viszont mivel top level statement szintaktikájú a `Program` osztályunk, annak láthatósága internal, ami a tesztelés szempontjából nem szerencsés (a hasonló esetekben alkalmazott `InternalsVisibleTo` sem lenne https://stackoverflow.com/a/69483450/1406798[ebben az esetben megoldás]). Helyette tegyük a `Program` osztályt publikussá egy `partial` deklarációval. Vegyük fel az alábbi partial kiegészítést a legfelső szintű kód végére:
+A tesztszervernek meg kell tudnunk mondani, hogy melyik osztály adja az alkalmazásunk belépési pontját. Viszont mivel top level statement szintaktikájú a `Program` osztályunk, annak láthatósága internal, ami a tesztelés szempontjából nem szerencsés (a hasonló esetekben alkalmazott `InternalsVisibleTo` sem lenne https://stackoverflow.com/a/69483450/1406798[ebben az esetben megoldás]). Helyette tegyük a `Program` osztályt publikussá egy `partial` deklarációval. Vegyük fel az alábbi partial kiegészítést az API projektben a legfelső szintű kód végére:
 
 [source,csharp]
 ----
@@ -75,13 +75,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Development");
         builder.ConfigureServices(services =>
         {
-            services.AddScoped(sp =>
-            {
-                return new DbContextOptionsBuilder<AppDbContext>()
+            services.AddScoped(sp => new DbContextOptionsBuilder<AppDbContext>()
                     .UseSqlServer(@"connection string")
                     .UseApplicationServiceProvider(sp)
-                    .Options;
-            });
+                    .Options);
         });
 
         var host = base.CreateHost(builder);
@@ -99,7 +96,7 @@ Megfigyelhetjük, hogy itt is LocalDB-t használunk (mivel integrációs teszt),
 
 TIP: Mivel az `AppDbContext` Scoped életciklussal van regisztrálva a DI-ba, szükséges létrehozni egy scope-ot, hogy el tudjuk kérni a DI konténertől. Ezt természetesen ha HTTP kérés közben lennénk az ASP.NET Core automatikusan megtenné.
 
-=== Product Controller tesztek előkészítése
+=== Kontrollertesztek előkészítése
 
 Vegyünk fel egy új osztályt `ProductControllerTests` néven. Az osztály valósítsa meg az `IClassFixture<CustomWebApplicationFactory>` interfészt, amivel azt tudjuk jelezni az xUnit-nak, hogy kezelje a `CustomWebApplicationFactory` életciklusát (tesztek között megosztott objektum lesz), illetve pluszban lehetőségünk van ezt konstruktor injektáláson keresztül elkérni.
 
@@ -107,7 +104,7 @@ Vegyünk fel egy új osztályt `ProductControllerTests` néven. Az osztály val�
 ----
 public partial class ProductControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly CustomWebApplicationFactory _appFactory;
+    private readonly WebApplicationFactory<Program> _appFactory;
 
     public ProductControllerTests(CustomWebApplicationFactory appFactory)
     {
@@ -137,7 +134,22 @@ public ProductControllerTests(CustomWebApplicationFactory appFactory)
 }
 ----
 
-A kliensoldali JSON sorosítást a szerveroldallal kompatibilisen kell megtegyük. Ehhez készítsünk egy `JsonSerializerOptions` objektumot, amibe beállítjuk, hogy camelCase formázással sorosítson, illetve a felsorolt típusokat stringként kezelje.
+A kliensoldali JSON sorosítást a szerveroldallal kompatibilisen kell megtegyük. Ehhez készítsünk egy `JsonSerializerOptions` objektumot, amibe beállítjuk, hogy a felsorolt típusokat szöveges értékként kezelje. Mivel ugyanazt a példányt akarjuk használni a tesztekben, ezért a példányt a `CustomWebApplicationFactory` (mint tesztek közötti megosztott objektum) készítse el és ajánlja ki.
+
+[source,csharp]
+----
+// ...
+public JsonSerializerOptions SerializerOptions { get; }
+
+public CustomWebApplicationFactory()
+{
+    JsonSerializerOptions jso = new(JsonSerializerDefaults.Web);
+    jso.Converters.Add(new JsonStringEnumConverter());
+    SerializerOptions= jso;
+}
+----
+
+A `ProductControllerTests` a kiajánlott `JsonSerializerOptions`-t vegye át.
 
 [source,csharp]
 ----
@@ -147,15 +159,11 @@ private readonly JsonSerializerOptions _serializerOptions;
 public ProductControllerTests(CustomWebApplicationFactory appFactory)
 {
     // ...
-    _serializerOptions = new JsonSerializerOptions()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-    _serializerOptions.Converters.Add(new JsonStringEnumConverter());
+    _serializerOptions = appFactory.SerializerOptions;
 }
 ----
 
-WARNING: Sajnos ezt a `JsonSerializerOptions` példányt minden sorosítást igénylő műveletnél át kell adnunk, mivel az alapértelmezett JSON sorosítónak https://github.com/dotnet/runtime/issues/31094[nincs publikusan elérhető API-ja] alapértelmezett sorosítási beállítások megadásához.
+WARNING: Sajnos ezt a `JsonSerializerOptions` példányt minden sorosítást igénylő műveletnél majd át kell adnunk, mivel az alapértelmezett JSON sorosítónak https://github.com/dotnet/runtime/issues/31094[nincs publikusan elérhető API-ja] alapértelmezett sorosítási beállítások megadásához. Ugyanakkor fontos, hogy kerüljük a `JsonSerializerOptions` https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/configure-options?pivots=dotnet-6-0#reuse-jsonserializeroptions-instances[felesleges példányosítását]. Ugyanolyan beállításokat igénylő műveletek lehetőleg ugyanazt a példányt használják. Ezt most az XUnit https://xunit.net/docs/shared-context#class-fixture[`IClassFixture`] megosztott kontextusával oldottuk meg.
 
 === POST művelet alapműködés tesztelése
 
@@ -179,9 +187,9 @@ public partial class ProductControllerTests
 
 A tesztesetek a teszt osztályban metódusok fogják reprezentálni, amelyek `[Fact]` vagy `[Theory]` attribútummal rendelkeznek. A fő különbég az, hogy a `Fact` egy statikus tesztesetet reprezentál, míg a `Theory` bemenő paraméterekkel rendelkezhet.
 
-Elsőként az egyenes ágat teszteljük le, hogy a beszúrás helyesen lefut-e, és a megfelelő HTTP válaszkódot, location headert, és válasz DTO-t adja-e vissza. Hozzunk létre egy függvényt `Fact` attribútummal `Should_Succeded_With_Created` néven.
+Elsőként az egyenes ágat teszteljük le, hogy a beszúrás helyesen lefut-e, és a megfelelő HTTP válaszkódot, a _location_ HTTP fejlécet, és válasz DTO-t adja-e vissza. Hozzunk létre egy függvényt `Fact` attribútummal `Should_Succeded_With_Created` néven.
 
-A teszteset az https://docs.microsoft.com/en-us/visualstudio/test/unit-test-basics?view=vs-2022#write-your-tests[AAA (Arrange, Act, Assert)] mintát követi, ahol 3 részre tagoljuk magát a tesztesetet. Az _Arrange_ fázisban előkészítjük a teszteset körülményeit. Az _Act_ fázisban elvégezzük a tesztelendő műveletet. Az _Assert_ fázisban pedig megvizsgáljuk a végrehajtott művelet eredményeit, mellékhatásait.
+A teszteset az https://learn.microsoft.com/en-us/visualstudio/test/unit-test-basics?view=vs-2022#write-your-tests[AAA (Arrange, Act, Assert)] mintát követi, ahol 3 részre tagoljuk magát a tesztesetet. Az _Arrange_ fázisban előkészítjük a teszteset körülményeit. Az _Act_ fázisban elvégezzük a tesztelendő műveletet. Az _Assert_ fázisban pedig megvizsgáljuk a végrehajtott művelet eredményeit, mellékhatásait.
 
 [source,csharp]
 ----
@@ -210,7 +218,7 @@ Az _Act_ fázisban küldjünk el egy POST kérést a megfelelő végpontra a meg
 [source,csharp]
 ----
 // Act
-var response = await client.PostAsJsonAsync("/api/product", dto, _serializerOptions);
+var response = await client.PostAsJsonAsync("/api/products", dto, _serializerOptions);
 var p = await response.Content.ReadFromJsonAsync<Product>(_serializerOptions);
 ----
 
@@ -222,7 +230,7 @@ Az _Assert_ fázisban pedig fogalmazzuk meg a FluentValidation könyvtár segít
 response.StatusCode.Should().Be(HttpStatusCode.Created);
 response.Headers.Location
     .Should().Be(
-        new Uri(_appFactory.Server.BaseAddress, $"/api/Product/{p.Id}")
+        new Uri(_appFactory.Server.BaseAddress, $"/api/products/{p.Id}")
     );
 
 p.Should().BeEquivalentTo(
@@ -273,11 +281,13 @@ public async Task Should_Fail_When_Name_Is_Invalid(string name, string expectedE
 }
 ----
 
-Az előző tesztesethez hasonlóan hozzunk létre a teszt szervert és a DTO-t, de most a nevet a paraméter alapján töltsük fel. Tranzakciókezelésre most nem lesz szükség.
+Az előző tesztesethez hasonlóan hozzunk létre a teszt szervert és a DTO-t, de most a nevet a paraméter alapján töltsük fel. Bár elvileg nem lenne szükséges tranzakciókezelés, hiszen nem szabadna adatbázis módosításnak történnie, a biztonság kedvéért implementáljuk itt is a tranzakciókezelést.
 
 [source,csharp]
 ----
 // Arrange
+ _appFactory.Server.PreserveExecutionContext = true;
+using var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 var client = _appFactory.CreateClient();
 var dto = _dtoFaker.RuleFor(x => x.Name, name).Generate();
 ----
@@ -287,7 +297,7 @@ Az _Act_ fázisban annyi a különbség, hogy most `ValidationProblemDetails` ob
 [source,csharp]
 ----
 // Act
-var response = await client.PostAsJsonAsync("/api/product", dto, _serializerOptions);
+var response = await client.PostAsJsonAsync("/api/products", dto, _serializerOptions);
 var p = await response.Content
             .ReadFromJsonAsync<ValidationProblemDetails>(_serializerOptions);
 ----
@@ -305,6 +315,6 @@ p.Errors.Should().ContainKey(nameof(Product.Name));
 p.Errors[nameof(Product.Name)].Should().ContainSingle(expectedError);
 ----
 
-Próbáljuk ki a menu:Test[Run All Test] menüpont segítségével. A https://docs.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022#run-tests-in-test-explorer[Test Explorerben] figyeljük meg az eredményt. Figyeljük meg a tesztek hierarchiáját is, a POST művelethez kapcsolódó tesztek egy csoportba lettek összefogva.
+Próbáljuk ki a menu:Test[Run All Test] menüpont segítségével. A https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022#run-tests-in-test-explorer[Test Explorerben] figyeljük meg az eredményt. Figyeljük meg a tesztek hierarchiáját is, a POST művelethez kapcsolódó tesztek egy csoportba lettek összefogva.
 
-TIP: Ennél a tesztesetnél is hasznos lenne a fentebb látott tranzakciós módszer követése. A kódduplikáció elkerülése miatt erre https://github.com/xunit/samples.xunit/blob/main/AutoRollbackExample/AutoRollbackAttribute.cs[például tesztfüggvényre tehető attribútumot] vezethetünk be.
+TIP: Észrevehetjük, hogy a tranzakciókezeléssel kapcsolatos kódot duplikáltuk, ennek elkerülésére például https://github.com/xunit/samples.xunit/blob/main/AutoRollbackExample/AutoRollbackAttribute.cs[például tesztfüggvényre tehető attribútumot] vezethetünk be.
