@@ -33,7 +33,7 @@ Ezen gyakorlat keretében csak integrációs teszteket fogunk készíteni.
 
 === Teszt projekt
 
-Vegyünk fel a solutionbe egy új xUnit (.NET 6) típusú projektet _WebApiLab.Tests_ néven. A létrejövő tesztosztályt nevezzük át _ProductControllerTests_ névre, amibe a ``ProductController``hez kapcsolódó műveletekre fogunk integrációs tesztet készíteni.
+Vegyünk fel a solutionbe egy új xUnit (.NET 6) típusú projektet _WebApiLab.Tests_ néven. A létrejövő tesztosztályt és fájlját nevezzük át _ProductControllerTests_ névre. Ide fogjuk a ``ProductController``hez kapcsolódó műveletekre vonatkozó integrációs teszteket készíteni.
 
 Vegyük fel az alábbi NuGet csomagokat a teszt projektbe. A __Bogus__ról és a __Fluent Assertions__ről már volt szó. A _Microsoft.AspNetCore.Mvc.Testing_ csomag olyan segédszolgáltatásokat nyújt, amivel integrációs tesztekhez egy in-process teszt szervert tudunk futtatni, és ennek a meghívásában is segítséget nyújt. A projektfájlban a többi `PackageReference` mellé (menu:a projekten jobbklikk[Edit Project File]):
 
@@ -98,7 +98,7 @@ TIP: Mivel az `AppDbContext` Scoped életciklussal van regisztrálva a DI-ba, sz
 
 === Kontrollertesztek előkészítése
 
-Vegyünk fel egy új osztályt `ProductControllerTests` néven. Az osztály valósítsa meg az `IClassFixture<CustomWebApplicationFactory>` interfészt, amivel azt tudjuk jelezni az xUnit-nak, hogy kezelje a `CustomWebApplicationFactory` életciklusát (tesztek között https://xunit.net/docs/shared-context#class-fixture[megosztott objektum] lesz), illetve pluszban lehetőségünk van ezt a tesztosztályokban konstruktoron keresztül elkérni.
+Alakítsuk át a `ProductControllerTests` osztályt. Az osztály valósítsa meg az `IClassFixture<CustomWebApplicationFactory>` interfészt, amivel azt tudjuk jelezni az xUnit-nak, hogy kezelje a `CustomWebApplicationFactory` életciklusát (tesztek között https://xunit.net/docs/shared-context#class-fixture[megosztott objektum] lesz), illetve pluszban lehetőségünk van ezt a tesztosztályokban konstruktoron keresztül elkérni.
 
 [source,csharp]
 ----
@@ -120,27 +120,26 @@ Hozzunk létre a Bogus könyvtárral egy olyan `Faker<Product>` objektumot, amiv
 [source,csharp]
 ----
 // ...
-private readonly Faker<Product> _dtoFaker;
+    private readonly Faker<Product> _dtoFaker;
 
-public ProductControllerTests(CustomWebApplicationFactory appFactory)
-{
-    // ...
-    _dtoFaker = new Faker<Product>()
-        .RuleFor(p => p.Id, 0)
-        .RuleFor(p => p.Name, f => f.Commerce.Product())
-        .RuleFor(p => p.UnitPrice, f => f.Random.Int(200, 20000))
-        .RuleFor(p => p.ShipmentRegion, 
-                 f => f.PickRandom<Dal.Entities.ShipmentRegion>())
-        .RuleFor(p => p.CategoryId, 1)
-        .RuleFor(p => p.RowVersion, f => f.Random.Bytes(5));
-}
+/**/public ProductControllerTests(CustomWebApplicationFactory appFactory)
+/**/{
+        // ...
+        _dtoFaker = new Faker<Product>()
+            .RuleFor(p => p.Id, 0)
+            .RuleFor(p => p.Name, f => f.Commerce.Product())
+            .RuleFor(p => p.UnitPrice, f => f.Random.Int(200, 20000))
+            .RuleFor(p => p.ShipmentRegion, 
+                     f => f.PickRandom<Dal.Entities.ShipmentRegion>())
+            .RuleFor(p => p.CategoryId, 1)
+            .RuleFor(p => p.RowVersion, f => f.Random.Bytes(5));
+/**/}
 ----
 
 A kliensoldali JSON sorosítást a szerveroldallal kompatibilisen kell megtegyük. Ehhez készítsünk egy `JsonSerializerOptions` objektumot, amibe beállítjuk, hogy a felsorolt típusokat szöveges értékként kezelje. Mivel ugyanazt a példányt akarjuk használni a tesztekben, ezért a példányt a `CustomWebApplicationFactory` (mint tesztek közötti megosztott objektum) készítse el és ajánlja ki.
 
 [source,csharp]
 ----
-// ...
 public JsonSerializerOptions SerializerOptions { get; }
 
 public CustomWebApplicationFactory()
@@ -175,16 +174,17 @@ TIP: Érdekesség, hogy nem kell `protected` láthatóságúaknak lenniük a fen
 
 [source,csharp]
 ----
-public partial class ProductControllerTests
-{
-    public class Post : ProductControllerTests
-    {
-        public Post(CustomWebApplicationFactory appFactory)
-            : base(appFactory)
+/**/public partial class ProductControllerTests
+/**/{
+        //...
+        public class Post : ProductControllerTests
         {
+            public Post(CustomWebApplicationFactory appFactory)
+                : base(appFactory)
+            {
+            }
         }
-    }
-}
+/**/}
 ----
 
 A tesztesetek a teszt osztályban metódusok fogják reprezentálni, amelyek `[Fact]` vagy `[Theory]` attribútummal rendelkeznek. A fő különbég az, hogy a `Fact` egy statikus tesztesetet reprezentál, míg a `Theory` bemenő paraméterekkel rendelkezhet.
@@ -232,7 +232,7 @@ Az _Assert_ fázisban pedig fogalmazzuk meg a FluentValidation könyvtár segít
 response.StatusCode.Should().Be(HttpStatusCode.Created);
 response.Headers.Location
     .Should().Be(
-        new Uri(_appFactory.Server.BaseAddress, $"/api/products/{p.Id}")
+        new Uri(_appFactory.Server.BaseAddress, $"/api/Products/{p.Id}")
     );
 
 p.Should().BeEquivalentTo(
@@ -263,6 +263,8 @@ A POST művelet megváltoztatná az adatbázis állapotát, amit célszerű lenn
 ----
 
 Tranzakciót a .NET `TransactionScope` osztállyal fogunk most nyitni, amin engedélyezzük az aszinkron támogatást is. Ahhoz pedig, hogy a tesztben létrehozott tranzakció érvényre jusson a teszt szerveren is, a `PreserveExecutionContext` tulajdonságot be kell kapcsoljuk.
+
+Próbáljuk ki a menu:Test[Run All Test] menüpont segítségével. A https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022#run-tests-in-test-explorer[Test Explorerben] figyeljük meg az eredményt.
 
 === POST művelet hibaág tesztelése
 
@@ -317,6 +319,65 @@ p.Errors.Should().ContainKey(nameof(Product.Name));
 p.Errors[nameof(Product.Name)].Should().ContainSingle(expectedError);
 ----
 
-Próbáljuk ki a menu:Test[Run All Test] menüpont segítségével. A https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022#run-tests-in-test-explorer[Test Explorerben] figyeljük meg az eredményt. Figyeljük meg a tesztek hierarchiáját is, a POST művelethez kapcsolódó tesztek egy csoportba lettek összefogva.
+Próbáljuk ki a menu:Test[Run All Test] menüpont segítségével. Figyeljük meg a tesztek hierarchiáját is, a POST művelethez kapcsolódó tesztek egy csoportba lettek összefogva.
 
 TIP: Észrevehetjük, hogy a tranzakciókezeléssel kapcsolatos kódot duplikáltuk, ennek elkerülésére például https://github.com/xunit/samples.xunit/blob/main/AutoRollbackExample/AutoRollbackAttribute.cs[például tesztfüggvényre tehető attribútumot] vezethetünk be.
+
+== Naplózás
+
+A tesztek üzeneteket naplózhatnak egy speciális tesztkimenetre. Ehhez minden tesztosztály példány kap(hat) egy saját `ITestOutputHelper` példányt a konstruktoron keresztül. Vezessük be az új konstruktorparamétert a tesztosztályban és az ősosztályában is.
+
+[source,csharp]
+----
+    private readonly ITestOutputHelper _testOutput;
+
+/**/public ProductControllerTests(CustomWebApplicationFactory appFactory
+        , ITestOutputHelper output)
+/**/{
+        //...
+        _testOutput = output;
+/**/}
+
+//... Post beágyazott típus konstruktora
+
+/**/public Post(CustomWebApplicationFactory appFactory
+                , ITestOutputHelper output)
+        : base(appFactory, output) //plusz paraméter átadása
+/**/{ }  
+----
+
+Próbaképp írjunk ki egy üzenetet a `ProductControllerTests` konstruktorában.
+
+[source,csharp]
+----
+/**/_testOutput = output;
+    output.WriteLine("ProductControllerTests ctor");
+----
+
+Ellenőrizzük, hogy a tesztek lefuttatása után _Test Explorer_-ben megjelennek-e az üzenetek a https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022#view-test-details[_Test Detail Summary_] ablakrész _Standard output_ szekciójában. Ebből láthatjuk, hogy minden tesztfüggvény, sőt minden tesztfüggvény változat (a _Theory_ minden bemeneti adatsora egy külön változat) meghívásakor lefut a konstruktor.
+
+Ugyanerre a kimenetre kössük rá a szerveroldali naplózást, hogy a tesztek lefutása mellett ezek a naplóüzenetek is megjelenjenek. Ehhez telepítsünk egy segédcsomagot a tesztprojektbe.
+
+[source,xml]
+----
+<PackageReference Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
+----
+
+A `ProductControllerTests` konstruktorában kössük össze a két paramétert, a `CustomWebApplicationFactory` és az `ITestOutputHelper` példányt a fenti segédcsomag (`AddXUnit` metódus) segítségével. A tesztszerver naplózó alrendszerének adjuk meg kimenetként az xUnit tesztkimenetét.
+
+[source,csharp]
+----
+/**/_appFactory = appFactory
+        .WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddXUnit(output);
+            });
+        }); 
+----
+
+Ellenőrizzük, hogy a tesztek lefuttatása után _Test Explorer_-ben megjelennek-e a szerveroldali üzenetek is.
+
+A végállapot elérhető a kapcsolódó GitHub repo https://github.com/bmeaut/WebApiLab/tree/net6-test-megoldas[net6-test-megoldas ágán].
