@@ -1,1 +1,4 @@
-A jegyzet elköltözött: https://github.com/bmeviauav23/aspnetcorebook
+# Elköltözött
+
+> [!CAUTION]
+> A jegyzet elköltözött: https://github.com/bmeviauav23/aspnetcorebook
